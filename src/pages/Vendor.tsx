@@ -73,6 +73,8 @@ const Vendor = () => {
     refresh();
   }
 
+  const isApproved = !!store?.approved;
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -82,7 +84,7 @@ const Vendor = () => {
             <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Vendor</p>
             <h1 className="font-display text-5xl">{store?.name}</h1>
             <p className="text-muted-foreground mt-1 text-sm">
-              {store?.approved ? "Approved · live" : "Awaiting approval"} · {store?.city}
+              {isApproved ? "Approved · live" : "Awaiting approval"}{store?.city ? ` · ${store.city}` : ""}
             </p>
           </div>
           <div className="flex gap-3">
@@ -92,6 +94,17 @@ const Vendor = () => {
           </div>
         </div>
 
+        {!isApproved && (
+          <div className="rounded-3xl bg-gradient-blossom p-6 md:p-8 mb-8 shadow-card">
+            <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-1">Pending review</p>
+            <h2 className="font-display text-2xl md:text-3xl mb-2">We're reviewing your store</h2>
+            <p className="text-sm text-muted-foreground max-w-2xl">
+              You can explore the dashboard, but adding products and accepting rentals will unlock the moment an admin
+              approves your boutique. We typically review within 24 hours.
+            </p>
+          </div>
+        )}
+
         <Tabs defaultValue="products">
           <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
@@ -100,9 +113,13 @@ const Vendor = () => {
 
           <TabsContent value="products" className="mt-6">
             <div className="flex justify-end mb-4">
-              {storeId && <ProductDialog storeId={storeId} onCreated={refresh} />}
+              {storeId && isApproved && <ProductDialog storeId={storeId} onCreated={refresh} />}
             </div>
-            {products.length === 0 ? (
+            {!isApproved ? (
+              <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
+                Product listings unlock once your store is approved.
+              </div>
+            ) : products.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
                 No products yet. Add your first piece.
               </div>
