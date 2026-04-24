@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Camera, Upload, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { Camera, Upload, ShieldAlert, CheckCircle2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -19,10 +19,47 @@ interface Props {
   className?: string;
 }
 
-const stageMeta: Record<Stage, { label: string; hint: string }> = {
-  before_delivery: { label: "Before delivery", hint: "Store photos before handing over the item" },
-  at_delivery: { label: "At delivery", hint: "Optional handover photos" },
-  after_return: { label: "After return", hint: "Customer photos when returning the item" },
+type StageInfo = {
+  label: string;
+  hint: string;
+  uploader: "store" | "customer" | "either";
+  unlocks: string;
+  checklist: string[];
+};
+
+const stageMeta: Record<Stage, StageInfo> = {
+  before_delivery: {
+    label: "Before delivery",
+    hint: "Document the item's condition before it leaves the store.",
+    uploader: "store",
+    unlocks: "Required to mark this rental as Delivered.",
+    checklist: [
+      "Full-length shot of the piece on a hanger or display",
+      "Close-up of any existing marks, beading or embroidery",
+      "Tag, size label and accessories included",
+    ],
+  },
+  at_delivery: {
+    label: "At delivery (optional)",
+    hint: "Optional handover photos — useful if a dispute arises later.",
+    uploader: "either",
+    unlocks: "Not required, but strongly recommended for proof of handover.",
+    checklist: [
+      "Photo of the item as handed to the customer",
+      "Packaging or garment bag at handover",
+    ],
+  },
+  after_return: {
+    label: "After return",
+    hint: "Document the item's condition the moment it's returned.",
+    uploader: "customer",
+    unlocks: "Required before the store can mark this rental as Returned and refund your deposit.",
+    checklist: [
+      "Full-length shot of the returned piece",
+      "Close-up of any new stains, tears or damage (if any)",
+      "All accessories and tags included",
+    ],
+  },
 };
 
 export function RentalProofPanel({ rentalId, role, stages = ["before_delivery", "after_return"], className }: Props) {
@@ -49,12 +86,17 @@ export function RentalProofPanel({ rentalId, role, stages = ["before_delivery", 
   }
 
   async function upload(stage: Stage, file: File) {
-    if (!user) return toast.error("Please sign in.");
-    if (file.size > 8 * 1024 * 1024) return toast.error("Image must be under 8 MB.");
+    if (!user) return toast.error("Please sign in to upload proof photos.");
+    if (!file.type.startsWith("image/")) {
+      return toast.error("That file isn't an image. Please upload a JPG, PNG or HEIC photo.");
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      return toast.error(`Photo is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max 8 MB — try a smaller image.`);
+    }
     setBusyStage(stage);
     const path = `${rentalId}/${stage}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
     const { error: upErr } = await supabase.storage.from("rental-proofs").upload(path, file, { upsert: false });
-    if (upErr) { setBusyStage(null); return toast.error(upErr.message); }
+    if (upErr) { setBusyStage(null); return toast.error(`Upload failed: ${upErr.message}`); }
     const { data: pub } = supabase.storage.from("rental-proofs").getPublicUrl(path);
     const { error } = await supabase.from("rental_images").insert({
       rental_id: rentalId,
@@ -63,37 +105,82 @@ export function RentalProofPanel({ rentalId, role, stages = ["before_delivery", 
       stage,
     });
     setBusyStage(null);
-    if (error) return toast.error(error.message);
-    toast.success("Photo uploaded");
+    if (error) return toast.error(`Couldn't save photo: ${error.message}`);
+    toast.success(`${stageMeta[stage].label} photo added.`);
     load();
   }
 
+  const requiredStages = stages.filter((s) => s !== "at_delivery");
+  const missingRequired = requiredStages.filter((s) => !images.some((i) => i.stage === s));
+
   return (
-    <div className={cn("space-y-5", className)}>
+    <div className={cn("space-y-4", className)}>
+      {/* Top-of-panel guidance */}
+      <div
+        className={cn(
+          "rounded-2xl border p-3 flex gap-3 text-sm",
+          missingRequired.length > 0
+            ? "border-destructive/30 bg-destructive/5 text-destructive"
+            : "border-primary/20 bg-primary-soft/30 text-rose-deep"
+        )}
+        role="status"
+        aria-live="polite"
+      >
+        {missingRequired.length > 0 ? (
+          <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0" />
+        ) : (
+          <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+        )}
+        <div className="leading-relaxed">
+          {missingRequired.length > 0 ? (
+            <>
+              <strong>Action needed:</strong> upload at least one photo for{" "}
+              {missingRequired.map((s, i) => (
+                <span key={s}>
+                  {i > 0 && (i === missingRequired.length - 1 ? " and " : ", ")}
+                  <em className="not-italic font-medium">{stageMeta[s].label}</em>
+                </span>
+              ))}
+              . The status can't move forward until this is done.
+            </>
+          ) : (
+            <>All required proof photos are uploaded. You're good to update the rental status.</>
+          )}
+        </div>
+      </div>
+
       {stages.map((stage) => {
         const meta = stageMeta[stage];
         const stageImgs = images.filter((i) => i.stage === stage);
         const has = stageImgs.length > 0;
         const allowed = canUpload(stage);
+        const isOptional = stage === "at_delivery";
+        const uploaderLabel =
+          meta.uploader === "store" ? "Uploaded by store" :
+          meta.uploader === "customer" ? "Uploaded by customer" :
+          "Uploaded by either party";
 
         return (
           <div key={stage} className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <div>
-                <div className="flex items-center gap-2">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Camera className="h-4 w-4 text-rose-deep" />
                   <h4 className="font-medium">{meta.label}</h4>
                   {has ? (
                     <Badge className="bg-primary-soft text-rose-deep gap-1">
-                      <CheckCircle2 className="h-3 w-3" /> {stageImgs.length}
+                      <CheckCircle2 className="h-3 w-3" /> {stageImgs.length} uploaded
                     </Badge>
+                  ) : isOptional ? (
+                    <Badge variant="outline" className="gap-1 text-muted-foreground">Optional</Badge>
                   ) : (
-                    <Badge variant="outline" className="gap-1 text-muted-foreground">
+                    <Badge variant="outline" className="gap-1 text-destructive border-destructive/40">
                       <ShieldAlert className="h-3 w-3" /> Required
                     </Badge>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">{meta.hint}</p>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground/80 mt-1">{uploaderLabel}</p>
               </div>
               {allowed && (
                 <label className={cn(
@@ -101,7 +188,7 @@ export function RentalProofPanel({ rentalId, role, stages = ["before_delivery", 
                   busyStage === stage && "opacity-60 pointer-events-none"
                 )}>
                   <Upload className="h-3.5 w-3.5" />
-                  {busyStage === stage ? "Uploading…" : "Add photo"}
+                  {busyStage === stage ? "Uploading…" : has ? "Add another" : "Add photo"}
                   <input
                     type="file"
                     accept="image/*"
@@ -117,17 +204,35 @@ export function RentalProofPanel({ rentalId, role, stages = ["before_delivery", 
               )}
             </div>
 
+            {/* Per-stage checklist + unlock note */}
+            <div className="rounded-xl bg-secondary/60 p-3 mt-2 mb-3 space-y-2">
+              <div className="flex gap-2 text-xs text-foreground/80">
+                <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-rose-deep" />
+                <span>{meta.unlocks}</span>
+              </div>
+              <ul className="text-xs text-muted-foreground space-y-1 pl-5 list-disc marker:text-rose-deep">
+                {meta.checklist.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+              <p className="text-[11px] text-muted-foreground/80">JPG, PNG or HEIC · up to 8 MB per photo.</p>
+            </div>
+
+            {!allowed && !has && (
+              <p className="text-xs text-muted-foreground italic">
+                Waiting on the {meta.uploader === "store" ? "store" : "customer"} to upload these photos.
+              </p>
+            )}
+
             {stageImgs.length > 0 ? (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {stageImgs.map((img) => (
                   <a key={img.id} href={img.image_url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden bg-petal block">
-                    <img src={img.image_url} alt="proof" className="w-full h-full object-cover" loading="lazy" />
+                    <img src={img.image_url} alt={`${meta.label} proof`} className="w-full h-full object-cover" loading="lazy" />
                   </a>
                 ))}
               </div>
-            ) : (
-              <p className="text-xs text-muted-foreground italic">No photos yet.</p>
-            )}
+            ) : allowed ? (
+              <p className="text-xs text-muted-foreground italic">No photos yet — tap <strong>Add photo</strong> to upload.</p>
+            ) : null}
           </div>
         );
       })}
