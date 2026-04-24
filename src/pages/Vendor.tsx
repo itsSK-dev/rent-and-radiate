@@ -221,6 +221,8 @@ function RentalRow({ r, onUpdate }: { r: Rental; onUpdate: (status: string) => v
     </div>
   );
 }
+
+function ProductDialog({ storeId, onCreated }: { storeId: string; onCreated: () => void }) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
