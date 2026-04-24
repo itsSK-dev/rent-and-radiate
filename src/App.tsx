@@ -12,6 +12,7 @@ import MyRentals from "./pages/MyRentals";
 import BecomeVendor from "./pages/BecomeVendor";
 import Vendor from "./pages/Vendor";
 import HowItWorks from "./pages/HowItWorks";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/become-vendor" element={<BecomeVendor />} />
             <Route path="/vendor" element={<Vendor />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

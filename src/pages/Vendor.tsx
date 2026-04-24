@@ -12,9 +12,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Trash2, Upload } from "lucide-react";
+import { Plus, Trash2, Upload, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
 
 type Store = { id: string; name: string; city: string | null; approved: boolean };
 type Product = { id: string; title: string; category: "dress" | "jewellery"; price_per_day: number; security_deposit: number; available: boolean; images: string[] };
@@ -157,23 +158,7 @@ const Vendor = () => {
             ) : (
               <div className="space-y-3">
                 {rentals.map((r) => (
-                  <div key={r.id} className="rounded-2xl border border-border bg-card p-4 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="font-medium">{r.product?.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {r.customer?.full_name ?? "Customer"} · {format(new Date(r.start_date), "PP")} → {format(new Date(r.end_date), "PP")} · {r.days}d
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium">₹{Number(r.grand_total).toLocaleString("en-IN")}</span>
-                      <Select value={r.status} onValueChange={(v) => updateRental(r.id, v)}>
-                        <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {["pending","confirmed","delivered","returned","cancelled"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                  <RentalRow key={r.id} r={r} onUpdate={(status) => updateRental(r.id, status)} />
                 ))}
               </div>
             )}
@@ -190,6 +175,49 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="rounded-2xl bg-secondary px-5 py-3 text-center">
       <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className="font-display text-2xl">{value}</p>
+    </div>
+  );
+}
+
+function RentalRow({ r, onUpdate }: { r: Rental; onUpdate: (status: string) => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const blockedDelivered = r.status !== "delivered" && r.status !== "returned";
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="font-medium">{r.product?.title}</p>
+          <p className="text-xs text-muted-foreground">
+            {r.customer?.full_name ?? "Customer"} · {format(new Date(r.start_date), "PP")} → {format(new Date(r.end_date), "PP")} · {r.days}d
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium">₹{Number(r.grand_total).toLocaleString("en-IN")}</span>
+          <Select value={r.status} onValueChange={onUpdate}>
+            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {["pending","confirmed","delivered","returned","cancelled"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button variant="ghost" size="sm" onClick={() => setExpanded((x) => !x)}>
+            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            <span className="ml-1">Proof</span>
+          </Button>
+        </div>
+      </div>
+      {blockedDelivered && (
+        <p className="text-xs text-muted-foreground">
+          Upload at least one <strong>before-delivery</strong> photo before marking as delivered.
+        </p>
+      )}
+      {expanded && (
+        <div className="pt-2 border-t border-border space-y-3">
+          <RentalProofPanel rentalId={r.id} role="store" stages={["before_delivery", "at_delivery"]} />
+          <div className="flex justify-end">
+            <OpenDisputeButton rentalId={r.id} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

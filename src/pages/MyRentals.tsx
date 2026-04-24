@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { demoImageMap } from "@/lib/seedDemo";
 import { toast } from "sonner";
+import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
 
 type Rental = {
   id: string;
@@ -104,11 +105,24 @@ const MyRentals = () => {
                       <span>Total: <strong>₹{Number(r.grand_total).toLocaleString("en-IN")}</strong></span>
                       <span className="text-muted-foreground">Payment: {r.payment_status}</span>
                     </div>
-                    <div className="pt-2 flex gap-2">
+                    <div className="pt-2 flex flex-wrap gap-2">
                       {r.status === "pending" && (
                         <Button variant="ghost" size="sm" onClick={() => cancel(r.id)}>Cancel</Button>
                       )}
+                      {r.status === "delivered" && (
+                        <p className="text-xs text-muted-foreground w-full">
+                          Upload at least one <strong>after-return</strong> photo before the store can close this rental.
+                        </p>
+                      )}
                     </div>
+                    {(r.status === "delivered" || r.status === "returned") && (
+                      <div className="pt-3 border-t border-border space-y-3">
+                        <RentalProofPanel rentalId={r.id} role="customer" stages={["after_return"]} />
+                        <div className="flex justify-end">
+                          <OpenDisputeButton rentalId={r.id} />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
