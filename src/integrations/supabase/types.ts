@@ -17,7 +17,9 @@ export type Database = {
       disputes: {
         Row: {
           admin_notes: string | null
+          assigned_admin: string | null
           created_at: string
+          evidence_images: string[]
           id: string
           opened_by: string
           reason: string
@@ -28,7 +30,9 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          assigned_admin?: string | null
           created_at?: string
+          evidence_images?: string[]
           id?: string
           opened_by: string
           reason: string
@@ -39,7 +43,9 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          assigned_admin?: string | null
           created_at?: string
+          evidence_images?: string[]
           id?: string
           opened_by?: string
           reason?: string
