@@ -56,6 +56,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "disputes_opened_by_profiles_fkey"
+            columns: ["opened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "disputes_rental_id_fkey"
             columns: ["rental_id"]
             isOneToOne: false
