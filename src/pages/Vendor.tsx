@@ -12,9 +12,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Trash2, Upload } from "lucide-react";
+import { Plus, Trash2, Upload, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
 
 type Store = { id: string; name: string; city: string | null; approved: boolean };
 type Product = { id: string; title: string; category: "dress" | "jewellery"; price_per_day: number; security_deposit: number; available: boolean; images: string[] };
@@ -157,23 +158,7 @@ const Vendor = () => {
             ) : (
               <div className="space-y-3">
                 {rentals.map((r) => (
-                  <div key={r.id} className="rounded-2xl border border-border bg-card p-4 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="font-medium">{r.product?.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {r.customer?.full_name ?? "Customer"} · {format(new Date(r.start_date), "PP")} → {format(new Date(r.end_date), "PP")} · {r.days}d
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium">₹{Number(r.grand_total).toLocaleString("en-IN")}</span>
-                      <Select value={r.status} onValueChange={(v) => updateRental(r.id, v)}>
-                        <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {["pending","confirmed","delivered","returned","cancelled"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                  <RentalRow key={r.id} r={r} onUpdate={(status) => updateRental(r.id, status)} />
                 ))}
               </div>
             )}
