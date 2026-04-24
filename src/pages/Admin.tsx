@@ -60,7 +60,7 @@ const Admin = () => {
     const { data, error } = await supabase
       .from("disputes")
       .select(`
-        id,rental_id,opened_by,reason,status,resolution,admin_notes,created_at,
+        id,rental_id,opened_by,reason,status,resolution,admin_notes,evidence_images,created_at,
         rental:rentals(id,start_date,end_date,grand_total,status,product:products(title),store:stores(name)),
         opener:profiles!disputes_opened_by_profiles_fkey(full_name)
       `)
@@ -119,8 +119,38 @@ const Admin = () => {
 };
 
 function DisputeCard({ d, onUpdate }: { d: Dispute; onUpdate: (patch: Partial<Dispute>) => void }) {
+  const { user } = useAuth();
   const [notes, setNotes] = useState(d.admin_notes ?? "");
   const [resolution, setResolution] = useState(d.resolution ?? "");
+  const [uploading, setUploading] = useState(false);
+  const evidence = d.evidence_images ?? [];
+
+  async function uploadAdminEvidence(file: File) {
+    if (!user) return;
+    if (!file.type.startsWith("image/")) return toast.error("Only image files are accepted.");
+    if (file.size > 8 * 1024 * 1024) {
+      return toast.error(`File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max 8 MB.`);
+    }
+    setUploading(true);
+    const path = `disputes/${d.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const { error: upErr } = await supabase.storage.from("rental-proofs").upload(path, file);
+    if (upErr) { setUploading(false); return toast.error(`Upload failed: ${upErr.message}`); }
+    const { data: pub } = supabase.storage.from("rental-proofs").getPublicUrl(path);
+    const next = [...evidence, pub.publicUrl];
+    const { error } = await supabase.from("disputes").update({ evidence_images: next }).eq("id", d.id);
+    setUploading(false);
+    if (error) return toast.error(error.message);
+    toast.success("Evidence added.");
+    onUpdate({ evidence_images: next });
+  }
+
+  async function removeAdminEvidence(url: string) {
+    const next = evidence.filter((u) => u !== url);
+    const { error } = await supabase.from("disputes").update({ evidence_images: next }).eq("id", d.id);
+    if (error) return toast.error(error.message);
+    toast.success("Evidence removed.");
+    onUpdate({ evidence_images: next });
+  }
 
   return (
     <div className="rounded-3xl border border-border bg-card p-6 shadow-card space-y-5">
@@ -156,8 +186,62 @@ function DisputeCard({ d, onUpdate }: { d: Dispute; onUpdate: (patch: Partial<Di
       </div>
 
       <div>
-        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Evidence photos</p>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Rental evidence photos</p>
         <RentalProofPanel rentalId={d.rental_id} role="admin" stages={["before_delivery", "at_delivery", "after_return"]} />
+      </div>
+
+      {/* Admin-only evidence area */}
+      <div className="rounded-2xl border border-dashed border-rose-deep/30 bg-blossom/30 p-4">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <FileImage className="h-4 w-4 text-rose-deep" />
+              <h4 className="font-medium">Admin evidence</h4>
+              <Badge variant="outline" className="text-rose-deep border-rose-deep/40">{evidence.length}</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Attach extra photos (e.g. courier receipts, lab assessments, screenshots) before resolving or rejecting.
+              Visible to both parties alongside the resolution.
+            </p>
+          </div>
+          <label className={`shrink-0 inline-flex items-center gap-2 rounded-xl border border-dashed border-border bg-background px-3 py-2 text-sm cursor-pointer hover:border-primary transition-smooth ${uploading ? "opacity-60 pointer-events-none" : ""}`}>
+            <Upload className="h-3.5 w-3.5" />
+            {uploading ? "Uploading…" : "Add evidence"}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) uploadAdminEvidence(f);
+                e.currentTarget.value = "";
+              }}
+            />
+          </label>
+        </div>
+
+        {evidence.length === 0 ? (
+          <p className="text-xs text-muted-foreground italic">No admin evidence attached yet.</p>
+        ) : (
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {evidence.map((url) => (
+              <div key={url} className="relative group aspect-square rounded-lg overflow-hidden bg-petal">
+                <a href={url} target="_blank" rel="noreferrer" className="block w-full h-full">
+                  <img src={url} alt="admin evidence" className="w-full h-full object-cover" loading="lazy" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => removeAdminEvidence(url)}
+                  className="absolute top-1 right-1 rounded-full bg-background/90 p-1 opacity-0 group-hover:opacity-100 transition-smooth hover:bg-destructive hover:text-destructive-foreground"
+                  aria-label="Remove evidence"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="text-[11px] text-muted-foreground/80 mt-2">JPG, PNG or HEIC · up to 8 MB per photo.</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4 pt-2">
@@ -174,6 +258,9 @@ function DisputeCard({ d, onUpdate }: { d: Dispute; onUpdate: (patch: Partial<Di
       <div className="flex justify-end gap-2">
         <Button variant="outline" size="sm" onClick={() => onUpdate({ admin_notes: notes, resolution })}>
           Save notes
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => onUpdate({ admin_notes: notes, resolution, status: "rejected" })}>
+          Reject
         </Button>
         <Button variant="hero" size="sm" onClick={() => onUpdate({ admin_notes: notes, resolution, status: "resolved" })}>
           Resolve
