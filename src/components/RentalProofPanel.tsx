@@ -86,12 +86,17 @@ export function RentalProofPanel({ rentalId, role, stages = ["before_delivery", 
   }
 
   async function upload(stage: Stage, file: File) {
-    if (!user) return toast.error("Please sign in.");
-    if (file.size > 8 * 1024 * 1024) return toast.error("Image must be under 8 MB.");
+    if (!user) return toast.error("Please sign in to upload proof photos.");
+    if (!file.type.startsWith("image/")) {
+      return toast.error("That file isn't an image. Please upload a JPG, PNG or HEIC photo.");
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      return toast.error(`Photo is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max 8 MB — try a smaller image.`);
+    }
     setBusyStage(stage);
     const path = `${rentalId}/${stage}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
     const { error: upErr } = await supabase.storage.from("rental-proofs").upload(path, file, { upsert: false });
-    if (upErr) { setBusyStage(null); return toast.error(upErr.message); }
+    if (upErr) { setBusyStage(null); return toast.error(`Upload failed: ${upErr.message}`); }
     const { data: pub } = supabase.storage.from("rental-proofs").getPublicUrl(path);
     const { error } = await supabase.from("rental_images").insert({
       rental_id: rentalId,
@@ -100,10 +105,13 @@ export function RentalProofPanel({ rentalId, role, stages = ["before_delivery", 
       stage,
     });
     setBusyStage(null);
-    if (error) return toast.error(error.message);
-    toast.success("Photo uploaded");
+    if (error) return toast.error(`Couldn't save photo: ${error.message}`);
+    toast.success(`${stageMeta[stage].label} photo added.`);
     load();
   }
+
+  const requiredStages = stages.filter((s) => s !== "at_delivery");
+  const missingRequired = requiredStages.filter((s) => !images.some((i) => i.stage === s));
 
   return (
     <div className={cn("space-y-5", className)}>
