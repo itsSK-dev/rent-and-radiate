@@ -60,18 +60,12 @@ const Admin = () => {
       .from("disputes")
       .select(`
         id,rental_id,opened_by,reason,status,resolution,admin_notes,created_at,
-        rental:rentals(id,start_date,end_date,grand_total,status,product:products(title),store:stores(name))
+        rental:rentals(id,start_date,end_date,grand_total,status,product:products(title),store:stores(name)),
+        opener:profiles!disputes_opened_by_profiles_fkey(full_name)
       `)
       .order("created_at", { ascending: false });
     if (error) { toast.error(error.message); return; }
-    const rows = (data as any[]) ?? [];
-    const ids = Array.from(new Set(rows.map((r) => r.opened_by)));
-    let openerMap: Record<string, { full_name: string | null }> = {};
-    if (ids.length) {
-      const { data: profs } = await supabase.from("profiles").select("id,full_name").in("id", ids);
-      openerMap = Object.fromEntries((profs ?? []).map((p) => [p.id, { full_name: p.full_name }]));
-    }
-    setDisputes(rows.map((r) => ({ ...r, opener: openerMap[r.opened_by] ?? null })));
+    setDisputes((data as any) ?? []);
   }
   useEffect(() => { if (roles.includes("admin")) load(); /* eslint-disable-next-line */ }, [roles]);
 
