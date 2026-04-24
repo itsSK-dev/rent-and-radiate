@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { RentalProofPanel } from "@/components/RentalProofPanel";
 import { format } from "date-fns";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, Upload, Trash2, FileImage } from "lucide-react";
 import { toast } from "sonner";
 
 type Dispute = {
@@ -21,6 +21,7 @@ type Dispute = {
   status: "open" | "reviewing" | "resolved" | "rejected";
   resolution: string | null;
   admin_notes: string | null;
+  evidence_images: string[];
   created_at: string;
   rental: {
     id: string;
