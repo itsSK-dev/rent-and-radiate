@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Camera, Upload, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { Camera, Upload, ShieldAlert, CheckCircle2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -19,10 +19,47 @@ interface Props {
   className?: string;
 }
 
-const stageMeta: Record<Stage, { label: string; hint: string }> = {
-  before_delivery: { label: "Before delivery", hint: "Store photos before handing over the item" },
-  at_delivery: { label: "At delivery", hint: "Optional handover photos" },
-  after_return: { label: "After return", hint: "Customer photos when returning the item" },
+type StageInfo = {
+  label: string;
+  hint: string;
+  uploader: "store" | "customer" | "either";
+  unlocks: string;
+  checklist: string[];
+};
+
+const stageMeta: Record<Stage, StageInfo> = {
+  before_delivery: {
+    label: "Before delivery",
+    hint: "Document the item's condition before it leaves the store.",
+    uploader: "store",
+    unlocks: "Required to mark this rental as Delivered.",
+    checklist: [
+      "Full-length shot of the piece on a hanger or display",
+      "Close-up of any existing marks, beading or embroidery",
+      "Tag, size label and accessories included",
+    ],
+  },
+  at_delivery: {
+    label: "At delivery (optional)",
+    hint: "Optional handover photos — useful if a dispute arises later.",
+    uploader: "either",
+    unlocks: "Not required, but strongly recommended for proof of handover.",
+    checklist: [
+      "Photo of the item as handed to the customer",
+      "Packaging or garment bag at handover",
+    ],
+  },
+  after_return: {
+    label: "After return",
+    hint: "Document the item's condition the moment it's returned.",
+    uploader: "customer",
+    unlocks: "Required before the store can mark this rental as Returned and refund your deposit.",
+    checklist: [
+      "Full-length shot of the returned piece",
+      "Close-up of any new stains, tears or damage (if any)",
+      "All accessories and tags included",
+    ],
+  },
 };
 
 export function RentalProofPanel({ rentalId, role, stages = ["before_delivery", "after_return"], className }: Props) {
