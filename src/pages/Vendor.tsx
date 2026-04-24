@@ -179,7 +179,48 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ProductDialog({ storeId, onCreated }: { storeId: string; onCreated: () => void }) {
+function RentalRow({ r, onUpdate }: { r: Rental; onUpdate: (status: string) => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const blockedDelivered = r.status !== "delivered" && r.status !== "returned";
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="font-medium">{r.product?.title}</p>
+          <p className="text-xs text-muted-foreground">
+            {r.customer?.full_name ?? "Customer"} · {format(new Date(r.start_date), "PP")} → {format(new Date(r.end_date), "PP")} · {r.days}d
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium">₹{Number(r.grand_total).toLocaleString("en-IN")}</span>
+          <Select value={r.status} onValueChange={onUpdate}>
+            <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {["pending","confirmed","delivered","returned","cancelled"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button variant="ghost" size="sm" onClick={() => setExpanded((x) => !x)}>
+            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            <span className="ml-1">Proof</span>
+          </Button>
+        </div>
+      </div>
+      {blockedDelivered && (
+        <p className="text-xs text-muted-foreground">
+          Upload at least one <strong>before-delivery</strong> photo before marking as delivered.
+        </p>
+      )}
+      {expanded && (
+        <div className="pt-2 border-t border-border space-y-3">
+          <RentalProofPanel rentalId={r.id} role="store" stages={["before_delivery", "at_delivery"]} />
+          <div className="flex justify-end">
+            <OpenDisputeButton rentalId={r.id} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
