@@ -246,6 +246,44 @@ export type Database = {
           },
         ]
       }
+      rental_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          from_status: Database["public"]["Enums"]["rental_status"] | null
+          id: string
+          note: string | null
+          rental_id: string
+          to_status: Database["public"]["Enums"]["rental_status"]
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["rental_status"] | null
+          id?: string
+          note?: string | null
+          rental_id: string
+          to_status: Database["public"]["Enums"]["rental_status"]
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["rental_status"] | null
+          id?: string
+          note?: string | null
+          rental_id?: string
+          to_status?: Database["public"]["Enums"]["rental_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_status_history_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rentals: {
         Row: {
           address: string | null
