@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { demoImageMap } from "@/lib/seedDemo";
 import { toast } from "sonner";
 import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
+import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
 
 type Rental = {
   id: string;
@@ -114,6 +115,13 @@ const MyRentals = () => {
                           Upload at least one <strong>after-return</strong> photo before the store can close this rental.
                         </p>
                       )}
+                    </div>
+                    <div className="pt-2 border-t border-border">
+                      <RentalStatusTimeline
+                        rentalId={r.id}
+                        currentStatus={r.status}
+                        customerId={user?.id}
+                      />
                     </div>
                     {(r.status === "delivered" || r.status === "returned") && (
                       <div className="pt-3 border-t border-border space-y-3">

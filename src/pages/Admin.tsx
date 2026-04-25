@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { RentalProofPanel } from "@/components/RentalProofPanel";
+import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
 import { format } from "date-fns";
 import { ShieldAlert, Upload, Trash2, FileImage } from "lucide-react";
 import { toast } from "sonner";
@@ -188,6 +189,10 @@ function DisputeCard({ d, onUpdate }: { d: Dispute; onUpdate: (patch: Partial<Di
       <div>
         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Rental evidence photos</p>
         <RentalProofPanel rentalId={d.rental_id} role="admin" stages={["before_delivery", "at_delivery", "after_return"]} />
+      </div>
+
+      <div className="rounded-xl bg-secondary/50 p-3">
+        <RentalStatusTimeline rentalId={d.rental_id} currentStatus="" />
       </div>
 
       {/* Admin-only evidence area */}

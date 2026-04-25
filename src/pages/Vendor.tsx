@@ -16,6 +16,7 @@ import { Plus, Trash2, Upload, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
+import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
 
 type Store = { id: string; name: string; city: string | null; approved: boolean };
 type Product = { id: string; title: string; category: "dress" | "jewellery"; price_per_day: number; security_deposit: number; available: boolean; images: string[] };
@@ -210,6 +211,7 @@ function RentalRow({ r, onUpdate }: { r: Rental; onUpdate: (status: string) => v
           Upload at least one <strong>before-delivery</strong> photo before marking as delivered.
         </p>
       )}
+      <RentalStatusTimeline rentalId={r.id} currentStatus={r.status} />
       {expanded && (
         <div className="pt-2 border-t border-border space-y-3">
           <RentalProofPanel rentalId={r.id} role="store" stages={["before_delivery", "at_delivery"]} />
