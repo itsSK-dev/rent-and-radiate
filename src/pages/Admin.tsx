@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { RentalProofPanel } from "@/components/RentalProofPanel";
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
+import { DisputeEmailLog } from "@/components/DisputeEmailLog";
 import { format } from "date-fns";
 import { ShieldAlert, Upload, Trash2, FileImage } from "lucide-react";
 import { toast } from "sonner";
@@ -193,6 +194,10 @@ function DisputeCard({ d, onUpdate }: { d: Dispute; onUpdate: (patch: Partial<Di
 
       <div className="rounded-xl bg-secondary/50 p-3">
         <RentalStatusTimeline rentalId={d.rental_id} currentStatus="" />
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-3">
+        <DisputeEmailLog disputeId={d.id} />
       </div>
 
       {/* Admin-only evidence area */}
