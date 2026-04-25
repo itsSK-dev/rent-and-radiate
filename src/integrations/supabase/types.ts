@@ -410,6 +410,36 @@ export type Database = {
         }
         Relationships: []
       }
+      support_contact: {
+        Row: {
+          email: string | null
+          hours: string | null
+          id: boolean
+          link_label: string | null
+          link_url: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          email?: string | null
+          hours?: string | null
+          id?: boolean
+          link_label?: string | null
+          link_url?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          email?: string | null
+          hours?: string | null
+          id?: boolean
+          link_label?: string | null
+          link_url?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

@@ -18,10 +18,27 @@ const BRAND = {
 };
 
 const SITE_NAME = "Bloom";
-const SUPPORT_EMAIL = "support@bloom.example";
 const APP_URL = "https://rent-my-dresses.lovable.app";
 
-function Shell({ children, preview }: { children: React.ReactNode; preview: string }) {
+import type { SupportContact } from "@/hooks/useSupportContact";
+import { SUPPORT_CONTACT_FALLBACK } from "@/hooks/useSupportContact";
+
+function SupportLine({ contact }: { contact: SupportContact }) {
+  const parts: React.ReactNode[] = [];
+  if (contact.email) parts.push(<a key="e" href={`mailto:${contact.email}`} style={{ color: BRAND.rose }}>{contact.email}</a>);
+  if (contact.phone) parts.push(<a key="p" href={`tel:${contact.phone.replace(/\s+/g, "")}`} style={{ color: BRAND.rose }}>{contact.phone}</a>);
+  if (contact.link_url) parts.push(<a key="l" href={contact.link_url} style={{ color: BRAND.rose }}>{contact.link_label || "Help centre"}</a>);
+  if (parts.length === 0) return <>our support team</>;
+  return (
+    <>
+      {parts.map((node, i) => (
+        <span key={i}>{i > 0 ? " · " : ""}{node}</span>
+      ))}
+    </>
+  );
+}
+
+function Shell({ children, preview, contact }: { children: React.ReactNode; preview: string; contact: SupportContact }) {
   return (
     <div style={{ background: BRAND.body, padding: "32px 12px", fontFamily: "Georgia, 'Times New Roman', serif", color: BRAND.ink }}>
       <div style={{ display: "none", fontSize: 0, lineHeight: 0, color: "transparent" }}>{preview}</div>
@@ -36,7 +53,7 @@ function Shell({ children, preview }: { children: React.ReactNode; preview: stri
           <tr><td style={{ padding: "28px 32px", fontFamily: "Helvetica, Arial, sans-serif", fontSize: 14, lineHeight: 1.65, color: BRAND.ink }}>{children}</td></tr>
           <tr>
             <td style={{ padding: "20px 32px 28px", borderTop: `1px solid ${BRAND.border}`, background: "#fcfafa", fontFamily: "Helvetica, Arial, sans-serif", fontSize: 12, color: BRAND.muted }}>
-              Need help? Reply to this email or reach us at <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: BRAND.rose }}>{SUPPORT_EMAIL}</a>.<br />
+              Need help? Reach <SupportLine contact={contact} />.{contact.hours ? <> Available {contact.hours}.</> : null}<br />
               © {new Date().getFullYear()} {SITE_NAME}. You're receiving this because you're a party to this rental.
             </td>
           </tr>
@@ -82,11 +99,11 @@ export type DisputeResolutionData = DisputeEmailData & {
   depositReturned?: string;
 };
 
-export function DisputeOpenedEmail({ data }: { data: DisputeEmailData }) {
+export function DisputeOpenedEmail({ data, contact = SUPPORT_CONTACT_FALLBACK }: { data: DisputeEmailData; contact?: SupportContact }) {
   const youAre = data.recipientRole === "customer" ? "the customer" : "the store";
   const counterparty = data.recipientRole === "customer" ? data.storeName : "the customer";
   return (
-    <Shell preview={`A dispute was opened on your rental of ${data.productTitle}.`}>
+    <Shell preview={`A dispute was opened on your rental of ${data.productTitle}.`} contact={contact}>
       <p style={{ margin: "0 0 14px", fontSize: 18, color: BRAND.ink }}>Hi {data.recipientName},</p>
       <p style={{ margin: "0 0 18px" }}>
         A dispute has been opened on your rental of <strong>{data.productTitle}</strong>. As {youAre}, your account is involved and our team is reviewing it now.
@@ -117,7 +134,7 @@ export function DisputeOpenedEmail({ data }: { data: DisputeEmailData }) {
       </ol>
 
       <p style={{ margin: "0 0 24px" }}>
-        You can view the full case and add evidence with {counterparty} from your dashboard.
+        You can view the full case and add evidence with {counterparty} from your dashboard. If you need a hand at any point, reach <SupportLine contact={contact} />.
       </p>
 
       <Button href={`${APP_URL}/${data.recipientRole === "customer" ? "my-rentals" : "vendor"}`} label="Open rental dashboard" />
@@ -129,12 +146,12 @@ export function DisputeOpenedEmail({ data }: { data: DisputeEmailData }) {
   );
 }
 
-export function DisputeResolutionEmail({ data }: { data: DisputeResolutionData }) {
+export function DisputeResolutionEmail({ data, contact = SUPPORT_CONTACT_FALLBACK }: { data: DisputeResolutionData; contact?: SupportContact }) {
   const isResolved = data.outcome === "resolved";
   const headline = isResolved ? "Your dispute has been resolved" : "Your dispute has been closed";
   const accent = isResolved ? BRAND.rose : BRAND.muted;
   return (
-    <Shell preview={`${headline} — ${data.productTitle}`}>
+    <Shell preview={`${headline} — ${data.productTitle}`} contact={contact}>
       <p style={{ margin: "0 0 14px", fontSize: 18, color: BRAND.ink }}>Hi {data.recipientName},</p>
       <p style={{ margin: "0 0 18px" }}>
         Our team has finished reviewing the dispute on your rental of <strong>{data.productTitle}</strong> from {data.storeName}.
@@ -187,7 +204,7 @@ export function DisputeResolutionEmail({ data }: { data: DisputeResolutionData }
       <Button href={`${APP_URL}/${data.recipientRole === "customer" ? "my-rentals" : "vendor"}`} label="View rental" />
 
       <p style={{ margin: "28px 0 0", fontSize: 12, color: BRAND.muted }}>
-        Questions about this decision? Reply to this email or write to <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: BRAND.rose }}>{SUPPORT_EMAIL}</a> and a human will get back to you within one business day.
+        Questions about this decision? Reach <SupportLine contact={contact} /> and a human will get back to you within one business day.{contact.hours ? <> We're available {contact.hours}.</> : null}
       </p>
     </Shell>
   );
