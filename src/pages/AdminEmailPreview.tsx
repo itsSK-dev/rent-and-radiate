@@ -47,6 +47,8 @@ const AdminEmailPreview = () => {
   const navigate = useNavigate();
   const [opened, setOpened] = useState<DisputeEmailData>(defaultBase);
   const [resolution, setResolution] = useState<DisputeResolutionData>(defaultResolution);
+  const { contact, setContact, reload: reloadContact } = useSupportContact();
+  const [savingContact, setSavingContact] = useState(false);
 
   useEffect(() => {
     document.title = "Email previews · Admin · Bloom";
@@ -66,6 +68,17 @@ const AdminEmailPreview = () => {
 
   if (!user || !roles.includes("admin")) return null;
 
+  async function saveContact() {
+    setSavingContact(true);
+    const { error } = await supabase
+      .from("support_contact")
+      .upsert({ id: true, ...contact }, { onConflict: "id" });
+    setSavingContact(false);
+    if (error) return toast.error(error.message);
+    toast.success("Support contact saved — it now appears in every dispute email.");
+    reloadContact();
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -76,6 +89,67 @@ const AdminEmailPreview = () => {
           <p className="text-muted-foreground mt-2 text-sm max-w-2xl">
             Review how the branded dispute emails will look in a recipient's inbox before any are sent. Edit the sample data on the left and the preview on the right updates instantly.
           </p>
+        </div>
+
+        {/* Support contact — auto-populates into every dispute email */}
+        <div className="rounded-3xl border border-border bg-card p-6 shadow-card mb-10">
+          <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl bg-blossom p-2 text-rose-deep"><LifeBuoy className="h-4 w-4" /></div>
+              <div>
+                <h2 className="font-display text-2xl">Support contact</h2>
+                <p className="text-xs text-muted-foreground mt-1 max-w-xl">
+                  Shown in the footer and body of every dispute email (opened, resolved, rejected). Leave a field blank to hide it.
+                </p>
+              </div>
+            </div>
+            <Button variant="hero" size="sm" onClick={saveContact} disabled={savingContact}>
+              <Save className="h-4 w-4 mr-1.5" /> {savingContact ? "Saving…" : "Save contact"}
+            </Button>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Support email</Label>
+              <Input
+                type="email"
+                placeholder="support@yourdomain.com"
+                value={contact.email ?? ""}
+                onChange={(e) => setContact({ ...contact, email: e.target.value || null })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Support phone</Label>
+              <Input
+                placeholder="+91 98765 43210"
+                value={contact.phone ?? ""}
+                onChange={(e) => setContact({ ...contact, phone: e.target.value || null })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Hours</Label>
+              <Input
+                placeholder="Mon–Sat, 10am–7pm IST"
+                value={contact.hours ?? ""}
+                onChange={(e) => setContact({ ...contact, hours: e.target.value || null })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Help link URL</Label>
+              <Input
+                placeholder="https://help.yourdomain.com"
+                value={contact.link_url ?? ""}
+                onChange={(e) => setContact({ ...contact, link_url: e.target.value || null })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Help link label</Label>
+              <Input
+                placeholder="Help centre"
+                value={contact.link_label ?? ""}
+                onChange={(e) => setContact({ ...contact, link_label: e.target.value || null })}
+              />
+            </div>
+          </div>
         </div>
 
         <Tabs defaultValue="opened" className="space-y-6">
@@ -94,7 +168,7 @@ const AdminEmailPreview = () => {
                 <BaseFields data={opened} onChange={setOpened} />
               </Editor>
               <PreviewFrame title="Dispute opened">
-                <DisputeOpenedEmail data={opened} />
+                <DisputeOpenedEmail data={opened} contact={contact} />
               </PreviewFrame>
             </div>
           </TabsContent>
@@ -141,14 +215,14 @@ const AdminEmailPreview = () => {
                 </div>
               </Editor>
               <PreviewFrame title={resolution.outcome === "resolved" ? "Dispute resolved" : "Dispute rejected"}>
-                <DisputeResolutionEmail data={resolution} />
+                <DisputeResolutionEmail data={resolution} contact={contact} />
               </PreviewFrame>
             </div>
           </TabsContent>
         </Tabs>
 
         <div className="mt-10 rounded-2xl border border-dashed border-border bg-secondary/40 p-5 text-xs text-muted-foreground">
-          These previews are static representations. Live sending will be enabled once the email sender domain is configured — at that point the same templates will be wired into the dispute pipeline and dispatched automatically to both parties.
+          These previews are static representations. Live sending will be enabled once the email sender domain is configured — at that point the same templates and support contact will be wired into the dispute pipeline and dispatched automatically to both parties.
         </div>
       </section>
       <Footer />
