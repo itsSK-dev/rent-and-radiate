@@ -9,8 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { useSupportContact } from "@/hooks/useSupportContact";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Mail, Eye } from "lucide-react";
+import { Mail, Eye, LifeBuoy, Save } from "lucide-react";
 import {
   DisputeOpenedEmail,
   DisputeResolutionEmail,
