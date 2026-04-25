@@ -99,11 +99,11 @@ export type DisputeResolutionData = DisputeEmailData & {
   depositReturned?: string;
 };
 
-export function DisputeOpenedEmail({ data }: { data: DisputeEmailData }) {
+export function DisputeOpenedEmail({ data, contact = SUPPORT_CONTACT_FALLBACK }: { data: DisputeEmailData; contact?: SupportContact }) {
   const youAre = data.recipientRole === "customer" ? "the customer" : "the store";
   const counterparty = data.recipientRole === "customer" ? data.storeName : "the customer";
   return (
-    <Shell preview={`A dispute was opened on your rental of ${data.productTitle}.`}>
+    <Shell preview={`A dispute was opened on your rental of ${data.productTitle}.`} contact={contact}>
       <p style={{ margin: "0 0 14px", fontSize: 18, color: BRAND.ink }}>Hi {data.recipientName},</p>
       <p style={{ margin: "0 0 18px" }}>
         A dispute has been opened on your rental of <strong>{data.productTitle}</strong>. As {youAre}, your account is involved and our team is reviewing it now.
@@ -134,7 +134,7 @@ export function DisputeOpenedEmail({ data }: { data: DisputeEmailData }) {
       </ol>
 
       <p style={{ margin: "0 0 24px" }}>
-        You can view the full case and add evidence with {counterparty} from your dashboard.
+        You can view the full case and add evidence with {counterparty} from your dashboard. If you need a hand at any point, reach <SupportLine contact={contact} />.
       </p>
 
       <Button href={`${APP_URL}/${data.recipientRole === "customer" ? "my-rentals" : "vendor"}`} label="Open rental dashboard" />
@@ -146,12 +146,12 @@ export function DisputeOpenedEmail({ data }: { data: DisputeEmailData }) {
   );
 }
 
-export function DisputeResolutionEmail({ data }: { data: DisputeResolutionData }) {
+export function DisputeResolutionEmail({ data, contact = SUPPORT_CONTACT_FALLBACK }: { data: DisputeResolutionData; contact?: SupportContact }) {
   const isResolved = data.outcome === "resolved";
   const headline = isResolved ? "Your dispute has been resolved" : "Your dispute has been closed";
   const accent = isResolved ? BRAND.rose : BRAND.muted;
   return (
-    <Shell preview={`${headline} — ${data.productTitle}`}>
+    <Shell preview={`${headline} — ${data.productTitle}`} contact={contact}>
       <p style={{ margin: "0 0 14px", fontSize: 18, color: BRAND.ink }}>Hi {data.recipientName},</p>
       <p style={{ margin: "0 0 18px" }}>
         Our team has finished reviewing the dispute on your rental of <strong>{data.productTitle}</strong> from {data.storeName}.
@@ -204,7 +204,7 @@ export function DisputeResolutionEmail({ data }: { data: DisputeResolutionData }
       <Button href={`${APP_URL}/${data.recipientRole === "customer" ? "my-rentals" : "vendor"}`} label="View rental" />
 
       <p style={{ margin: "28px 0 0", fontSize: 12, color: BRAND.muted }}>
-        Questions about this decision? Reply to this email or write to <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: BRAND.rose }}>{SUPPORT_EMAIL}</a> and a human will get back to you within one business day.
+        Questions about this decision? Reach <SupportLine contact={contact} /> and a human will get back to you within one business day.{contact.hours ? <> We're available {contact.hours}.</> : null}
       </p>
     </Shell>
   );
