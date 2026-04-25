@@ -93,14 +93,19 @@ const Admin = () => {
             <h1 className="font-display text-5xl">Disputes</h1>
             <p className="text-muted-foreground mt-1 text-sm">Review proof images, party notes, and resolve cases.</p>
           </div>
-          <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
-            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {["open", "reviewing", "resolved", "rejected", "all"].map((s) => (
-                <SelectItem key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => navigate("/admin/email-previews")}>
+              Email previews
+            </Button>
+            <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+              <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {["open", "reviewing", "resolved", "rejected", "all"].map((s) => (
+                  <SelectItem key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {filtered.length === 0 ? (
