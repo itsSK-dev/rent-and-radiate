@@ -18,10 +18,27 @@ const BRAND = {
 };
 
 const SITE_NAME = "Bloom";
-const SUPPORT_EMAIL = "support@bloom.example";
 const APP_URL = "https://rent-my-dresses.lovable.app";
 
-function Shell({ children, preview }: { children: React.ReactNode; preview: string }) {
+import type { SupportContact } from "@/hooks/useSupportContact";
+import { SUPPORT_CONTACT_FALLBACK } from "@/hooks/useSupportContact";
+
+function SupportLine({ contact }: { contact: SupportContact }) {
+  const parts: React.ReactNode[] = [];
+  if (contact.email) parts.push(<a key="e" href={`mailto:${contact.email}`} style={{ color: BRAND.rose }}>{contact.email}</a>);
+  if (contact.phone) parts.push(<a key="p" href={`tel:${contact.phone.replace(/\s+/g, "")}`} style={{ color: BRAND.rose }}>{contact.phone}</a>);
+  if (contact.link_url) parts.push(<a key="l" href={contact.link_url} style={{ color: BRAND.rose }}>{contact.link_label || "Help centre"}</a>);
+  if (parts.length === 0) return <>our support team</>;
+  return (
+    <>
+      {parts.map((node, i) => (
+        <span key={i}>{i > 0 ? " · " : ""}{node}</span>
+      ))}
+    </>
+  );
+}
+
+function Shell({ children, preview, contact }: { children: React.ReactNode; preview: string; contact: SupportContact }) {
   return (
     <div style={{ background: BRAND.body, padding: "32px 12px", fontFamily: "Georgia, 'Times New Roman', serif", color: BRAND.ink }}>
       <div style={{ display: "none", fontSize: 0, lineHeight: 0, color: "transparent" }}>{preview}</div>
@@ -36,7 +53,7 @@ function Shell({ children, preview }: { children: React.ReactNode; preview: stri
           <tr><td style={{ padding: "28px 32px", fontFamily: "Helvetica, Arial, sans-serif", fontSize: 14, lineHeight: 1.65, color: BRAND.ink }}>{children}</td></tr>
           <tr>
             <td style={{ padding: "20px 32px 28px", borderTop: `1px solid ${BRAND.border}`, background: "#fcfafa", fontFamily: "Helvetica, Arial, sans-serif", fontSize: 12, color: BRAND.muted }}>
-              Need help? Reply to this email or reach us at <a href={`mailto:${SUPPORT_EMAIL}`} style={{ color: BRAND.rose }}>{SUPPORT_EMAIL}</a>.<br />
+              Need help? Reach <SupportLine contact={contact} />.{contact.hours ? <> Available {contact.hours}.</> : null}<br />
               © {new Date().getFullYear()} {SITE_NAME}. You're receiving this because you're a party to this rental.
             </td>
           </tr>
