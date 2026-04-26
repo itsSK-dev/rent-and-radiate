@@ -19,6 +19,7 @@ import {
   type DisputeEmailData,
   type DisputeResolutionData,
 } from "@/components/email/DisputeEmailTemplates";
+import { EmailReadinessPanel } from "@/components/EmailReadinessPanel";
 
 const defaultBase: DisputeEmailData = {
   recipientName: "Aanya Kapoor",
@@ -93,6 +94,11 @@ const AdminEmailPreview = () => {
           <p className="text-muted-foreground mt-2 text-sm max-w-2xl">
             Review how the branded dispute emails will look in a recipient's inbox before any are sent. Edit the sample data on the left and the preview on the right updates instantly.
           </p>
+        </div>
+
+        {/* Email sending readiness — verifies sender domain + infrastructure */}
+        <div className="mb-10">
+          <EmailReadinessPanel />
         </div>
 
         {/* Support contact — auto-populates into every dispute email */}
