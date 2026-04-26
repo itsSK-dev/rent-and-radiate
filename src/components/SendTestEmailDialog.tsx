@@ -44,6 +44,7 @@ export function SendTestEmailDialog() {
   const [sending, setSending] = useState(false);
   const [results, setResults] = useState<SendResult[] | null>(null);
   const [infraReady, setInfraReady] = useState<boolean | null>(null);
+  const [sentAt, setSentAt] = useState<string | null>(null);
 
   function update<K extends keyof typeof form>(key: K, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
