@@ -169,21 +169,43 @@ export function DisputeResolutionEmail({ data, contact = SUPPORT_CONTACT_FALLBAC
         {data.resolution}
       </blockquote>
 
-      {(data.refundAmount || data.depositReturned) && (
-        <div style={{ background: "#fff", border: `1px solid ${BRAND.border}`, borderRadius: 12, padding: "16px 18px", margin: "0 0 22px" }}>
-          <p style={{ margin: "0 0 10px", fontSize: 12, textTransform: "uppercase", letterSpacing: 1.5, color: BRAND.muted }}>Financial outcome</p>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <tbody>
-              {data.refundAmount && <InfoRow label="Refund issued" value={data.refundAmount} />}
-              {data.depositReturned && <InfoRow label="Deposit returned" value={data.depositReturned} />}
-              <InfoRow label="Order total" value={data.grandTotal} />
-            </tbody>
-          </table>
-          <p style={{ margin: "10px 0 0", fontSize: 12, color: BRAND.muted }}>
-            Refunds typically appear in the original payment method within 5–7 business days.
+      <div style={{ background: "#fff", border: `1px solid ${BRAND.border}`, borderRadius: 12, padding: "18px 20px", margin: "0 0 22px" }}>
+        <p style={{ margin: "0 0 4px", fontSize: 11, textTransform: "uppercase", letterSpacing: 2, color: accent }}>Refund &amp; deposit summary</p>
+        <p style={{ margin: "0 0 14px", fontSize: 12, color: BRAND.muted }}>
+          {isResolved
+            ? "Here's exactly what's moving back to your account based on the admin's decision."
+            : "No refund or deposit changes apply — the original charges stand."}
+        </p>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <tbody>
+            <tr>
+              <td style={{ padding: "8px 0", fontSize: 12, color: BRAND.muted, textTransform: "uppercase", letterSpacing: 1.5, width: "55%" }}>Rental refund</td>
+              <td style={{ padding: "8px 0", fontSize: 14, color: BRAND.ink, fontWeight: 600, textAlign: "right" }}>
+                {data.refundAmount ? data.refundAmount : <span style={{ color: BRAND.muted, fontWeight: 400 }}>No refund issued</span>}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: "8px 0", fontSize: 12, color: BRAND.muted, textTransform: "uppercase", letterSpacing: 1.5, borderTop: `1px solid ${BRAND.border}` }}>Security deposit</td>
+              <td style={{ padding: "8px 0", fontSize: 14, color: BRAND.ink, fontWeight: 600, textAlign: "right", borderTop: `1px solid ${BRAND.border}` }}>
+                {data.depositReturned ? <>{data.depositReturned} <span style={{ fontSize: 11, color: BRAND.muted, fontWeight: 400 }}>returned</span></> : <span style={{ color: BRAND.muted, fontWeight: 400 }}>Withheld by store</span>}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: "10px 0 4px", fontSize: 12, color: BRAND.muted, textTransform: "uppercase", letterSpacing: 1.5, borderTop: `2px solid ${BRAND.border}` }}>Original order total</td>
+              <td style={{ padding: "10px 0 4px", fontSize: 14, color: BRAND.ink, fontWeight: 600, textAlign: "right", borderTop: `2px solid ${BRAND.border}` }}>{data.grandTotal}</td>
+            </tr>
+          </tbody>
+        </table>
+        {(data.refundAmount || data.depositReturned) ? (
+          <p style={{ margin: "14px 0 0", fontSize: 12, color: BRAND.muted, lineHeight: 1.5 }}>
+            Funds typically appear in the original payment method within <strong style={{ color: BRAND.ink }}>5–7 business days</strong>. You'll receive a separate receipt from your bank or card provider once it clears.
           </p>
-        </div>
-      )}
+        ) : (
+          <p style={{ margin: "14px 0 0", fontSize: 12, color: BRAND.muted, lineHeight: 1.5 }}>
+            If you believe this outcome is incorrect, reply within 7 days with new evidence and we'll re-open the case.
+          </p>
+        )}
+      </div>
 
       <p style={{ margin: "0 0 8px", fontWeight: 600 }}>What you should do next</p>
       <ul style={{ margin: "0 0 22px", paddingLeft: 20 }}>
