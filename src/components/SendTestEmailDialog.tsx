@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Loader2, CheckCircle2, AlertTriangle, Mail } from "lucide-react";
+import { Send, Loader2, CheckCircle2, AlertTriangle, Mail, XCircle, Clock } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -44,6 +44,7 @@ export function SendTestEmailDialog() {
   const [sending, setSending] = useState(false);
   const [results, setResults] = useState<SendResult[] | null>(null);
   const [infraReady, setInfraReady] = useState<boolean | null>(null);
+  const [sentAt, setSentAt] = useState<string | null>(null);
 
   function update<K extends keyof typeof form>(key: K, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -71,12 +72,21 @@ export function SendTestEmailDialog() {
     setSending(false);
     if (error) {
       toast.error("Couldn't send test email", { description: error.message });
+      setResults([
+        { email: form.customerEmail, role: "customer", status: "error", message: error.message || "Unknown error contacting the email service." },
+        { email: form.storeEmail, role: "store_owner", status: "error", message: error.message || "Unknown error contacting the email service." },
+      ]);
+      setInfraReady(false);
+      setSentAt(new Date().toISOString());
       return;
     }
     setResults(data?.results ?? []);
     setInfraReady(!!data?.infraReady);
+    setSentAt(data?.sentAt ?? new Date().toISOString());
     if (data?.infraReady) {
-      toast.success("Test emails queued");
+      const failed = (data?.results ?? []).filter((r: SendResult) => r.status === "error").length;
+      if (failed === 0) toast.success("Test emails queued for delivery");
+      else toast.warning(`${failed} of ${data.results.length} recipients failed`);
     } else {
       toast("Send skipped — email infrastructure isn't ready yet", { icon: "⚠️" });
     }
@@ -85,8 +95,23 @@ export function SendTestEmailDialog() {
   function reset() {
     setResults(null);
     setInfraReady(null);
+    setSentAt(null);
     setErrors({});
   }
+
+  const summary = results
+    ? {
+        queued: results.filter((r) => r.status === "queued").length,
+        skipped: results.filter((r) => r.status === "skipped").length,
+        failed: results.filter((r) => r.status === "error").length,
+      }
+    : null;
+
+  const statusStyles: Record<SendResult["status"], { icon: typeof CheckCircle2; wrap: string; iconClass: string; label: string }> = {
+    queued: { icon: CheckCircle2, wrap: "border-emerald-500/30 bg-emerald-500/5", iconClass: "text-emerald-600", label: "Queued" },
+    skipped: { icon: AlertTriangle, wrap: "border-amber-500/30 bg-amber-500/5", iconClass: "text-amber-600", label: "Skipped" },
+    error: { icon: XCircle, wrap: "border-destructive/30 bg-destructive/5", iconClass: "text-destructive", label: "Failed" },
+  };
 
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
@@ -153,25 +178,61 @@ export function SendTestEmailDialog() {
           </div>
         ) : (
           <div className="space-y-3 py-2">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              {summary && summary.queued > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 text-emerald-700 px-2.5 py-1 font-medium">
+                  <CheckCircle2 className="h-3 w-3" /> {summary.queued} queued
+                </span>
+              )}
+              {summary && summary.skipped > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 text-amber-700 px-2.5 py-1 font-medium">
+                  <AlertTriangle className="h-3 w-3" /> {summary.skipped} skipped
+                </span>
+              )}
+              {summary && summary.failed > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 text-destructive px-2.5 py-1 font-medium">
+                  <XCircle className="h-3 w-3" /> {summary.failed} failed
+                </span>
+              )}
+              {sentAt && (
+                <span className="inline-flex items-center gap-1 text-muted-foreground ml-auto">
+                  <Clock className="h-3 w-3" /> {new Date(sentAt).toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+
             {!infraReady && (
-              <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                <AlertTriangle className="h-4 w-4 mt-0.5" />
+              <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-800 dark:text-amber-300">
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
                 <span>Email infrastructure isn't provisioned yet. Verify a sender domain in Cloud → Emails to enable real sends. Your test was logged but no email left the system.</span>
               </div>
             )}
-            {results.map((r) => (
-              <div key={r.email} className="flex items-start gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm">
-                {r.status === "queued" ? (
-                  <CheckCircle2 className="h-4 w-4 mt-0.5 text-emerald-600" />
-                ) : (
-                  <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600" />
-                )}
-                <div>
-                  <p className="font-medium">{r.email} <span className="text-xs text-muted-foreground">({r.role.replace("_", " ")})</span></p>
-                  <p className="text-xs text-muted-foreground">{r.message}</p>
+
+            {results.map((r) => {
+              const meta = statusStyles[r.status];
+              const Icon = meta.icon;
+              return (
+                <div key={r.email} className={`rounded-xl border ${meta.wrap} px-3 py-2.5 text-sm`}>
+                  <div className="flex items-start gap-2">
+                    <Icon className={`h-4 w-4 mt-0.5 shrink-0 ${meta.iconClass}`} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <p className="font-medium truncate">
+                          {r.email} <span className="text-xs text-muted-foreground font-normal">({r.role.replace("_", " ")})</span>
+                        </p>
+                        <span className={`text-[10px] uppercase tracking-wider font-semibold ${meta.iconClass}`}>{meta.label}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">{r.message}</p>
+                      {r.status === "error" && (
+                        <p className="text-xs mt-1 font-mono bg-destructive/5 text-destructive rounded px-2 py-1 break-all">
+                          {r.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
