@@ -31,6 +31,10 @@ const defaultBase: DisputeEmailData = {
   grandTotal: "₹8,400",
   reason:
     "The dress arrived with a torn seam at the waistline and a faint stain near the hem. I noticed it as soon as I unpacked it for trial.",
+  evidenceImages: [
+    "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800",
+    "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800",
+  ],
 };
 
 const defaultResolution: DisputeResolutionData = {
