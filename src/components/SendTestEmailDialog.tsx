@@ -95,8 +95,23 @@ export function SendTestEmailDialog() {
   function reset() {
     setResults(null);
     setInfraReady(null);
+    setSentAt(null);
     setErrors({});
   }
+
+  const summary = results
+    ? {
+        queued: results.filter((r) => r.status === "queued").length,
+        skipped: results.filter((r) => r.status === "skipped").length,
+        failed: results.filter((r) => r.status === "error").length,
+      }
+    : null;
+
+  const statusStyles: Record<SendResult["status"], { icon: typeof CheckCircle2; wrap: string; iconClass: string; label: string }> = {
+    queued: { icon: CheckCircle2, wrap: "border-emerald-500/30 bg-emerald-500/5", iconClass: "text-emerald-600", label: "Queued" },
+    skipped: { icon: AlertTriangle, wrap: "border-amber-500/30 bg-amber-500/5", iconClass: "text-amber-600", label: "Skipped" },
+    error: { icon: XCircle, wrap: "border-destructive/30 bg-destructive/5", iconClass: "text-destructive", label: "Failed" },
+  };
 
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
