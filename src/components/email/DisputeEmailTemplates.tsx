@@ -155,6 +155,8 @@ export function DisputeOpenedEmail({ data, contact = SUPPORT_CONTACT_FALLBACK }:
         “{data.reason}”
       </blockquote>
 
+      <EvidenceLinks images={data.evidenceImages} />
+
       <p style={{ margin: "0 0 8px", fontWeight: 600 }}>What happens next</p>
       <ol style={{ margin: "0 0 22px", paddingLeft: 20, color: BRAND.ink }}>
         <li style={{ marginBottom: 6 }}>An admin reviews the rental, photos, and messages from both sides.</li>
