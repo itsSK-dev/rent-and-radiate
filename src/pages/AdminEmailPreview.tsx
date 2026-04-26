@@ -19,6 +19,7 @@ import {
   type DisputeEmailData,
   type DisputeResolutionData,
 } from "@/components/email/DisputeEmailTemplates";
+import { EmailReadinessPanel } from "@/components/EmailReadinessPanel";
 
 const defaultBase: DisputeEmailData = {
   recipientName: "Aanya Kapoor",
