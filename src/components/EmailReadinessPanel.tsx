@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, AlertTriangle, RefreshCw, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SendTestEmailDialog } from "./SendTestEmailDialog";
 
 type Readiness = {
   domain: string | null;
