@@ -71,12 +71,21 @@ export function SendTestEmailDialog() {
     setSending(false);
     if (error) {
       toast.error("Couldn't send test email", { description: error.message });
+      setResults([
+        { email: form.customerEmail, role: "customer", status: "error", message: error.message || "Unknown error contacting the email service." },
+        { email: form.storeEmail, role: "store_owner", status: "error", message: error.message || "Unknown error contacting the email service." },
+      ]);
+      setInfraReady(false);
+      setSentAt(new Date().toISOString());
       return;
     }
     setResults(data?.results ?? []);
     setInfraReady(!!data?.infraReady);
+    setSentAt(data?.sentAt ?? new Date().toISOString());
     if (data?.infraReady) {
-      toast.success("Test emails queued");
+      const failed = (data?.results ?? []).filter((r: SendResult) => r.status === "error").length;
+      if (failed === 0) toast.success("Test emails queued for delivery");
+      else toast.warning(`${failed} of ${data.results.length} recipients failed`);
     } else {
       toast("Send skipped — email infrastructure isn't ready yet", { icon: "⚠️" });
     }
