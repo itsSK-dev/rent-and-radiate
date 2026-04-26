@@ -31,6 +31,10 @@ const defaultBase: DisputeEmailData = {
   grandTotal: "₹8,400",
   reason:
     "The dress arrived with a torn seam at the waistline and a faint stain near the hem. I noticed it as soon as I unpacked it for trial.",
+  evidenceImages: [
+    "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800",
+    "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800",
+  ],
 };
 
 const defaultResolution: DisputeResolutionData = {
@@ -284,6 +288,15 @@ function BaseFields<T extends DisputeEmailData>({ data, onChange }: { data: T; o
       <div className="space-y-2">
         <Label>Customer's reason</Label>
         <Textarea rows={3} value={data.reason} onChange={(e) => update("reason", e.target.value as T[keyof T])} />
+      </div>
+      <div className="space-y-2">
+        <Label>Evidence image URLs (one per line)</Label>
+        <Textarea
+          rows={3}
+          value={(data.evidenceImages ?? []).join("\n")}
+          onChange={(e) => update("evidenceImages", e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) as T[keyof T])}
+          placeholder="https://example.com/photo-1.jpg"
+        />
       </div>
     </>
   );

@@ -90,6 +90,7 @@ export type DisputeEmailData = {
   endDate: string;
   grandTotal: string;
   reason: string;
+  evidenceImages?: string[];
 };
 
 export type DisputeResolutionData = DisputeEmailData & {
@@ -98,6 +99,34 @@ export type DisputeResolutionData = DisputeEmailData & {
   refundAmount?: string;
   depositReturned?: string;
 };
+
+function EvidenceLinks({ images }: { images?: string[] }) {
+  if (!images || images.length === 0) {
+    return (
+      <div style={{ background: "#fbf6f7", border: `1px dashed ${BRAND.border}`, borderRadius: 12, padding: "14px 16px", margin: "0 0 22px" }}>
+        <p style={{ margin: "0 0 4px", fontSize: 11, textTransform: "uppercase", letterSpacing: 1.5, color: BRAND.muted }}>Evidence uploads</p>
+        <p style={{ margin: 0, fontSize: 13, color: BRAND.ink }}>
+          No photos have been attached yet. You can upload evidence directly from your rental dashboard.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div style={{ background: BRAND.blossom, border: `1px solid ${BRAND.border}`, borderRadius: 12, padding: "16px 18px", margin: "0 0 22px" }}>
+      <p style={{ margin: "0 0 4px", fontSize: 11, textTransform: "uppercase", letterSpacing: 1.5, color: BRAND.rose }}>Evidence uploads · {images.length} {images.length === 1 ? "photo" : "photos"}</p>
+      <p style={{ margin: "0 0 12px", fontSize: 12, color: BRAND.muted }}>Tap any link below to view the full-resolution image in your browser.</p>
+      <ol style={{ margin: 0, paddingLeft: 20, color: BRAND.ink }}>
+        {images.map((url, i) => (
+          <li key={i} style={{ marginBottom: 6, fontSize: 13 }}>
+            <a href={url} style={{ color: BRAND.rose, textDecoration: "underline", wordBreak: "break-all" }}>
+              Evidence photo {i + 1}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
 
 export function DisputeOpenedEmail({ data, contact = SUPPORT_CONTACT_FALLBACK }: { data: DisputeEmailData; contact?: SupportContact }) {
   const youAre = data.recipientRole === "customer" ? "the customer" : "the store";
@@ -125,6 +154,8 @@ export function DisputeOpenedEmail({ data, contact = SUPPORT_CONTACT_FALLBACK }:
       <blockquote style={{ margin: "0 0 22px", padding: "12px 16px", borderLeft: `3px solid ${BRAND.rose}`, background: BRAND.petal, fontStyle: "italic", color: BRAND.ink, borderRadius: 4 }}>
         “{data.reason}”
       </blockquote>
+
+      <EvidenceLinks images={data.evidenceImages} />
 
       <p style={{ margin: "0 0 8px", fontWeight: 600 }}>What happens next</p>
       <ol style={{ margin: "0 0 22px", paddingLeft: 20, color: BRAND.ink }}>
@@ -168,6 +199,8 @@ export function DisputeResolutionEmail({ data, contact = SUPPORT_CONTACT_FALLBAC
       <blockquote style={{ margin: "0 0 22px", padding: "12px 16px", borderLeft: `3px solid ${accent}`, background: "#fbf6f7", color: BRAND.ink, borderRadius: 4 }}>
         {data.resolution}
       </blockquote>
+
+      <EvidenceLinks images={data.evidenceImages} />
 
       <div style={{ background: "#fff", border: `1px solid ${BRAND.border}`, borderRadius: 12, padding: "18px 20px", margin: "0 0 22px" }}>
         <p style={{ margin: "0 0 4px", fontSize: 11, textTransform: "uppercase", letterSpacing: 2, color: accent }}>Refund &amp; deposit summary</p>
