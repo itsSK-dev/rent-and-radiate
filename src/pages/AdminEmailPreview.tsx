@@ -289,6 +289,15 @@ function BaseFields<T extends DisputeEmailData>({ data, onChange }: { data: T; o
         <Label>Customer's reason</Label>
         <Textarea rows={3} value={data.reason} onChange={(e) => update("reason", e.target.value as T[keyof T])} />
       </div>
+      <div className="space-y-2">
+        <Label>Evidence image URLs (one per line)</Label>
+        <Textarea
+          rows={3}
+          value={(data.evidenceImages ?? []).join("\n")}
+          onChange={(e) => update("evidenceImages", e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) as T[keyof T])}
+          placeholder="https://example.com/photo-1.jpg"
+        />
+      </div>
     </>
   );
 }
