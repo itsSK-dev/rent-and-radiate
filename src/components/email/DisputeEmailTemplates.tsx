@@ -200,6 +200,8 @@ export function DisputeResolutionEmail({ data, contact = SUPPORT_CONTACT_FALLBAC
         {data.resolution}
       </blockquote>
 
+      <EvidenceLinks images={data.evidenceImages} />
+
       <div style={{ background: "#fff", border: `1px solid ${BRAND.border}`, borderRadius: 12, padding: "18px 20px", margin: "0 0 22px" }}>
         <p style={{ margin: "0 0 4px", fontSize: 11, textTransform: "uppercase", letterSpacing: 2, color: accent }}>Refund &amp; deposit summary</p>
         <p style={{ margin: "0 0 14px", fontSize: 12, color: BRAND.muted }}>
