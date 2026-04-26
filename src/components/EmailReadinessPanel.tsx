@@ -54,10 +54,13 @@ export function EmailReadinessPanel() {
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={check} disabled={loading}>
-          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-          <span className="ml-1.5">Recheck</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <SendTestEmailDialog />
+          <Button variant="outline" size="sm" onClick={check} disabled={loading}>
+            {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+            <span className="ml-1.5">Recheck</span>
+          </Button>
+        </div>
       </div>
 
       {error && (
