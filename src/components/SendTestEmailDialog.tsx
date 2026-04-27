@@ -13,6 +13,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { DisputeOpenedEmail, DisputeResolutionEmail, type DisputeResolutionData } from "@/components/email/DisputeEmailTemplates";
 import { useSupportContact } from "@/hooks/useSupportContact";
 import { buildPlainText, buildSampleData, buildSubject, type TemplateKey } from "@/lib/disputeEmailPreview";
+import { EmailDiffView } from "@/components/EmailDiffView";
 
 const templateLabels: Record<TemplateKey, string> = {
   "dispute-opened": "Dispute opened",
