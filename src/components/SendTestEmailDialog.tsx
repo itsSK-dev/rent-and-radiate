@@ -258,10 +258,11 @@ export function SendTestEmailDialog() {
             </div>
 
             <Tabs defaultValue="rendered" className="w-full">
-              <TabsList className="w-full grid grid-cols-3">
+              <TabsList className="w-full grid grid-cols-4">
                 <TabsTrigger value="rendered"><Eye className="h-3.5 w-3.5 mr-1.5" /> Rendered</TabsTrigger>
                 <TabsTrigger value="html"><Code2 className="h-3.5 w-3.5 mr-1.5" /> HTML source</TabsTrigger>
                 <TabsTrigger value="text"><FileText className="h-3.5 w-3.5 mr-1.5" /> Plain text</TabsTrigger>
+                <TabsTrigger value="diff"><GitCompare className="h-3.5 w-3.5 mr-1.5" /> Diff</TabsTrigger>
               </TabsList>
               <TabsContent value="rendered" className="mt-3">
                 <iframe
@@ -281,6 +282,9 @@ export function SendTestEmailDialog() {
                 <pre className="w-full h-[420px] overflow-auto rounded-xl border border-border bg-muted/40 p-3 text-xs leading-relaxed font-mono whitespace-pre-wrap">
                   {preview.text}
                 </pre>
+              </TabsContent>
+              <TabsContent value="diff" className="mt-3">
+                <EmailDiffView html={preview.html} text={preview.text} />
               </TabsContent>
             </Tabs>
           </div>
