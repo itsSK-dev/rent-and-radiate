@@ -423,7 +423,7 @@ export function SendTestEmailDialog() {
               <Button variant="ghost" onClick={() => setStep("compose")} disabled={sending}>
                 <ChevronLeft className="h-4 w-4 mr-1.5" /> Back to edit
               </Button>
-              <Button variant="hero" onClick={handleConfirmSend} disabled={sending}>
+              <Button variant="hero" onClick={handleConfirmSend} disabled={sending || !validation.ok} title={!validation.ok ? "Resolve validation errors first" : undefined}>
                 {sending ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Sending…</> : <><Send className="h-4 w-4 mr-1.5" /> Confirm &amp; send test</>}
               </Button>
             </>
