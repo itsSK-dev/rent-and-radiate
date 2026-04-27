@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Loader2, CheckCircle2, AlertTriangle, Mail, XCircle, Clock, Eye, ChevronLeft, Copy, Code2, FileText } from "lucide-react";
+import { Send, Loader2, CheckCircle2, AlertTriangle, Mail, XCircle, Clock, Eye, ChevronLeft, Copy, Code2, FileText, GitCompare } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { DisputeOpenedEmail, DisputeResolutionEmail, type DisputeResolutionData } from "@/components/email/DisputeEmailTemplates";
 import { useSupportContact } from "@/hooks/useSupportContact";
 import { buildPlainText, buildSampleData, buildSubject, type TemplateKey } from "@/lib/disputeEmailPreview";
+import { EmailDiffView } from "@/components/EmailDiffView";
 
 const templateLabels: Record<TemplateKey, string> = {
   "dispute-opened": "Dispute opened",
@@ -257,10 +258,11 @@ export function SendTestEmailDialog() {
             </div>
 
             <Tabs defaultValue="rendered" className="w-full">
-              <TabsList className="w-full grid grid-cols-3">
+              <TabsList className="w-full grid grid-cols-4">
                 <TabsTrigger value="rendered"><Eye className="h-3.5 w-3.5 mr-1.5" /> Rendered</TabsTrigger>
                 <TabsTrigger value="html"><Code2 className="h-3.5 w-3.5 mr-1.5" /> HTML source</TabsTrigger>
                 <TabsTrigger value="text"><FileText className="h-3.5 w-3.5 mr-1.5" /> Plain text</TabsTrigger>
+                <TabsTrigger value="diff"><GitCompare className="h-3.5 w-3.5 mr-1.5" /> Diff</TabsTrigger>
               </TabsList>
               <TabsContent value="rendered" className="mt-3">
                 <iframe
@@ -280,6 +282,9 @@ export function SendTestEmailDialog() {
                 <pre className="w-full h-[420px] overflow-auto rounded-xl border border-border bg-muted/40 p-3 text-xs leading-relaxed font-mono whitespace-pre-wrap">
                   {preview.text}
                 </pre>
+              </TabsContent>
+              <TabsContent value="diff" className="mt-3">
+                <EmailDiffView html={preview.html} text={preview.text} />
               </TabsContent>
             </Tabs>
           </div>
