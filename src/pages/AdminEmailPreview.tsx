@@ -20,6 +20,7 @@ import {
   type DisputeResolutionData,
 } from "@/components/email/DisputeEmailTemplates";
 import { EmailReadinessPanel } from "@/components/EmailReadinessPanel";
+import { TestEmailLog } from "@/components/TestEmailLog";
 
 const defaultBase: DisputeEmailData = {
   recipientName: "Aanya Kapoor",
@@ -99,6 +100,11 @@ const AdminEmailPreview = () => {
         {/* Email sending readiness — verifies sender domain + infrastructure */}
         <div className="mb-10">
           <EmailReadinessPanel />
+        </div>
+
+        {/* Test email attempt log — for troubleshooting */}
+        <div className="mb-10">
+          <TestEmailLog />
         </div>
 
         {/* Support contact — auto-populates into every dispute email */}
