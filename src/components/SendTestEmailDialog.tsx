@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Loader2, CheckCircle2, AlertTriangle, Mail, XCircle, Clock, Eye, ChevronLeft, Copy, Code2, FileText, GitCompare } from "lucide-react";
+import { Send, Loader2, CheckCircle2, AlertTriangle, Mail, XCircle, Clock, Eye, ChevronLeft, Copy, Code2, FileText, GitCompare, ShieldAlert, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import { DisputeOpenedEmail, DisputeResolutionEmail, type DisputeResolutionData 
 import { useSupportContact } from "@/hooks/useSupportContact";
 import { buildPlainText, buildSampleData, buildSubject, type TemplateKey } from "@/lib/disputeEmailPreview";
 import { EmailDiffView } from "@/components/EmailDiffView";
+import { validatePreview, type ValidationIssue } from "@/lib/previewValidation";
 
 const templateLabels: Record<TemplateKey, string> = {
   "dispute-opened": "Dispute opened",
@@ -94,10 +95,26 @@ export function SendTestEmailDialog() {
     const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Email preview</title></head><body style="margin:0;background:#fafafa">${innerHtml}</body></html>`;
     const text = buildPlainText(template, data, contact);
     const subject = buildSubject(template, data);
-    return { html, text, subject, recipient };
+    return { html, text, subject, recipient, data };
   }, [template, previewRole, form.customerName, form.customerEmail, form.storeName, form.storeEmail, contact]);
 
+  // Validate the resolved preview for missing variables, placeholder tokens,
+  // and bad sender headers. Recomputes whenever any input changes.
+  const validation = useMemo(() => validatePreview({
+    template,
+    data: preview.data,
+    html: preview.html,
+    text: preview.text,
+    subject: preview.subject,
+    from: { name: form.fromName, email: form.fromEmail },
+    replyTo: form.replyTo.trim() || undefined,
+  }), [template, preview, form.fromName, form.fromEmail, form.replyTo]);
+
   async function handleConfirmSend() {
+    if (!validation.ok) {
+      toast.error("Fix the validation issues before sending the test email.");
+      return;
+    }
     setSending(true);
     setResults(null);
     const replyTo = form.replyTo.trim() || undefined;
@@ -287,6 +304,8 @@ export function SendTestEmailDialog() {
               <div><span className="text-muted-foreground">Subject:</span> <span className="font-medium">{preview.subject}</span></div>
             </div>
 
+            <ValidationPanel report={validation} />
+
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <Tabs value={previewRole} onValueChange={(v) => setPreviewRole(v as PreviewRole)}>
                 <TabsList>
@@ -406,7 +425,7 @@ export function SendTestEmailDialog() {
               <Button variant="ghost" onClick={() => setStep("compose")} disabled={sending}>
                 <ChevronLeft className="h-4 w-4 mr-1.5" /> Back to edit
               </Button>
-              <Button variant="hero" onClick={handleConfirmSend} disabled={sending}>
+              <Button variant="hero" onClick={handleConfirmSend} disabled={sending || !validation.ok} title={!validation.ok ? "Resolve validation errors first" : undefined}>
                 {sending ? <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Sending…</> : <><Send className="h-4 w-4 mr-1.5" /> Confirm &amp; send test</>}
               </Button>
             </>
@@ -420,5 +439,59 @@ export function SendTestEmailDialog() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ValidationPanel({ report }: { report: { ok: boolean; errors: ValidationIssue[]; warnings: ValidationIssue[] } }) {
+  const { errors, warnings } = report;
+  if (errors.length === 0 && warnings.length === 0) {
+    return (
+      <div className="flex items-start gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
+        <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0" />
+        <div>
+          <p className="font-medium">Preview validated — all template variables resolved.</p>
+          <p className="text-xs opacity-80">No missing fields, placeholder tokens, or sender issues detected.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const wrapClass = errors.length > 0
+    ? "border-destructive/30 bg-destructive/5 text-destructive"
+    : "border-amber-500/30 bg-amber-500/5 text-amber-800 dark:text-amber-300";
+  const Icon = errors.length > 0 ? ShieldAlert : AlertTriangle;
+  const headline = errors.length > 0
+    ? `${errors.length} ${errors.length === 1 ? "issue" : "issues"} must be fixed before sending`
+    : `${warnings.length} ${warnings.length === 1 ? "warning" : "warnings"} — sending is allowed`;
+
+  return (
+    <div className={`rounded-xl border ${wrapClass} px-3 py-2.5 text-sm`}>
+      <div className="flex items-start gap-2">
+        <Icon className="h-4 w-4 mt-0.5 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">{headline}</p>
+          <ul className="mt-2 space-y-1.5 text-xs">
+            {errors.map((i, idx) => (
+              <li key={`e-${idx}`} className="flex items-start gap-1.5">
+                <XCircle className="h-3 w-3 mt-0.5 shrink-0 text-destructive" />
+                <span>
+                  <span className="font-medium">{i.message}</span>
+                  {i.hint && <span className="text-muted-foreground"> — {i.hint}</span>}
+                </span>
+              </li>
+            ))}
+            {warnings.map((i, idx) => (
+              <li key={`w-${idx}`} className="flex items-start gap-1.5">
+                <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0 text-amber-600" />
+                <span>
+                  <span className="font-medium">{i.message}</span>
+                  {i.hint && <span className="text-muted-foreground"> — {i.hint}</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
   );
 }
