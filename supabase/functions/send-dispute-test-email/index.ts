@@ -109,6 +109,8 @@ Deno.serve(async (req) => {
 
   return new Response(JSON.stringify({
     template: parsed.data.template,
+    from: parsed.data.from ?? null,
+    replyTo: parsed.data.replyTo ?? null,
     infraReady,
     results,
     sentAt,
