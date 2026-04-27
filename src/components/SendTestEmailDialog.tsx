@@ -100,9 +100,12 @@ export function SendTestEmailDialog() {
   async function handleConfirmSend() {
     setSending(true);
     setResults(null);
+    const replyTo = form.replyTo.trim() || undefined;
     const { data, error } = await supabase.functions.invoke("send-dispute-test-email", {
       body: {
         template,
+        from: { name: form.fromName.trim(), email: form.fromEmail.trim() },
+        replyTo,
         recipients: [
           { email: form.customerEmail, role: "customer", name: form.customerName },
           { email: form.storeEmail, role: "store_owner", name: form.storeName },
