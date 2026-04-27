@@ -118,6 +118,8 @@ export function SendTestEmailDialog() {
     setInfraReady(!!data?.infraReady);
     setSentAt(data?.sentAt ?? new Date().toISOString());
     setStep("results");
+    // Notify the admin log to refresh
+    window.dispatchEvent(new CustomEvent("test-email-log:refresh"));
     if (data?.infraReady) {
       const failed = (data?.results ?? []).filter((r: SendResult) => r.status === "error").length;
       if (failed === 0) toast.success("Test emails queued for delivery");
