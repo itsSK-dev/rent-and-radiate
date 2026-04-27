@@ -440,6 +440,45 @@ export type Database = {
         }
         Relationships: []
       }
+      test_email_log: {
+        Row: {
+          created_at: string
+          id: string
+          infra_ready: boolean
+          message: string | null
+          recipient_email: string
+          recipient_name: string | null
+          recipient_role: string
+          status: string
+          template: string
+          triggered_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          infra_ready?: boolean
+          message?: string | null
+          recipient_email: string
+          recipient_name?: string | null
+          recipient_role: string
+          status: string
+          template: string
+          triggered_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          infra_ready?: boolean
+          message?: string | null
+          recipient_email?: string
+          recipient_name?: string | null
+          recipient_role?: string
+          status?: string
+          template?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
