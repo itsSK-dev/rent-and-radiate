@@ -94,8 +94,20 @@ export function SendTestEmailDialog() {
     const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Email preview</title></head><body style="margin:0;background:#fafafa">${innerHtml}</body></html>`;
     const text = buildPlainText(template, data, contact);
     const subject = buildSubject(template, data);
-    return { html, text, subject, recipient };
+    return { html, text, subject, recipient, data };
   }, [template, previewRole, form.customerName, form.customerEmail, form.storeName, form.storeEmail, contact]);
+
+  // Validate the resolved preview for missing variables, placeholder tokens,
+  // and bad sender headers. Recomputes whenever any input changes.
+  const validation = useMemo(() => validatePreview({
+    template,
+    data: preview.data,
+    html: preview.html,
+    text: preview.text,
+    subject: preview.subject,
+    from: { name: form.fromName, email: form.fromEmail },
+    replyTo: form.replyTo.trim() || undefined,
+  }), [template, preview, form.fromName, form.fromEmail, form.replyTo]);
 
   async function handleConfirmSend() {
     setSending(true);
