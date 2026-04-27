@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Loader2, CheckCircle2, AlertTriangle, Mail, XCircle, Clock, Eye, ChevronLeft, Copy, Code2, FileText, GitCompare } from "lucide-react";
+import { Send, Loader2, CheckCircle2, AlertTriangle, Mail, XCircle, Clock, Eye, ChevronLeft, Copy, Code2, FileText, GitCompare, ShieldAlert, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
