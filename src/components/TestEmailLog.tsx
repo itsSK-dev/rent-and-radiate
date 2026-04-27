@@ -61,6 +61,12 @@ export function TestEmailLog({ refreshKey = 0 }: { refreshKey?: number }) {
 
   useEffect(() => { load(); }, [load, refreshKey]);
 
+  useEffect(() => {
+    const handler = () => load();
+    window.addEventListener("test-email-log:refresh", handler);
+    return () => window.removeEventListener("test-email-log:refresh", handler);
+  }, [load]);
+
   return (
     <div className="rounded-3xl border border-border bg-card p-6 shadow-card">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
