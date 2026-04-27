@@ -102,6 +102,11 @@ const AdminEmailPreview = () => {
           <EmailReadinessPanel />
         </div>
 
+        {/* Test email attempt log — for troubleshooting */}
+        <div className="mb-10">
+          <TestEmailLog />
+        </div>
+
         {/* Support contact — auto-populates into every dispute email */}
         <div className="rounded-3xl border border-border bg-card p-6 shadow-card mb-10">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
