@@ -236,6 +236,29 @@ export function SendTestEmailDialog() {
                 </div>
               </div>
             </div>
+            <div className="rounded-2xl border border-border bg-secondary/30 p-4 space-y-3">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">Sender · From & Reply-To</p>
+                <p className="text-[10px] text-muted-foreground">Shown in the inbox header</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">From name</Label>
+                  <Input value={form.fromName} onChange={(e) => update("fromName", e.target.value)} placeholder="Bloom Disputes" />
+                  {errors.fromName && <p className="text-xs text-destructive">{errors.fromName}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">From email</Label>
+                  <Input type="email" value={form.fromEmail} onChange={(e) => update("fromEmail", e.target.value)} placeholder="disputes@yourdomain.com" />
+                  {errors.fromEmail && <p className="text-xs text-destructive">{errors.fromEmail}</p>}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Reply-To <span className="text-muted-foreground font-normal">(optional — defaults to From)</span></Label>
+                <Input type="email" value={form.replyTo} onChange={(e) => update("replyTo", e.target.value)} placeholder="support@yourdomain.com" />
+                {errors.replyTo && <p className="text-xs text-destructive">{errors.replyTo}</p>}
+              </div>
+            </div>
           </div>
         )}
 
