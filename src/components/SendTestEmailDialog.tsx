@@ -26,6 +26,9 @@ const recipientSchema = z.object({
   customerEmail: z.string().trim().email("Enter a valid customer email").max(255),
   storeName: z.string().trim().min(1, "Store contact name is required").max(120),
   storeEmail: z.string().trim().email("Enter a valid store email").max(255),
+  fromName: z.string().trim().min(1, "From name is required").max(120),
+  fromEmail: z.string().trim().email("Enter a valid From email").max(255),
+  replyTo: z.string().trim().email("Enter a valid Reply-To email").max(255).or(z.literal("")),
 });
 
 type SendResult = {
@@ -47,6 +50,9 @@ export function SendTestEmailDialog() {
     customerEmail: "",
     storeName: "Petals & Pearls",
     storeEmail: "",
+    fromName: "Bloom Disputes",
+    fromEmail: "disputes@bloom.example",
+    replyTo: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
   const [sending, setSending] = useState(false);
