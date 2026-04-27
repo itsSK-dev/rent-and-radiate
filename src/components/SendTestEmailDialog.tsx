@@ -26,6 +26,9 @@ const recipientSchema = z.object({
   customerEmail: z.string().trim().email("Enter a valid customer email").max(255),
   storeName: z.string().trim().min(1, "Store contact name is required").max(120),
   storeEmail: z.string().trim().email("Enter a valid store email").max(255),
+  fromName: z.string().trim().min(1, "From name is required").max(120),
+  fromEmail: z.string().trim().email("Enter a valid From email").max(255),
+  replyTo: z.string().trim().email("Enter a valid Reply-To email").max(255).or(z.literal("")),
 });
 
 type SendResult = {
@@ -47,6 +50,9 @@ export function SendTestEmailDialog() {
     customerEmail: "",
     storeName: "Petals & Pearls",
     storeEmail: "",
+    fromName: "Bloom Disputes",
+    fromEmail: "disputes@bloom.example",
+    replyTo: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
   const [sending, setSending] = useState(false);
@@ -94,9 +100,12 @@ export function SendTestEmailDialog() {
   async function handleConfirmSend() {
     setSending(true);
     setResults(null);
+    const replyTo = form.replyTo.trim() || undefined;
     const { data, error } = await supabase.functions.invoke("send-dispute-test-email", {
       body: {
         template,
+        from: { name: form.fromName.trim(), email: form.fromEmail.trim() },
+        replyTo,
         recipients: [
           { email: form.customerEmail, role: "customer", name: form.customerName },
           { email: form.storeEmail, role: "store_owner", name: form.storeName },
@@ -227,6 +236,29 @@ export function SendTestEmailDialog() {
                 </div>
               </div>
             </div>
+            <div className="rounded-2xl border border-border bg-secondary/30 p-4 space-y-3">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">Sender · From & Reply-To</p>
+                <p className="text-[10px] text-muted-foreground">Shown in the inbox header</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">From name</Label>
+                  <Input value={form.fromName} onChange={(e) => update("fromName", e.target.value)} placeholder="Bloom Disputes" />
+                  {errors.fromName && <p className="text-xs text-destructive">{errors.fromName}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">From email</Label>
+                  <Input type="email" value={form.fromEmail} onChange={(e) => update("fromEmail", e.target.value)} placeholder="disputes@yourdomain.com" />
+                  {errors.fromEmail && <p className="text-xs text-destructive">{errors.fromEmail}</p>}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Reply-To <span className="text-muted-foreground font-normal">(optional — defaults to From)</span></Label>
+                <Input type="email" value={form.replyTo} onChange={(e) => update("replyTo", e.target.value)} placeholder="support@yourdomain.com" />
+                {errors.replyTo && <p className="text-xs text-destructive">{errors.replyTo}</p>}
+              </div>
+            </div>
           </div>
         )}
 
@@ -234,8 +266,23 @@ export function SendTestEmailDialog() {
           <div className="space-y-3 py-2">
             <div className="rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm space-y-1">
               <div className="flex flex-wrap gap-x-6 gap-y-1">
-                <span><span className="text-muted-foreground">From:</span> Bloom &lt;disputes@bloom.example&gt;</span>
-                <span><span className="text-muted-foreground">To:</span> {preview.recipient.name} &lt;{preview.recipient.email}&gt;</span>
+                <span>
+                  <span className="text-muted-foreground">From:</span>{" "}
+                  {form.fromName || "Sender"} &lt;{form.fromEmail || "no-reply@example.com"}&gt;
+                </span>
+                <span>
+                  <span className="text-muted-foreground">To:</span> {preview.recipient.name} &lt;{preview.recipient.email}&gt;
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-x-6 gap-y-1">
+                <span>
+                  <span className="text-muted-foreground">Reply-To:</span>{" "}
+                  {form.replyTo.trim() ? (
+                    <>{form.replyTo.trim()}</>
+                  ) : (
+                    <span className="text-muted-foreground italic">(defaults to From address)</span>
+                  )}
+                </span>
               </div>
               <div><span className="text-muted-foreground">Subject:</span> <span className="font-medium">{preview.subject}</span></div>
             </div>

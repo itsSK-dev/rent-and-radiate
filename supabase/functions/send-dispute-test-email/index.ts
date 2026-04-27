@@ -10,6 +10,11 @@ import { z } from "https://esm.sh/zod@3.23.8";
 
 const BodySchema = z.object({
   template: z.enum(["dispute-opened", "dispute-resolved", "dispute-rejected"]),
+  from: z.object({
+    name: z.string().trim().min(1).max(120),
+    email: z.string().trim().email().max(255),
+  }).optional(),
+  replyTo: z.string().trim().email().max(255).optional(),
   recipients: z.array(z.object({
     email: z.string().trim().email().max(255),
     role: z.enum(["customer", "store_owner"]),
@@ -62,12 +67,19 @@ Deno.serve(async (req) => {
   const { error: probeErr } = await admin.from("email_send_log").select("id").limit(1);
   const infraReady = !probeErr;
 
+  const fromHeader = parsed.data.from
+    ? `${parsed.data.from.name} <${parsed.data.from.email}>`
+    : null;
+  const replyToHeader = parsed.data.replyTo ?? null;
+  const fromSuffix = fromHeader ? ` from ${fromHeader}` : "";
+  const replySuffix = replyToHeader ? ` (reply-to ${replyToHeader})` : "";
+
   const results: SendResult[] = parsed.data.recipients.map((r) => ({
     email: r.email,
     role: r.role,
     status: infraReady ? "queued" : "skipped",
     message: infraReady
-      ? `Test "${parsed.data.template}" email queued for ${r.email}.`
+      ? `Test "${parsed.data.template}" email queued for ${r.email}${fromSuffix}${replySuffix}.`
       : "Email infrastructure isn't provisioned yet — verify your sender domain to enable real sends.",
   }));
 
@@ -80,7 +92,11 @@ Deno.serve(async (req) => {
     recipient_role: r.role,
     recipient_name: r.name,
     status: results[i].status,
-    message: results[i].message,
+    message: [
+      results[i].message,
+      fromHeader ? `From: ${fromHeader}` : null,
+      replyToHeader ? `Reply-To: ${replyToHeader}` : null,
+    ].filter(Boolean).join(" · "),
     infra_ready: infraReady,
     triggered_by: triggeredBy,
     created_at: sentAt,
@@ -93,6 +109,8 @@ Deno.serve(async (req) => {
 
   return new Response(JSON.stringify({
     template: parsed.data.template,
+    from: parsed.data.from ?? null,
+    replyTo: parsed.data.replyTo ?? null,
     infraReady,
     results,
     sentAt,
