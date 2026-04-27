@@ -14,6 +14,7 @@ import { DisputeOpenedEmail, DisputeResolutionEmail, type DisputeResolutionData 
 import { useSupportContact } from "@/hooks/useSupportContact";
 import { buildPlainText, buildSampleData, buildSubject, type TemplateKey } from "@/lib/disputeEmailPreview";
 import { EmailDiffView } from "@/components/EmailDiffView";
+import { validatePreview, type ValidationIssue } from "@/lib/previewValidation";
 
 const templateLabels: Record<TemplateKey, string> = {
   "dispute-opened": "Dispute opened",
