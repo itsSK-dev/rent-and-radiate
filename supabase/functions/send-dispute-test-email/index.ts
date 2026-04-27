@@ -10,6 +10,11 @@ import { z } from "https://esm.sh/zod@3.23.8";
 
 const BodySchema = z.object({
   template: z.enum(["dispute-opened", "dispute-resolved", "dispute-rejected"]),
+  from: z.object({
+    name: z.string().trim().min(1).max(120),
+    email: z.string().trim().email().max(255),
+  }).optional(),
+  replyTo: z.string().trim().email().max(255).optional(),
   recipients: z.array(z.object({
     email: z.string().trim().email().max(255),
     role: z.enum(["customer", "store_owner"]),
