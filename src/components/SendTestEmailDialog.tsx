@@ -112,6 +112,7 @@ export function SendTestEmailDialog() {
       setInfraReady(false);
       setSentAt(new Date().toISOString());
       setStep("results");
+      window.dispatchEvent(new CustomEvent("test-email-log:refresh"));
       return;
     }
     setResults(data?.results ?? []);
