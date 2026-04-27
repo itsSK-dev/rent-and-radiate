@@ -304,6 +304,8 @@ export function SendTestEmailDialog() {
               <div><span className="text-muted-foreground">Subject:</span> <span className="font-medium">{preview.subject}</span></div>
             </div>
 
+            <ValidationPanel report={validation} />
+
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <Tabs value={previewRole} onValueChange={(v) => setPreviewRole(v as PreviewRole)}>
                 <TabsList>
