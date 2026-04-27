@@ -266,8 +266,23 @@ export function SendTestEmailDialog() {
           <div className="space-y-3 py-2">
             <div className="rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm space-y-1">
               <div className="flex flex-wrap gap-x-6 gap-y-1">
-                <span><span className="text-muted-foreground">From:</span> Bloom &lt;disputes@bloom.example&gt;</span>
-                <span><span className="text-muted-foreground">To:</span> {preview.recipient.name} &lt;{preview.recipient.email}&gt;</span>
+                <span>
+                  <span className="text-muted-foreground">From:</span>{" "}
+                  {form.fromName || "Sender"} &lt;{form.fromEmail || "no-reply@example.com"}&gt;
+                </span>
+                <span>
+                  <span className="text-muted-foreground">To:</span> {preview.recipient.name} &lt;{preview.recipient.email}&gt;
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-x-6 gap-y-1">
+                <span>
+                  <span className="text-muted-foreground">Reply-To:</span>{" "}
+                  {form.replyTo.trim() ? (
+                    <>{form.replyTo.trim()}</>
+                  ) : (
+                    <span className="text-muted-foreground italic">(defaults to From address)</span>
+                  )}
+                </span>
               </div>
               <div><span className="text-muted-foreground">Subject:</span> <span className="font-medium">{preview.subject}</span></div>
             </div>
