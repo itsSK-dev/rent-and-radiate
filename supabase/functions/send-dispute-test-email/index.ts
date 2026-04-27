@@ -1,7 +1,8 @@
 // Edge function: attempts to send a test dispute email to one or more recipients.
 // If the project doesn't yet have an email infrastructure or a verified sender
 // domain, it returns a structured "not_ready" response instead of failing.
-// Once email infra is provisioned, we can swap the body for an enqueue_email call.
+// Each attempt (queued / skipped / error) is persisted in test_email_log for
+// admin troubleshooting.
 
 import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
@@ -41,7 +42,21 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const admin = createClient(supabaseUrl, serviceKey);
+
+  // Identify the caller (admin) so we can attribute the log entry.
+  let triggeredBy: string | null = null;
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader) {
+    try {
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data } = await userClient.auth.getUser();
+      triggeredBy = data.user?.id ?? null;
+    } catch (_e) { /* ignore */ }
+  }
 
   // Detect whether email infrastructure is available
   const { error: probeErr } = await admin.from("email_send_log").select("id").limit(1);
@@ -56,11 +71,32 @@ Deno.serve(async (req) => {
       : "Email infrastructure isn't provisioned yet — verify your sender domain to enable real sends.",
   }));
 
+  const sentAt = new Date().toISOString();
+
+  // Persist each attempt for troubleshooting.
+  const logRows = parsed.data.recipients.map((r, i) => ({
+    template: parsed.data.template,
+    recipient_email: r.email,
+    recipient_role: r.role,
+    recipient_name: r.name,
+    status: results[i].status,
+    message: results[i].message,
+    infra_ready: infraReady,
+    triggered_by: triggeredBy,
+    created_at: sentAt,
+  }));
+
+  const { error: logErr } = await admin.from("test_email_log").insert(logRows);
+  if (logErr) {
+    console.error("test_email_log insert failed", logErr);
+  }
+
   return new Response(JSON.stringify({
     template: parsed.data.template,
     infraReady,
     results,
-    sentAt: new Date().toISOString(),
+    sentAt,
+    logged: !logErr,
   }), {
     status: 200,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
