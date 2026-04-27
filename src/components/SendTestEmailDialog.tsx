@@ -111,6 +111,10 @@ export function SendTestEmailDialog() {
   }), [template, preview, form.fromName, form.fromEmail, form.replyTo]);
 
   async function handleConfirmSend() {
+    if (!validation.ok) {
+      toast.error("Fix the validation issues before sending the test email.");
+      return;
+    }
     setSending(true);
     setResults(null);
     const replyTo = form.replyTo.trim() || undefined;
