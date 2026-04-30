@@ -22,6 +22,8 @@ type Rental = {
   grand_total: number;
   status: string;
   payment_status: string;
+  payment_method: string | null;
+  razorpay_payment_id: string | null;
   delivery_method: string;
   product: { title: string; images: string[] } | null;
   store: { name: string; city: string | null } | null;
@@ -33,6 +35,20 @@ const statusTone: Record<string, string> = {
   delivered: "bg-blossom text-rose-deep",
   returned: "bg-gold/20 text-rose-deep",
   cancelled: "bg-destructive/10 text-destructive",
+};
+
+const paymentTone: Record<string, string> = {
+  paid: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  cod: "bg-amber-100 text-amber-700 border-amber-200",
+  unpaid: "bg-rose-100 text-rose-700 border-rose-200",
+  refunded: "bg-sky-100 text-sky-700 border-sky-200",
+};
+
+const paymentLabel: Record<string, string> = {
+  paid: "Paid",
+  cod: "Cash on Delivery",
+  unpaid: "Pending payment",
+  refunded: "Refunded",
 };
 
 const MyRentals = () => {
@@ -51,7 +67,7 @@ const MyRentals = () => {
     (async () => {
       const { data } = await supabase
         .from("rentals")
-        .select("id,start_date,end_date,days,rental_total,deposit,grand_total,status,payment_status,delivery_method,product:products(title,images),store:stores(name,city)")
+        .select("id,start_date,end_date,days,rental_total,deposit,grand_total,status,payment_status,payment_method,razorpay_payment_id,delivery_method,product:products(title,images),store:stores(name,city)")
         .eq("customer_id", user.id)
         .order("created_at", { ascending: false });
       setRentals((data as any) ?? []);
@@ -104,12 +120,48 @@ const MyRentals = () => {
                       <span>Rental: <strong>₹{Number(r.rental_total).toLocaleString("en-IN")}</strong></span>
                       <span>Deposit: <strong>₹{Number(r.deposit).toLocaleString("en-IN")}</strong></span>
                       <span>Total: <strong>₹{Number(r.grand_total).toLocaleString("en-IN")}</strong></span>
-                      <span className="text-muted-foreground">Payment: {r.payment_status}</span>
                     </div>
+
+                    {/* Payment status section */}
+                    <div className={`mt-2 rounded-xl border p-3 ${paymentTone[r.payment_status] ?? "bg-secondary border-border"}`}>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs uppercase tracking-wider opacity-70">Payment</span>
+                          <span className="font-medium">{paymentLabel[r.payment_status] ?? r.payment_status}</span>
+                          {r.payment_method && r.payment_status !== "unpaid" && (
+                            <span className="text-xs opacity-75">· {r.payment_method.toUpperCase()}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {r.payment_status === "unpaid" && r.status !== "cancelled" && (
+                            <Link to={`/checkout/${r.id}`}>
+                              <Button variant="hero" size="sm">Pay now</Button>
+                            </Link>
+                          )}
+                          {(r.payment_status === "paid" || r.payment_status === "cod") && (
+                            <Link to={`/receipt/${r.id}`} className="text-sm underline underline-offset-4 hover:no-underline">
+                              View receipt
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                      {r.razorpay_payment_id && (
+                        <p className="mt-1.5 text-xs font-mono opacity-80 break-all">
+                          ID: {r.razorpay_payment_id}
+                        </p>
+                      )}
+                    </div>
+
                     <div className="pt-2 flex flex-wrap gap-2">
                       {r.status === "pending" && (
                         <Button variant="ghost" size="sm" onClick={() => cancel(r.id)}>Cancel</Button>
                       )}
+                      {r.status === "delivered" && (
+                        <p className="text-xs text-muted-foreground w-full">
+                          Upload at least one <strong>after-return</strong> photo before the store can close this rental.
+                        </p>
+                      )}
+                    </div>
                       {r.status === "delivered" && (
                         <p className="text-xs text-muted-foreground w-full">
                           Upload at least one <strong>after-return</strong> photo before the store can close this rental.
