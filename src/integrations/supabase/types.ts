@@ -71,6 +71,60 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          error_code: string | null
+          error_description: string | null
+          id: string
+          method: string
+          provider: string
+          raw: Json | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          razorpay_signature: string | null
+          rental_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          error_code?: string | null
+          error_description?: string | null
+          id?: string
+          method: string
+          provider?: string
+          raw?: Json | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          rental_id: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          error_code?: string | null
+          error_description?: string | null
+          id?: string
+          method?: string
+          provider?: string
+          raw?: Json | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          rental_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           available: boolean
@@ -295,8 +349,12 @@ export type Database = {
           end_date: string
           grand_total: number
           id: string
+          payment_method: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           product_id: string
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          razorpay_signature: string | null
           refund_amount: number | null
           rental_total: number
           start_date: string
@@ -314,8 +372,12 @@ export type Database = {
           end_date: string
           grand_total: number
           id?: string
+          payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           product_id: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
           refund_amount?: number | null
           rental_total: number
           start_date: string
@@ -333,8 +395,12 @@ export type Database = {
           end_date?: string
           grand_total?: number
           id?: string
+          payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           product_id?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
           refund_amount?: number | null
           rental_total?: number
           start_date?: string
@@ -522,7 +588,7 @@ export type Database = {
       delivery_method: "delivery" | "pickup"
       dispute_status: "open" | "reviewing" | "resolved" | "rejected"
       image_stage: "before_delivery" | "at_delivery" | "after_return"
-      payment_status: "unpaid" | "paid" | "refunded" | "partial_refund"
+      payment_status: "unpaid" | "paid" | "refunded" | "partial_refund" | "cod"
       product_category: "dress" | "jewellery"
       rental_status:
         | "pending"
@@ -661,7 +727,7 @@ export const Constants = {
       delivery_method: ["delivery", "pickup"],
       dispute_status: ["open", "reviewing", "resolved", "rejected"],
       image_stage: ["before_delivery", "at_delivery", "after_return"],
-      payment_status: ["unpaid", "paid", "refunded", "partial_refund"],
+      payment_status: ["unpaid", "paid", "refunded", "partial_refund", "cod"],
       product_category: ["dress", "jewellery"],
       rental_status: [
         "pending",
