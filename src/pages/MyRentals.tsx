@@ -162,12 +162,6 @@ const MyRentals = () => {
                         </p>
                       )}
                     </div>
-                      {r.status === "delivered" && (
-                        <p className="text-xs text-muted-foreground w-full">
-                          Upload at least one <strong>after-return</strong> photo before the store can close this rental.
-                        </p>
-                      )}
-                    </div>
                     <div className="pt-2 border-t border-border">
                       <RentalStatusTimeline
                         rentalId={r.id}
