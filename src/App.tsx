@@ -16,6 +16,7 @@ import Admin from "./pages/Admin";
 import AdminEmailPreview from "./pages/AdminEmailPreview";
 import NotFound from "./pages/NotFound";
 import Checkout from "./pages/Checkout";
+import Receipt from "./pages/Receipt";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/my-rentals" element={<MyRentals />} />
             <Route path="/checkout/:rentalId" element={<Checkout />} />
+            <Route path="/receipt/:rentalId" element={<Receipt />} />
             <Route path="/become-vendor" element={<BecomeVendor />} />
             <Route path="/vendor" element={<Vendor />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
