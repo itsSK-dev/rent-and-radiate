@@ -78,7 +78,7 @@ const ProductDetail = () => {
     if (!start || !end) return toast.error("Please choose your rental dates.");
     if (delivery === "delivery" && address.trim().length < 8) return toast.error("Please enter a delivery address.");
     setSubmitting(true);
-    const { error } = await supabase.from("rentals").insert({
+    const { data: created, error } = await supabase.from("rentals").insert({
       customer_id: user.id,
       product_id: product.id,
       store_id: product.store_id,
@@ -90,11 +90,10 @@ const ProductDetail = () => {
       grand_total: grand,
       delivery_method: delivery,
       address: delivery === "delivery" ? address : null,
-    });
+    }).select("id").single();
     setSubmitting(false);
-    if (error) return toast.error(error.message);
-    toast.success("Reserved! Payment will be enabled in the next step.");
-    navigate("/my-rentals");
+    if (error || !created) return toast.error(error?.message ?? "Could not reserve");
+    navigate(`/checkout/${created.id}`);
   }
 
   return (
