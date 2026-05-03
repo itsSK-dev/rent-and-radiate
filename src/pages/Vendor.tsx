@@ -163,7 +163,7 @@ const Vendor = () => {
             ) : (
               <div className="space-y-3">
                 {rentals.map((r) => (
-                  <RentalRow key={r.id} r={r} onUpdate={(status) => updateRental(r.id, status)} />
+                  <RentalRow key={r.id} r={r} refund={refunds.find((x) => x.rental_id === r.id)} onUpdate={(status) => updateRental(r.id, status)} onRefresh={refresh} />
                 ))}
               </div>
             )}
