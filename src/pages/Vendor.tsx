@@ -17,10 +17,12 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
+import { InspectionDialog } from "@/components/InspectionDialog";
 
 type Store = { id: string; name: string; city: string | null; approved: boolean };
 type Product = { id: string; title: string; category: "dress" | "jewellery"; price_per_day: number; security_deposit: number; available: boolean; images: string[] };
-type Rental = { id: string; start_date: string; end_date: string; days: number; grand_total: number; status: string; product: { title: string } | null; customer: { full_name: string | null } | null };
+type Rental = { id: string; start_date: string; end_date: string; days: number; grand_total: number; deposit: number; status: string; store_id: string; customer_id: string; product: { title: string } | null; customer: { full_name: string | null } | null };
+type RefundRow = { id: string; rental_id: string; status: string; refund_amount: number; refund_percent: number; condition_tier: string };
 
 const Vendor = () => {
   const { user, loading } = useAuth();
@@ -29,6 +31,7 @@ const Vendor = () => {
   const [storeId, setStoreId] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [rentals, setRentals] = useState<Rental[]>([]);
+  const [refunds, setRefunds] = useState<RefundRow[]>([]);
 
   useEffect(() => { document.title = "Vendor · Bloom"; }, []);
   useEffect(() => {
@@ -44,8 +47,10 @@ const Vendor = () => {
     if (sid) {
       const { data: p } = await supabase.from("products").select("id,title,category,price_per_day,security_deposit,available,images").eq("store_id", sid).order("created_at", { ascending: false });
       setProducts((p as any) ?? []);
-      const { data: r } = await supabase.from("rentals").select("id,start_date,end_date,days,grand_total,status,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)").eq("store_id", sid).order("created_at", { ascending: false });
+      const { data: r } = await supabase.from("rentals").select("id,start_date,end_date,days,grand_total,deposit,status,store_id,customer_id,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)").eq("store_id", sid).order("created_at", { ascending: false });
       setRentals((r as any) ?? []);
+      const { data: rf } = await (supabase.from as any)("deposit_refunds").select("id,rental_id,status,refund_amount,refund_percent,condition_tier").eq("store_id", sid);
+      setRefunds((rf as any) ?? []);
     }
   }
   useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [user]);
@@ -159,7 +164,7 @@ const Vendor = () => {
             ) : (
               <div className="space-y-3">
                 {rentals.map((r) => (
-                  <RentalRow key={r.id} r={r} onUpdate={(status) => updateRental(r.id, status)} />
+                  <RentalRow key={r.id} r={r} refund={refunds.find((x) => x.rental_id === r.id)} onUpdate={(status) => updateRental(r.id, status)} onRefresh={refresh} />
                 ))}
               </div>
             )}
@@ -180,7 +185,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function RentalRow({ r, onUpdate }: { r: Rental; onUpdate: (status: string) => void }) {
+function RentalRow({ r, refund, onUpdate, onRefresh }: { r: Rental; refund?: RefundRow; onUpdate: (status: string) => void; onRefresh: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const blockedDelivered = r.status !== "delivered" && r.status !== "returned";
   return (
@@ -210,6 +215,29 @@ function RentalRow({ r, onUpdate }: { r: Rental; onUpdate: (status: string) => v
         <p className="text-xs text-muted-foreground">
           Upload at least one <strong>before-delivery</strong> photo before marking as delivered.
         </p>
+      )}
+      {r.status === "returned" && (
+        <div className="rounded-xl border border-dashed border-border bg-secondary/40 p-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="text-sm">
+            <p className="font-medium">Deposit refund</p>
+            {refund ? (
+              <p className="text-xs text-muted-foreground">
+                {refund.condition_tier} · ₹{Number(refund.refund_amount).toLocaleString("en-IN")} ({refund.refund_percent}%) · <span className="capitalize">{refund.status.replace("_"," ")}</span>
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">Not yet inspected. Deposit ₹{Number(r.deposit).toLocaleString("en-IN")}.</p>
+            )}
+          </div>
+          {!refund && (
+            <InspectionDialog
+              rentalId={r.id}
+              storeId={r.store_id}
+              customerId={r.customer_id}
+              deposit={Number(r.deposit)}
+              onCreated={onRefresh}
+            />
+          )}
+        </div>
       )}
       <RentalStatusTimeline rentalId={r.id} currentStatus={r.status} />
       {expanded && (

@@ -11,6 +11,7 @@ import { demoImageMap } from "@/lib/seedDemo";
 import { toast } from "sonner";
 import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
+import { REFUND_STATUS_LABEL, REFUND_STATUS_TONE } from "@/lib/refundTiers";
 
 type Rental = {
   id: string;
@@ -42,6 +43,7 @@ const paymentTone: Record<string, string> = {
   cod: "bg-amber-100 text-amber-700 border-amber-200",
   unpaid: "bg-rose-100 text-rose-700 border-rose-200",
   refunded: "bg-sky-100 text-sky-700 border-sky-200",
+  partial_refund: "bg-sky-100 text-sky-700 border-sky-200",
 };
 
 const paymentLabel: Record<string, string> = {
@@ -49,7 +51,10 @@ const paymentLabel: Record<string, string> = {
   cod: "Cash on Delivery",
   unpaid: "Pending payment",
   refunded: "Refunded",
+  partial_refund: "Partial refund",
 };
+
+type RefundRow = { id: string; rental_id: string; status: string; refund_amount: number; refund_percent: number; condition_tier: string; inspection_notes: string | null };
 
 const MyRentals = () => {
   const { user, loading } = useAuth();
@@ -57,6 +62,7 @@ const MyRentals = () => {
   const [rentals, setRentals] = useState<Rental[]>([]);
 
   useEffect(() => { document.title = "My rentals · Bloom"; }, []);
+  const [refunds, setRefunds] = useState<RefundRow[]>([]);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth?next=/my-rentals");
@@ -71,6 +77,10 @@ const MyRentals = () => {
         .eq("customer_id", user.id)
         .order("created_at", { ascending: false });
       setRentals((data as any) ?? []);
+      const { data: rf } = await (supabase.from as any)("deposit_refunds")
+        .select("id,rental_id,status,refund_amount,refund_percent,condition_tier,inspection_notes")
+        .eq("customer_id", user.id);
+      setRefunds((rf as any) ?? []);
     })();
   }, [user]);
 
@@ -100,6 +110,7 @@ const MyRentals = () => {
           <div className="space-y-4">
             {rentals.map((r) => {
               const img = r.product?.images?.[0] || demoImageMap[r.product?.title ?? ""];
+              const refund = refunds.find((x) => x.rental_id === r.id);
               return (
                 <div key={r.id} className="rounded-2xl border border-border bg-card p-5 flex flex-col md:flex-row gap-5 shadow-card">
                   <div className="w-full md:w-32 aspect-[4/5] md:aspect-square rounded-xl overflow-hidden bg-petal shrink-0">
@@ -151,6 +162,24 @@ const MyRentals = () => {
                         </p>
                       )}
                     </div>
+
+                    {refund && (
+                      <div className={`rounded-xl border p-3 ${REFUND_STATUS_TONE[refund.status]}`}>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs uppercase tracking-wider opacity-70">Deposit refund</span>
+                            <span className="font-medium">{REFUND_STATUS_LABEL[refund.status]}</span>
+                          </div>
+                          <span className="text-sm font-medium">
+                            ₹{Number(refund.refund_amount).toLocaleString("en-IN")} <span className="opacity-70">({refund.refund_percent}%)</span>
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs opacity-80 capitalize">Condition: {refund.condition_tier}</p>
+                        {refund.inspection_notes && (
+                          <p className="mt-1 text-xs opacity-80 whitespace-pre-wrap">"{refund.inspection_notes}"</p>
+                        )}
+                      </div>
+                    )}
 
                     <div className="pt-2 flex flex-wrap gap-2">
                       {r.status === "pending" && (
