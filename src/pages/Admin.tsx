@@ -14,6 +14,8 @@ import { DisputeEmailLog } from "@/components/DisputeEmailLog";
 import { format } from "date-fns";
 import { ShieldAlert, Upload, Trash2, FileImage } from "lucide-react";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdminRefundsPanel } from "@/components/AdminRefundsPanel";
 
 type Dispute = {
   id: string;
