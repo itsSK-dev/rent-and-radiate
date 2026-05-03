@@ -16,6 +16,7 @@ import { ShieldAlert, Upload, Trash2, FileImage } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminRefundsPanel } from "@/components/AdminRefundsPanel";
+import { DisputeStatusTimeline } from "@/components/DisputeStatusTimeline";
 
 type Dispute = {
   id: string;
@@ -216,6 +217,10 @@ function DisputeCard({ d, onUpdate }: { d: Dispute; onUpdate: (patch: Partial<Di
 
       <div className="rounded-xl bg-secondary/50 p-3">
         <RentalStatusTimeline rentalId={d.rental_id} currentStatus="" />
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-3">
+        <DisputeStatusTimeline disputeId={d.id} />
       </div>
 
       <div className="rounded-xl border border-border bg-card p-3">

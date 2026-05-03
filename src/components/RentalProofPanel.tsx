@@ -245,21 +245,58 @@ export function OpenDisputeButton({ rentalId, className }: { rentalId: string; c
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+
+  function addFiles(list: FileList | null) {
+    if (!list) return;
+    const next: File[] = [];
+    const nextPrev: string[] = [];
+    for (const f of Array.from(list)) {
+      if (!f.type.startsWith("image/")) { toast.error(`${f.name} is not an image.`); continue; }
+      if (f.size > 8 * 1024 * 1024) { toast.error(`${f.name} is over 8 MB.`); continue; }
+      if (files.length + next.length >= 6) { toast.error("Up to 6 evidence photos."); break; }
+      next.push(f);
+      nextPrev.push(URL.createObjectURL(f));
+    }
+    setFiles((p) => [...p, ...next]);
+    setPreviews((p) => [...p, ...nextPrev]);
+  }
+
+  function removeAt(i: number) {
+    setFiles((p) => p.filter((_, idx) => idx !== i));
+    setPreviews((p) => {
+      URL.revokeObjectURL(p[i]);
+      return p.filter((_, idx) => idx !== i);
+    });
+  }
 
   async function submit() {
     if (!user) return;
     if (reason.trim().length < 10) return toast.error("Please describe the issue (min 10 chars).");
     setBusy(true);
+    const uploaded: string[] = [];
+    for (const f of files) {
+      const path = `disputes/${rentalId}/${Date.now()}-${f.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const { error: upErr } = await supabase.storage.from("rental-proofs").upload(path, f);
+      if (upErr) { setBusy(false); return toast.error(`Upload failed: ${upErr.message}`); }
+      const { data: pub } = supabase.storage.from("rental-proofs").getPublicUrl(path);
+      uploaded.push(pub.publicUrl);
+    }
     const { error } = await supabase.from("disputes").insert({
       rental_id: rentalId,
       opened_by: user.id,
       reason: reason.trim(),
+      evidence_images: uploaded,
     });
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Dispute opened. An admin will review.");
+    previews.forEach((u) => URL.revokeObjectURL(u));
     setOpen(false);
     setReason("");
+    setFiles([]);
+    setPreviews([]);
   }
 
   if (!open) {
@@ -271,7 +308,7 @@ export function OpenDisputeButton({ rentalId, className }: { rentalId: string; c
   }
 
   return (
-    <div className="rounded-xl border border-border bg-secondary/40 p-3 space-y-2 w-full">
+    <div className="rounded-xl border border-border bg-secondary/40 p-3 space-y-3 w-full">
       <textarea
         value={reason}
         onChange={(e) => setReason(e.target.value)}
@@ -280,9 +317,46 @@ export function OpenDisputeButton({ rentalId, className }: { rentalId: string; c
         maxLength={500}
         className="w-full rounded-lg border border-border bg-background p-2 text-sm"
       />
+
+      <div>
+        <p className="text-xs text-muted-foreground mb-2">
+          Attach before/after condition photos as evidence (up to 6, max 8 MB each).
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {previews.map((src, i) => (
+            <div key={src} className="relative h-16 w-16 rounded-lg overflow-hidden border border-border bg-petal">
+              <img src={src} alt={`evidence ${i + 1}`} className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => removeAt(i)}
+                className="absolute top-0.5 right-0.5 rounded-full bg-background/90 px-1 text-[10px] hover:bg-destructive hover:text-destructive-foreground"
+                aria-label="Remove"
+              >×</button>
+            </div>
+          ))}
+          {files.length < 6 && (
+            <label className="h-16 w-16 rounded-lg border border-dashed border-border bg-background flex items-center justify-center cursor-pointer hover:border-primary transition-smooth">
+              <Upload className="h-4 w-4 text-muted-foreground" />
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => { addFiles(e.target.files); e.currentTarget.value = ""; }}
+              />
+            </label>
+          )}
+        </div>
+      </div>
+
       <div className="flex gap-2 justify-end">
-        <Button variant="ghost" size="sm" onClick={() => { setOpen(false); setReason(""); }}>Cancel</Button>
-        <Button size="sm" onClick={submit} disabled={busy}>{busy ? "Sending…" : "Submit dispute"}</Button>
+        <Button variant="ghost" size="sm" onClick={() => {
+          previews.forEach((u) => URL.revokeObjectURL(u));
+          setOpen(false); setReason(""); setFiles([]); setPreviews([]);
+        }}>Cancel</Button>
+        <Button size="sm" onClick={submit} disabled={busy}>
+          {busy ? "Sending…" : `Submit dispute${files.length ? ` (${files.length} photo${files.length > 1 ? "s" : ""})` : ""}`}
+        </Button>
       </div>
     </div>
   );

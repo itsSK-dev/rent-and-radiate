@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
 import { InspectionDialog } from "@/components/InspectionDialog";
+import { RentalDisputesList } from "@/components/RentalDisputesList";
 
 type Store = { id: string; name: string; city: string | null; approved: boolean };
 type Product = { id: string; title: string; category: "dress" | "jewellery"; price_per_day: number; security_deposit: number; available: boolean; images: string[] };
@@ -243,6 +244,7 @@ function RentalRow({ r, refund, onUpdate, onRefresh }: { r: Rental; refund?: Ref
       {expanded && (
         <div className="pt-2 border-t border-border space-y-3">
           <RentalProofPanel rentalId={r.id} role="store" stages={["before_delivery", "at_delivery"]} />
+          <RentalDisputesList rentalId={r.id} />
           <div className="flex justify-end">
             <OpenDisputeButton rentalId={r.id} />
           </div>
