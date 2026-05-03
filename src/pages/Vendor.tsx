@@ -184,7 +184,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function RentalRow({ r, onUpdate }: { r: Rental; onUpdate: (status: string) => void }) {
+function RentalRow({ r, refund, onUpdate, onRefresh }: { r: Rental; refund?: RefundRow; onUpdate: (status: string) => void; onRefresh: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const blockedDelivered = r.status !== "delivered" && r.status !== "returned";
   return (
@@ -214,6 +214,29 @@ function RentalRow({ r, onUpdate }: { r: Rental; onUpdate: (status: string) => v
         <p className="text-xs text-muted-foreground">
           Upload at least one <strong>before-delivery</strong> photo before marking as delivered.
         </p>
+      )}
+      {r.status === "returned" && (
+        <div className="rounded-xl border border-dashed border-border bg-secondary/40 p-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="text-sm">
+            <p className="font-medium">Deposit refund</p>
+            {refund ? (
+              <p className="text-xs text-muted-foreground">
+                {refund.condition_tier} · ₹{Number(refund.refund_amount).toLocaleString("en-IN")} ({refund.refund_percent}%) · <span className="capitalize">{refund.status.replace("_"," ")}</span>
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">Not yet inspected. Deposit ₹{Number(r.deposit).toLocaleString("en-IN")}.</p>
+            )}
+          </div>
+          {!refund && (
+            <InspectionDialog
+              rentalId={r.id}
+              storeId={r.store_id}
+              customerId={r.customer_id}
+              deposit={Number(r.deposit)}
+              onCreated={onRefresh}
+            />
+          )}
+        </div>
       )}
       <RentalStatusTimeline rentalId={r.id} currentStatus={r.status} />
       {expanded && (
