@@ -220,6 +220,10 @@ function DisputeCard({ d, onUpdate }: { d: Dispute; onUpdate: (patch: Partial<Di
       </div>
 
       <div className="rounded-xl border border-border bg-card p-3">
+        <DisputeStatusTimeline disputeId={d.id} />
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-3">
         <DisputeEmailLog disputeId={d.id} />
       </div>
 
