@@ -45,6 +45,10 @@ const Checkout = () => {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [codSubmitting, setCodSubmitting] = useState(false);
+  // Idempotency guards: prevent duplicate Razorpay orders on rapid double-clicks
+  // or React re-invocations while the SDK modal is opening.
+  const inFlightRef = useRef<Promise<void> | null>(null);
+  const rzpRef = useRef<any>(null);
 
   useEffect(() => {
     document.title = "Checkout · Bloom";
