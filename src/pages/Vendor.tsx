@@ -20,7 +20,8 @@ import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
 
 type Store = { id: string; name: string; city: string | null; approved: boolean };
 type Product = { id: string; title: string; category: "dress" | "jewellery"; price_per_day: number; security_deposit: number; available: boolean; images: string[] };
-type Rental = { id: string; start_date: string; end_date: string; days: number; grand_total: number; status: string; product: { title: string } | null; customer: { full_name: string | null } | null };
+type Rental = { id: string; start_date: string; end_date: string; days: number; grand_total: number; deposit: number; status: string; store_id: string; customer_id: string; product: { title: string } | null; customer: { full_name: string | null } | null };
+type RefundRow = { id: string; rental_id: string; status: string; refund_amount: number; refund_percent: number; condition_tier: string };
 
 const Vendor = () => {
   const { user, loading } = useAuth();
