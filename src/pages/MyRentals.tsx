@@ -110,6 +110,7 @@ const MyRentals = () => {
           <div className="space-y-4">
             {rentals.map((r) => {
               const img = r.product?.images?.[0] || demoImageMap[r.product?.title ?? ""];
+              const refund = refunds.find((x) => x.rental_id === r.id);
               return (
                 <div key={r.id} className="rounded-2xl border border-border bg-card p-5 flex flex-col md:flex-row gap-5 shadow-card">
                   <div className="w-full md:w-32 aspect-[4/5] md:aspect-square rounded-xl overflow-hidden bg-petal shrink-0">
