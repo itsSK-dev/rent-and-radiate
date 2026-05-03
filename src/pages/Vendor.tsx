@@ -46,8 +46,10 @@ const Vendor = () => {
     if (sid) {
       const { data: p } = await supabase.from("products").select("id,title,category,price_per_day,security_deposit,available,images").eq("store_id", sid).order("created_at", { ascending: false });
       setProducts((p as any) ?? []);
-      const { data: r } = await supabase.from("rentals").select("id,start_date,end_date,days,grand_total,status,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)").eq("store_id", sid).order("created_at", { ascending: false });
+      const { data: r } = await supabase.from("rentals").select("id,start_date,end_date,days,grand_total,deposit,status,store_id,customer_id,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)").eq("store_id", sid).order("created_at", { ascending: false });
       setRentals((r as any) ?? []);
+      const { data: rf } = await (supabase.from as any)("deposit_refunds").select("id,rental_id,status,refund_amount,refund_percent,condition_tier").eq("store_id", sid);
+      setRefunds((rf as any) ?? []);
     }
   }
   useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [user]);
