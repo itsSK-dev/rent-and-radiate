@@ -30,6 +30,7 @@ const Vendor = () => {
   const [storeId, setStoreId] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [rentals, setRentals] = useState<Rental[]>([]);
+  const [refunds, setRefunds] = useState<RefundRow[]>([]);
 
   useEffect(() => { document.title = "Vendor · Bloom"; }, []);
   useEffect(() => {
