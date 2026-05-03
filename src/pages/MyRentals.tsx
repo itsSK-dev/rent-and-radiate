@@ -202,6 +202,7 @@ const MyRentals = () => {
                     {(r.status === "delivered" || r.status === "returned") && (
                       <div className="pt-3 border-t border-border space-y-3">
                         <RentalProofPanel rentalId={r.id} role="customer" stages={["after_return"]} />
+                        <RentalDisputesList rentalId={r.id} />
                         <div className="flex justify-end">
                           <OpenDisputeButton rentalId={r.id} />
                         </div>
