@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      deposit_refunds: {
+        Row: {
+          admin_notes: string | null
+          condition_tier: Database["public"]["Enums"]["refund_condition"]
+          created_at: string
+          customer_id: string
+          deposit_amount: number
+          id: string
+          initiated_at: string
+          initiated_by: string
+          inspection_images: string[]
+          inspection_notes: string | null
+          refund_amount: number
+          refund_percent: number
+          rental_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["refund_status"]
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          condition_tier: Database["public"]["Enums"]["refund_condition"]
+          created_at?: string
+          customer_id: string
+          deposit_amount: number
+          id?: string
+          initiated_at?: string
+          initiated_by: string
+          inspection_images?: string[]
+          inspection_notes?: string | null
+          refund_amount: number
+          refund_percent: number
+          rental_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["refund_status"]
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          condition_tier?: Database["public"]["Enums"]["refund_condition"]
+          created_at?: string
+          customer_id?: string
+          deposit_amount?: number
+          id?: string
+          initiated_at?: string
+          initiated_by?: string
+          inspection_images?: string[]
+          inspection_notes?: string | null
+          refund_amount?: number
+          refund_percent?: number
+          rental_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["refund_status"]
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       disputes: {
         Row: {
           admin_notes: string | null
@@ -590,6 +653,8 @@ export type Database = {
       image_stage: "before_delivery" | "at_delivery" | "after_return"
       payment_status: "unpaid" | "paid" | "refunded" | "partial_refund" | "cod"
       product_category: "dress" | "jewellery"
+      refund_condition: "perfect" | "minor" | "moderate" | "severe"
+      refund_status: "pending_admin" | "approved" | "rejected"
       rental_status:
         | "pending"
         | "confirmed"
@@ -729,6 +794,8 @@ export const Constants = {
       image_stage: ["before_delivery", "at_delivery", "after_return"],
       payment_status: ["unpaid", "paid", "refunded", "partial_refund", "cod"],
       product_category: ["dress", "jewellery"],
+      refund_condition: ["perfect", "minor", "moderate", "severe"],
+      refund_status: ["pending_admin", "approved", "rejected"],
       rental_status: [
         "pending",
         "confirmed",
