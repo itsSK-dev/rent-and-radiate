@@ -92,35 +92,50 @@ const Admin = () => {
         <div className="flex flex-wrap items-end justify-between gap-4 mb-10">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Admin</p>
-            <h1 className="font-display text-5xl">Disputes</h1>
-            <p className="text-muted-foreground mt-1 text-sm">Review proof images, party notes, and resolve cases.</p>
+            <h1 className="font-display text-5xl">Admin console</h1>
+            <p className="text-muted-foreground mt-1 text-sm">Disputes, deposit refunds, and more.</p>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" size="sm" onClick={() => navigate("/admin/email-previews")}>
               Email previews
             </Button>
-            <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
-              <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {["open", "reviewing", "resolved", "rejected", "all"].map((s) => (
-                  <SelectItem key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
-            No {filter === "all" ? "" : filter} disputes.
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {filtered.map((d) => (
-              <DisputeCard key={d.id} d={d} onUpdate={(patch) => updateDispute(d.id, patch)} />
-            ))}
-          </div>
-        )}
+        <Tabs defaultValue="disputes">
+          <TabsList>
+            <TabsTrigger value="disputes">Disputes</TabsTrigger>
+            <TabsTrigger value="refunds">Deposit refunds</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="disputes" className="mt-6 space-y-6">
+            <div className="flex justify-end">
+              <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+                <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {["open", "reviewing", "resolved", "rejected", "all"].map((s) => (
+                    <SelectItem key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {filtered.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
+                No {filter === "all" ? "" : filter} disputes.
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {filtered.map((d) => (
+                  <DisputeCard key={d.id} d={d} onUpdate={(patch) => updateDispute(d.id, patch)} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="refunds" className="mt-6">
+            <AdminRefundsPanel />
+          </TabsContent>
+        </Tabs>
       </section>
       <Footer />
     </div>
