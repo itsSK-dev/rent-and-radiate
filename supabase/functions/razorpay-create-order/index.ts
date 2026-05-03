@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     // Load rental and verify ownership
     const { data: rental, error: rErr } = await supabase
       .from("rentals")
-      .select("id, customer_id, grand_total, payment_status")
+      .select("id, customer_id, grand_total, payment_status, razorpay_order_id")
       .eq("id", rentalId)
       .maybeSingle();
     if (rErr || !rental) return json({ error: "Rental not found" }, 404);
@@ -43,8 +43,44 @@ Deno.serve(async (req) => {
     const keyId = Deno.env.get("RAZORPAY_KEY_ID")!;
     const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET")!;
     const amountPaise = Math.round(Number(rental.grand_total) * 100);
-
     const auth = btoa(`${keyId}:${keySecret}`);
+
+    // ---- Idempotency: reuse an existing reusable order ----
+    if (rental.razorpay_order_id) {
+      const existingRes = await fetch(
+        `https://api.razorpay.com/v1/orders/${rental.razorpay_order_id}`,
+        { headers: { Authorization: `Basic ${auth}` } },
+      );
+      if (existingRes.ok) {
+        const existing = await existingRes.json();
+        // 'created' or 'attempted' orders that match the current amount/currency
+        // are still payable — reuse them instead of creating a duplicate.
+        const reusable =
+          (existing.status === "created" || existing.status === "attempted") &&
+          Number(existing.amount) === amountPaise &&
+          existing.currency === "INR";
+        if (reusable) {
+          return json({
+            orderId: existing.id,
+            amount: existing.amount,
+            currency: existing.currency,
+            keyId,
+            reused: true,
+          });
+        }
+        // If the existing order is already 'paid', short-circuit.
+        if (existing.status === "paid") {
+          return json({ error: "Already paid" }, 400);
+        }
+        // Otherwise (amount changed, etc.) fall through to create a fresh one.
+      }
+      // If the lookup failed (e.g. test/live key swap), also fall through.
+    }
+
+    // ---- Create a new order, scoped by a deterministic receipt ----
+    // Razorpay treats receipt as a client-side reference; combined with
+    // a short suffix this gives us traceability without forbidding retries
+    // when the previous order is no longer reusable.
     const orderRes = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
       headers: {
@@ -65,15 +101,42 @@ Deno.serve(async (req) => {
       return json({ error: "Failed to create order", details: orderData }, 500);
     }
 
-    // Save order id on rental
+    // Persist the order id on the rental (admin client to bypass RLS update perms).
+    // Conditional update: only set if still empty OR matches an obsolete order — this
+    // prevents races where two concurrent invocations both write different ids.
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-    await admin
+
+    const { data: updated, error: updErr } = await admin
       .from("rentals")
       .update({ razorpay_order_id: orderData.id, payment_method: "razorpay" })
-      .eq("id", rentalId);
+      .eq("id", rentalId)
+      // Race guard: only overwrite if it still matches what we read at the start.
+      .or(`razorpay_order_id.is.null,razorpay_order_id.eq.${rental.razorpay_order_id ?? "null"}`)
+      .select("razorpay_order_id")
+      .maybeSingle();
+
+    if (updErr) console.error("rental update error:", updErr);
+
+    // If a parallel request beat us to it, prefer the stored order id.
+    if (updated && updated.razorpay_order_id && updated.razorpay_order_id !== orderData.id) {
+      const winnerRes = await fetch(
+        `https://api.razorpay.com/v1/orders/${updated.razorpay_order_id}`,
+        { headers: { Authorization: `Basic ${auth}` } },
+      );
+      if (winnerRes.ok) {
+        const winner = await winnerRes.json();
+        return json({
+          orderId: winner.id,
+          amount: winner.amount,
+          currency: winner.currency,
+          keyId,
+          reused: true,
+        });
+      }
+    }
 
     return json({
       orderId: orderData.id,

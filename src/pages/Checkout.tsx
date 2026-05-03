@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -45,6 +45,10 @@ const Checkout = () => {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [codSubmitting, setCodSubmitting] = useState(false);
+  // Idempotency guards: prevent duplicate Razorpay orders on rapid double-clicks
+  // or React re-invocations while the SDK modal is opening.
+  const inFlightRef = useRef<Promise<void> | null>(null);
+  const rzpRef = useRef<any>(null);
 
   useEffect(() => {
     document.title = "Checkout · Bloom";
@@ -77,89 +81,102 @@ const Checkout = () => {
 
   async function payWithRazorpay() {
     if (!rental || !user) return;
-    setPaying(true);
-    try {
-      const ok = await loadRazorpay();
-      if (!ok) {
-        toast.error("Failed to load payment SDK. Check your connection.");
-        return;
-      }
+    // If a previous open modal still exists, just re-open it instead of creating a new order.
+    if (rzpRef.current) {
+      try { rzpRef.current.open(); return; } catch { /* fall through */ }
+    }
+    if (inFlightRef.current) return inFlightRef.current;
 
-      const { data, error } = await supabase.functions.invoke("razorpay-create-order", {
-        body: { rentalId: rental.id },
-      });
-      if (error || !data?.orderId) {
-        toast.error(error?.message ?? "Could not start payment");
-        return;
-      }
+    const run = (async () => {
+      setPaying(true);
+      try {
+        const ok = await loadRazorpay();
+        if (!ok) { toast.error("Failed to load payment SDK. Check your connection."); return; }
 
-      const rzp = new window.Razorpay({
-        key: data.keyId,
-        amount: data.amount,
-        currency: data.currency,
-        order_id: data.orderId,
-        name: "Bloom Rentals",
-        description: product?.title ?? "Dress rental",
-        prefill: { email: user.email ?? "" },
-        theme: { color: "#c2185b" },
-        method: { card: true, upi: true, netbanking: true, wallet: true },
-        handler: async (resp: any) => {
-          const { data: vData, error: vErr } = await supabase.functions.invoke(
-            "razorpay-verify-payment",
-            {
-              body: {
-                rentalId: rental.id,
-                razorpay_order_id: resp.razorpay_order_id,
-                razorpay_payment_id: resp.razorpay_payment_id,
-                razorpay_signature: resp.razorpay_signature,
-                method: "razorpay",
+        const { data, error } = await supabase.functions.invoke("razorpay-create-order", {
+          body: { rentalId: rental.id },
+        });
+        if (error || !data?.orderId) {
+          toast.error(error?.message ?? "Could not start payment");
+          return;
+        }
+
+        const rzp = new window.Razorpay({
+          key: data.keyId,
+          amount: data.amount,
+          currency: data.currency,
+          order_id: data.orderId,
+          name: "Bloom Rentals",
+          description: product?.title ?? "Dress rental",
+          prefill: { email: user.email ?? "" },
+          theme: { color: "#c2185b" },
+          method: { card: true, upi: true, netbanking: true, wallet: true },
+          handler: async (resp: any) => {
+            const { data: vData, error: vErr } = await supabase.functions.invoke(
+              "razorpay-verify-payment",
+              {
+                body: {
+                  rentalId: rental.id,
+                  razorpay_order_id: resp.razorpay_order_id,
+                  razorpay_payment_id: resp.razorpay_payment_id,
+                  razorpay_signature: resp.razorpay_signature,
+                  method: "razorpay",
+                },
               },
-            },
-          );
-          if (vErr || !vData?.ok) {
-            toast.error("Payment received but verification failed. Contact support.");
-            return;
-          }
-          toast.success("Payment successful!");
-          navigate("/my-rentals");
-        },
-        modal: {
-          ondismiss: async () => {
-            await supabase.functions.invoke("razorpay-verify-payment", {
-              body: {
-                rentalId: rental.id,
-                razorpay_order_id: data.orderId,
-                failure: { code: "USER_CANCELLED", description: "User closed checkout" },
-              },
-            });
-            toast("Payment cancelled. Your order is still pending.");
+            );
+            rzpRef.current = null;
+            if (vErr || !vData?.ok) {
+              toast.error("Payment received but verification failed. Contact support.");
+              return;
+            }
+            toast.success("Payment successful!");
+            navigate("/my-rentals");
           },
-        },
-      });
-
-      rzp.on("payment.failed", async (resp: any) => {
-        await supabase.functions.invoke("razorpay-verify-payment", {
-          body: {
-            rentalId: rental.id,
-            razorpay_order_id: data.orderId,
-            razorpay_payment_id: resp.error?.metadata?.payment_id,
-            failure: {
-              code: resp.error?.code,
-              description: resp.error?.description,
-              reason: resp.error?.reason,
-              source: resp.error?.source,
-              step: resp.error?.step,
+          modal: {
+            ondismiss: async () => {
+              rzpRef.current = null;
+              await supabase.functions.invoke("razorpay-verify-payment", {
+                body: {
+                  rentalId: rental.id,
+                  razorpay_order_id: data.orderId,
+                  failure: { code: "USER_CANCELLED", description: "User closed checkout" },
+                },
+              });
+              toast("Payment cancelled. Your order is still pending.");
             },
-            method: resp.error?.metadata?.payment_id ? "razorpay" : "unknown",
           },
         });
-        toast.error(resp.error?.description ?? "Payment failed. Order kept as pending.");
-      });
 
-      rzp.open();
-    } finally {
-      setPaying(false);
-    }
+        rzp.on("payment.failed", async (resp: any) => {
+          rzpRef.current = null;
+          await supabase.functions.invoke("razorpay-verify-payment", {
+            body: {
+              rentalId: rental.id,
+              razorpay_order_id: data.orderId,
+              razorpay_payment_id: resp.error?.metadata?.payment_id,
+              failure: {
+                code: resp.error?.code,
+                description: resp.error?.description,
+                reason: resp.error?.reason,
+                source: resp.error?.source,
+                step: resp.error?.step,
+              },
+              method: resp.error?.metadata?.payment_id ? "razorpay" : "unknown",
+            },
+          });
+          toast.error(resp.error?.description ?? "Payment failed. Order kept as pending.");
+        });
+
+        rzpRef.current = rzp;
+        rzp.open();
+      } finally {
+        setPaying(false);
+        inFlightRef.current = null;
+      }
+    })();
+
+    inFlightRef.current = run;
+    return run;
   }
 
   async function payCOD() {
