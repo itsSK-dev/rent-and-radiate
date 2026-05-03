@@ -77,6 +77,36 @@ export type Database = {
         }
         Relationships: []
       }
+      dispute_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          dispute_id: string
+          from_status: Database["public"]["Enums"]["dispute_status"] | null
+          id: string
+          note: string | null
+          to_status: Database["public"]["Enums"]["dispute_status"]
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          dispute_id: string
+          from_status?: Database["public"]["Enums"]["dispute_status"] | null
+          id?: string
+          note?: string | null
+          to_status: Database["public"]["Enums"]["dispute_status"]
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          dispute_id?: string
+          from_status?: Database["public"]["Enums"]["dispute_status"] | null
+          id?: string
+          note?: string | null
+          to_status?: Database["public"]["Enums"]["dispute_status"]
+        }
+        Relationships: []
+      }
       disputes: {
         Row: {
           admin_notes: string | null
