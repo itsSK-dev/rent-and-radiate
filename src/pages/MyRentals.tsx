@@ -62,6 +62,7 @@ const MyRentals = () => {
   const [rentals, setRentals] = useState<Rental[]>([]);
 
   useEffect(() => { document.title = "My rentals · Bloom"; }, []);
+  const [refunds, setRefunds] = useState<RefundRow[]>([]);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth?next=/my-rentals");
@@ -76,6 +77,10 @@ const MyRentals = () => {
         .eq("customer_id", user.id)
         .order("created_at", { ascending: false });
       setRentals((data as any) ?? []);
+      const { data: rf } = await (supabase.from as any)("deposit_refunds")
+        .select("id,rental_id,status,refund_amount,refund_percent,condition_tier,inspection_notes")
+        .eq("customer_id", user.id);
+      setRefunds((rf as any) ?? []);
     })();
   }, [user]);
 
