@@ -16,6 +16,7 @@ import { ShieldAlert, Upload, Trash2, FileImage } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminRefundsPanel } from "@/components/AdminRefundsPanel";
+import { DisputeStatusTimeline } from "@/components/DisputeStatusTimeline";
 
 type Dispute = {
   id: string;
