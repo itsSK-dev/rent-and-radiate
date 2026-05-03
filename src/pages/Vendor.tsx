@@ -244,6 +244,7 @@ function RentalRow({ r, refund, onUpdate, onRefresh }: { r: Rental; refund?: Ref
       {expanded && (
         <div className="pt-2 border-t border-border space-y-3">
           <RentalProofPanel rentalId={r.id} role="store" stages={["before_delivery", "at_delivery"]} />
+          <RentalDisputesList rentalId={r.id} />
           <div className="flex justify-end">
             <OpenDisputeButton rentalId={r.id} />
           </div>
