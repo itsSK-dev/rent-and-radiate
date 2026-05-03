@@ -163,6 +163,24 @@ const MyRentals = () => {
                       )}
                     </div>
 
+                    {refund && (
+                      <div className={`rounded-xl border p-3 ${REFUND_STATUS_TONE[refund.status]}`}>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs uppercase tracking-wider opacity-70">Deposit refund</span>
+                            <span className="font-medium">{REFUND_STATUS_LABEL[refund.status]}</span>
+                          </div>
+                          <span className="text-sm font-medium">
+                            ₹{Number(refund.refund_amount).toLocaleString("en-IN")} <span className="opacity-70">({refund.refund_percent}%)</span>
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs opacity-80 capitalize">Condition: {refund.condition_tier}</p>
+                        {refund.inspection_notes && (
+                          <p className="mt-1 text-xs opacity-80 whitespace-pre-wrap">"{refund.inspection_notes}"</p>
+                        )}
+                      </div>
+                    )}
+
                     <div className="pt-2 flex flex-wrap gap-2">
                       {r.status === "pending" && (
                         <Button variant="ghost" size="sm" onClick={() => cancel(r.id)}>Cancel</Button>
