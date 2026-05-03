@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
+import { InspectionDialog } from "@/components/InspectionDialog";
 
 type Store = { id: string; name: string; city: string | null; approved: boolean };
 type Product = { id: string; title: string; category: "dress" | "jewellery"; price_per_day: number; security_deposit: number; available: boolean; images: string[] };
