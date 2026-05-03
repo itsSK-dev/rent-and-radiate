@@ -11,6 +11,7 @@ import { demoImageMap } from "@/lib/seedDemo";
 import { toast } from "sonner";
 import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
+import { REFUND_STATUS_LABEL, REFUND_STATUS_TONE } from "@/lib/refundTiers";
 
 type Rental = {
   id: string;
