@@ -43,6 +43,7 @@ const paymentTone: Record<string, string> = {
   cod: "bg-amber-100 text-amber-700 border-amber-200",
   unpaid: "bg-rose-100 text-rose-700 border-rose-200",
   refunded: "bg-sky-100 text-sky-700 border-sky-200",
+  partial_refund: "bg-sky-100 text-sky-700 border-sky-200",
 };
 
 const paymentLabel: Record<string, string> = {
@@ -50,7 +51,10 @@ const paymentLabel: Record<string, string> = {
   cod: "Cash on Delivery",
   unpaid: "Pending payment",
   refunded: "Refunded",
+  partial_refund: "Partial refund",
 };
+
+type RefundRow = { id: string; rental_id: string; status: string; refund_amount: number; refund_percent: number; condition_tier: string; inspection_notes: string | null };
 
 const MyRentals = () => {
   const { user, loading } = useAuth();
