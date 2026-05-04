@@ -14,9 +14,15 @@ type Rental = {
   grand_total: number;
   rental_total: number;
   deposit: number;
+  subtotal: number;
+  discount_amount: number;
+  gst_amount: number;
+  delivery_fee: number;
   payment_status: string;
   status: string;
   product_id: string;
+  kind: "rent" | "buy";
+  quantity: number;
 };
 
 type ProductLite = { title: string; images: string[] };
@@ -63,7 +69,7 @@ const Checkout = () => {
     (async () => {
       const { data, error } = await supabase
         .from("rentals")
-        .select("id, customer_id, grand_total, rental_total, deposit, payment_status, status, product_id")
+        .select("id, customer_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity")
         .eq("id", rentalId!)
         .maybeSingle();
       if (error || !data) {
@@ -229,8 +235,19 @@ const Checkout = () => {
           </div>
 
           <div className="border-t border-border pt-4 space-y-2 text-sm">
-            <Row label="Rental" value={`₹${Number(rental.rental_total).toLocaleString("en-IN")}`} />
-            <Row label="Refundable deposit" value={`₹${Number(rental.deposit).toLocaleString("en-IN")}`} muted />
+            <Row label={`${rental.kind === "buy" ? "Purchase" : "Rental"}${rental.quantity > 1 ? ` × ${rental.quantity}` : ""}`} value={`₹${(Number(rental.subtotal) + Number(rental.discount_amount || 0)).toLocaleString("en-IN")}`} />
+            {Number(rental.discount_amount) > 0 && (
+              <Row label="Discount" value={`− ₹${Number(rental.discount_amount).toLocaleString("en-IN")}`} />
+            )}
+            {Number(rental.gst_amount) > 0 && (
+              <Row label="GST" value={`₹${Number(rental.gst_amount).toLocaleString("en-IN")}`} muted />
+            )}
+            {Number(rental.delivery_fee) > 0 && (
+              <Row label="Delivery" value={`₹${Number(rental.delivery_fee).toLocaleString("en-IN")}`} muted />
+            )}
+            {Number(rental.deposit) > 0 && (
+              <Row label="Refundable deposit" value={`₹${Number(rental.deposit).toLocaleString("en-IN")}`} muted />
+            )}
             <Row label="Total payable" value={`₹${Number(rental.grand_total).toLocaleString("en-IN")}`} bold />
           </div>
 

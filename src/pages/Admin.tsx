@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminRefundsPanel } from "@/components/AdminRefundsPanel";
 import { DisputeStatusTimeline } from "@/components/DisputeStatusTimeline";
+import { PlatformSettingsPanel } from "@/components/PlatformSettingsPanel";
 
 type Dispute = {
   id: string;
@@ -107,6 +108,7 @@ const Admin = () => {
           <TabsList>
             <TabsTrigger value="disputes">Disputes</TabsTrigger>
             <TabsTrigger value="refunds">Deposit refunds</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="disputes" className="mt-6 space-y-6">
@@ -135,6 +137,10 @@ const Admin = () => {
 
           <TabsContent value="refunds" className="mt-6">
             <AdminRefundsPanel />
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-6">
+            <PlatformSettingsPanel />
           </TabsContent>
         </Tabs>
       </section>
