@@ -24,7 +24,7 @@ const Index = () => {
       await seedDemoProductsIfEmpty();
       const { data } = await supabase
         .from("products")
-        .select("id,title,category,price_per_day,security_deposit,images,store:stores(name,city)")
+        .select("id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores(name,city)")
         .eq("available", true)
         .limit(6);
       setProducts((data as any) ?? []);
