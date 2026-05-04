@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Flower2, ShoppingBag, Store, User as UserIcon, LogOut, Menu } from "lucide-react";
+import { Flower2, ShoppingBag, ShoppingCart, Store, User as UserIcon, LogOut, Menu } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -29,8 +29,11 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-2">
           {user ? (
             <>
+              <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} aria-label="Cart">
+                <ShoppingCart className="h-4 w-4" />
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate("/my-rentals")}>
-                <ShoppingBag className="h-4 w-4 mr-2" /> My rentals
+                <ShoppingBag className="h-4 w-4 mr-2" /> My orders
               </Button>
               {isVendor ? (
                 <Button variant="soft" size="sm" onClick={() => navigate("/vendor")}>
@@ -72,7 +75,8 @@ export function Navbar() {
             <div className="h-px bg-border my-2" />
             {user ? (
               <>
-                <Link to="/my-rentals" onClick={() => setOpen(false)} className="py-2">My rentals</Link>
+                <Link to="/cart" onClick={() => setOpen(false)} className="py-2">Cart</Link>
+                <Link to="/my-rentals" onClick={() => setOpen(false)} className="py-2">My orders</Link>
                 <Link to={isVendor ? "/vendor" : "/become-vendor"} onClick={() => setOpen(false)} className="py-2">
                   {isVendor ? "Vendor dashboard" : "Open a store"}
                 </Link>

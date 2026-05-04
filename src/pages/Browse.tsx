@@ -29,7 +29,7 @@ const Browse = () => {
       setLoading(true);
       let query = supabase
         .from("products")
-        .select("id,title,category,price_per_day,security_deposit,images,store:stores!inner(name,city,approved)")
+        .select("id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,approved)")
         .eq("available", true);
       if (category !== "all") query = query.eq("category", category as any);
       if (storeId) query = query.eq("store_id", storeId);
