@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      cart_items: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          kind: Database["public"]["Enums"]["order_kind"]
+          product_id: string
+          quantity: number
+          start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["order_kind"]
+          product_id: string
+          quantity?: number
+          start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["order_kind"]
+          product_id?: string
+          quantity?: number
+          start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       deposit_refunds: {
         Row: {
           admin_notes: string | null
@@ -218,17 +254,46 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_settings: {
+        Row: {
+          commission_percent: number
+          delivery_fee: number
+          gst_percent: number
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          commission_percent?: number
+          delivery_fee?: number
+          gst_percent?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          commission_percent?: number
+          delivery_fee?: number
+          gst_percent?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
+          actual_price: number
           available: boolean
           category: Database["public"]["Enums"]["product_category"]
           color: string | null
           condition_notes: string | null
           created_at: string
           description: string | null
+          discount_flat: number
+          discount_percent: number
           id: string
           images: string[]
           price_per_day: number
+          purpose: Database["public"]["Enums"]["product_purpose"]
+          quantity: number
           security_deposit: number
           size: string | null
           store_id: string
@@ -236,15 +301,20 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          actual_price?: number
           available?: boolean
           category: Database["public"]["Enums"]["product_category"]
           color?: string | null
           condition_notes?: string | null
           created_at?: string
           description?: string | null
+          discount_flat?: number
+          discount_percent?: number
           id?: string
           images?: string[]
           price_per_day: number
+          purpose?: Database["public"]["Enums"]["product_purpose"]
+          quantity?: number
           security_deposit: number
           size?: string | null
           store_id: string
@@ -252,15 +322,20 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          actual_price?: number
           available?: boolean
           category?: Database["public"]["Enums"]["product_category"]
           color?: string | null
           condition_notes?: string | null
           created_at?: string
           description?: string | null
+          discount_flat?: number
+          discount_percent?: number
           id?: string
           images?: string[]
           price_per_day?: number
+          purpose?: Database["public"]["Enums"]["product_purpose"]
+          quantity?: number
           security_deposit?: number
           size?: string | null
           store_id?: string
@@ -434,71 +509,92 @@ export type Database = {
       rentals: {
         Row: {
           address: string | null
+          commission_amount: number
           created_at: string
           customer_id: string
-          days: number
+          days: number | null
+          delivery_fee: number
           delivery_method: Database["public"]["Enums"]["delivery_method"]
           deposit: number
-          end_date: string
+          discount_amount: number
+          end_date: string | null
           grand_total: number
+          gst_amount: number
           id: string
+          kind: Database["public"]["Enums"]["order_kind"]
           payment_method: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           product_id: string
+          quantity: number
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
           razorpay_signature: string | null
           refund_amount: number | null
           rental_total: number
-          start_date: string
+          start_date: string | null
           status: Database["public"]["Enums"]["rental_status"]
           store_id: string
+          subtotal: number
           updated_at: string
         }
         Insert: {
           address?: string | null
+          commission_amount?: number
           created_at?: string
           customer_id: string
-          days: number
+          days?: number | null
+          delivery_fee?: number
           delivery_method?: Database["public"]["Enums"]["delivery_method"]
-          deposit: number
-          end_date: string
+          deposit?: number
+          discount_amount?: number
+          end_date?: string | null
           grand_total: number
+          gst_amount?: number
           id?: string
+          kind?: Database["public"]["Enums"]["order_kind"]
           payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           product_id: string
-          razorpay_order_id?: string | null
-          razorpay_payment_id?: string | null
-          razorpay_signature?: string | null
-          refund_amount?: number | null
-          rental_total: number
-          start_date: string
-          status?: Database["public"]["Enums"]["rental_status"]
-          store_id: string
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          created_at?: string
-          customer_id?: string
-          days?: number
-          delivery_method?: Database["public"]["Enums"]["delivery_method"]
-          deposit?: number
-          end_date?: string
-          grand_total?: number
-          id?: string
-          payment_method?: string | null
-          payment_status?: Database["public"]["Enums"]["payment_status"]
-          product_id?: string
+          quantity?: number
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
           razorpay_signature?: string | null
           refund_amount?: number | null
           rental_total?: number
-          start_date?: string
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["rental_status"]
+          store_id: string
+          subtotal?: number
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          commission_amount?: number
+          created_at?: string
+          customer_id?: string
+          days?: number | null
+          delivery_fee?: number
+          delivery_method?: Database["public"]["Enums"]["delivery_method"]
+          deposit?: number
+          discount_amount?: number
+          end_date?: string | null
+          grand_total?: number
+          gst_amount?: number
+          id?: string
+          kind?: Database["public"]["Enums"]["order_kind"]
+          payment_method?: string | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          product_id?: string
+          quantity?: number
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          refund_amount?: number | null
+          rental_total?: number
+          start_date?: string | null
           status?: Database["public"]["Enums"]["rental_status"]
           store_id?: string
+          subtotal?: number
           updated_at?: string
         }
         Relationships: [
@@ -681,8 +777,10 @@ export type Database = {
       delivery_method: "delivery" | "pickup"
       dispute_status: "open" | "reviewing" | "resolved" | "rejected"
       image_stage: "before_delivery" | "at_delivery" | "after_return"
+      order_kind: "rent" | "buy"
       payment_status: "unpaid" | "paid" | "refunded" | "partial_refund" | "cod"
       product_category: "dress" | "jewellery"
+      product_purpose: "rent" | "buy" | "both"
       refund_condition: "perfect" | "minor" | "moderate" | "severe"
       refund_status: "pending_admin" | "approved" | "rejected"
       rental_status:
@@ -822,8 +920,10 @@ export const Constants = {
       delivery_method: ["delivery", "pickup"],
       dispute_status: ["open", "reviewing", "resolved", "rejected"],
       image_stage: ["before_delivery", "at_delivery", "after_return"],
+      order_kind: ["rent", "buy"],
       payment_status: ["unpaid", "paid", "refunded", "partial_refund", "cod"],
       product_category: ["dress", "jewellery"],
+      product_purpose: ["rent", "buy", "both"],
       refund_condition: ["perfect", "minor", "moderate", "severe"],
       refund_status: ["pending_admin", "approved", "rejected"],
       rental_status: [
