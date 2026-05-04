@@ -9,25 +9,40 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Plus, Trash2, Upload, ChevronDown, ChevronUp } from "lucide-react";
+import { usePlatformSettings } from "@/hooks/usePlatformSettings";
+import { Plus, Trash2, Upload, ChevronDown, ChevronUp, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
 import { InspectionDialog } from "@/components/InspectionDialog";
 import { RentalDisputesList } from "@/components/RentalDisputesList";
+import { discountedUnitPrice, inr } from "@/lib/pricing";
 
 type Store = { id: string; name: string; city: string | null; approved: boolean };
-type Product = { id: string; title: string; category: "dress" | "jewellery"; price_per_day: number; security_deposit: number; available: boolean; images: string[] };
-type Rental = { id: string; start_date: string; end_date: string; days: number; grand_total: number; deposit: number; status: string; store_id: string; customer_id: string; product: { title: string } | null; customer: { full_name: string | null } | null };
+type Product = {
+  id: string; title: string; description: string | null; category: "dress" | "jewellery";
+  price_per_day: number; security_deposit: number; available: boolean; images: string[];
+  size: string | null; color: string | null;
+  actual_price: number; discount_percent: number; discount_flat: number;
+  quantity: number; purpose: "rent" | "buy" | "both";
+};
+type Rental = {
+  id: string; start_date: string | null; end_date: string | null; days: number | null;
+  grand_total: number; deposit: number; subtotal: number; commission_amount: number;
+  status: string; store_id: string; customer_id: string; kind: "rent" | "buy"; quantity: number;
+  product: { title: string } | null; customer: { full_name: string | null } | null;
+};
 type RefundRow = { id: string; rental_id: string; status: string; refund_amount: number; refund_percent: number; condition_tier: string };
 
 const Vendor = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { settings } = usePlatformSettings();
   const [stores, setStores] = useState<Store[]>([]);
   const [storeId, setStoreId] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -46,9 +61,14 @@ const Vendor = () => {
     const sid = s?.[0]?.id ?? null;
     setStoreId(sid);
     if (sid) {
-      const { data: p } = await supabase.from("products").select("id,title,category,price_per_day,security_deposit,available,images").eq("store_id", sid).order("created_at", { ascending: false });
+      const { data: p } = await supabase
+        .from("products")
+        .select("id,title,description,category,price_per_day,security_deposit,available,images,size,color,actual_price,discount_percent,discount_flat,quantity,purpose")
+        .eq("store_id", sid).order("created_at", { ascending: false });
       setProducts((p as any) ?? []);
-      const { data: r } = await supabase.from("rentals").select("id,start_date,end_date,days,grand_total,deposit,status,store_id,customer_id,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)").eq("store_id", sid).order("created_at", { ascending: false });
+      const { data: r } = await supabase.from("rentals")
+        .select("id,start_date,end_date,days,grand_total,deposit,subtotal,commission_amount,status,store_id,customer_id,kind,quantity,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)")
+        .eq("store_id", sid).order("created_at", { ascending: false });
       setRentals((r as any) ?? []);
       const { data: rf } = await (supabase.from as any)("deposit_refunds").select("id,rental_id,status,refund_amount,refund_percent,condition_tier").eq("store_id", sid);
       setRefunds((rf as any) ?? []);
@@ -72,12 +92,22 @@ const Vendor = () => {
   }
 
   const store = stores.find((s) => s.id === storeId);
-  const earnings = rentals.filter((r) => r.status !== "cancelled").reduce((sum, r) => sum + Number(r.grand_total), 0);
+  const earnings = rentals
+    .filter((r) => r.status !== "cancelled")
+    .reduce((sum, r) => sum + (Number(r.subtotal) - Number(r.commission_amount || 0)), 0);
 
   async function updateRental(id: string, status: string) {
     const { error } = await supabase.from("rentals").update({ status: status as any }).eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Updated");
+    refresh();
+  }
+
+  async function deleteProduct(id: string) {
+    if (!confirm("Delete this product? This cannot be undone.")) return;
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Deleted");
     refresh();
   }
 
@@ -98,7 +128,7 @@ const Vendor = () => {
           <div className="flex gap-3">
             <Stat label="Products" value={products.length.toString()} />
             <Stat label="Bookings" value={rentals.length.toString()} />
-            <Stat label="Earnings" value={`₹${earnings.toLocaleString("en-IN")}`} />
+            <Stat label="Earnings (net)" value={inr(earnings)} />
           </div>
         </div>
 
@@ -116,12 +146,12 @@ const Vendor = () => {
         <Tabs defaultValue="products">
           <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
+            <TabsTrigger value="bookings">Orders</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products" className="mt-6">
             <div className="flex justify-end mb-4">
-              {storeId && isApproved && <ProductDialog storeId={storeId} onCreated={refresh} />}
+              {storeId && isApproved && <ProductDialog storeId={storeId} onSaved={refresh} />}
             </div>
             {!isApproved ? (
               <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
@@ -133,26 +163,48 @@ const Vendor = () => {
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {products.map((p) => (
-                  <div key={p.id} className="rounded-2xl border border-border bg-card p-4 shadow-card">
-                    <div className="aspect-[4/5] rounded-xl overflow-hidden bg-petal mb-3">
-                      {p.images?.[0] && <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />}
+                {products.map((p) => {
+                  const finalPrice = discountedUnitPrice(p.actual_price, p.discount_percent, p.discount_flat);
+                  const hasDiscount = finalPrice < Number(p.actual_price);
+                  return (
+                    <div key={p.id} className="rounded-2xl border border-border bg-card p-4 shadow-card">
+                      <div className="aspect-[4/5] rounded-xl overflow-hidden bg-petal mb-3 relative">
+                        {p.images?.[0] && <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />}
+                        {hasDiscount && (
+                          <Badge className="absolute top-2 left-2 bg-rose-deep text-white">
+                            {p.discount_percent > 0 ? `${p.discount_percent}% OFF` : `₹${p.discount_flat} OFF`}
+                          </Badge>
+                        )}
+                      </div>
+                      <h3 className="font-display text-xl">{p.title}</h3>
+                      <p className="text-xs text-muted-foreground capitalize">{p.category} · {p.purpose}</p>
+                      <div className="mt-2 text-sm space-y-0.5">
+                        {(p.purpose === "buy" || p.purpose === "both") && (
+                          <p>
+                            {hasDiscount && <span className="line-through text-muted-foreground mr-1">{inr(p.actual_price)}</span>}
+                            <span className="font-semibold">{inr(finalPrice)}</span>
+                            <span className="text-muted-foreground"> buy</span>
+                          </p>
+                        )}
+                        {(p.purpose === "rent" || p.purpose === "both") && (
+                          <p>{inr(p.price_per_day)} <span className="text-muted-foreground">/ day · deposit {inr(p.security_deposit)}</span></p>
+                        )}
+                        <p className="text-xs text-muted-foreground">Stock: {p.quantity}</p>
+                      </div>
+                      <div className="flex justify-between items-center mt-3">
+                        <Badge variant={p.available && p.quantity > 0 ? "secondary" : "outline"}>
+                          {p.available && p.quantity > 0 ? "Available" : "Unavailable"}
+                        </Badge>
+                        <div className="flex gap-1">
+                          <ProductDialog storeId={storeId!} editing={p} onSaved={refresh} />
+                          <Button variant="ghost" size="icon" onClick={() => deleteProduct(p.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="font-display text-xl">{p.title}</h3>
-                    <p className="text-xs text-muted-foreground capitalize">{p.category}</p>
-                    <p className="text-sm mt-2">₹{Number(p.price_per_day).toLocaleString("en-IN")} / day · ₹{Number(p.security_deposit).toLocaleString("en-IN")} deposit</p>
-                    <div className="flex justify-between items-center mt-3">
-                      <Badge variant="secondary">{p.available ? "Available" : "Unavailable"}</Badge>
-                      <Button variant="ghost" size="icon" onClick={async () => {
-                        await supabase.from("products").delete().eq("id", p.id);
-                        toast.success("Deleted");
-                        refresh();
-                      }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </TabsContent>
@@ -160,12 +212,18 @@ const Vendor = () => {
           <TabsContent value="bookings" className="mt-6">
             {rentals.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
-                No bookings yet.
+                No orders yet.
               </div>
             ) : (
               <div className="space-y-3">
                 {rentals.map((r) => (
-                  <RentalRow key={r.id} r={r} refund={refunds.find((x) => x.rental_id === r.id)} onUpdate={(status) => updateRental(r.id, status)} onRefresh={refresh} />
+                  <RentalRow
+                    key={r.id} r={r}
+                    refund={refunds.find((x) => x.rental_id === r.id)}
+                    onUpdate={(status) => updateRental(r.id, status)}
+                    onRefresh={refresh}
+                    commissionPct={settings.commission_percent}
+                  />
                 ))}
               </div>
             )}
@@ -186,20 +244,31 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function RentalRow({ r, refund, onUpdate, onRefresh }: { r: Rental; refund?: RefundRow; onUpdate: (status: string) => void; onRefresh: () => void }) {
+function RentalRow({ r, refund, onUpdate, onRefresh, commissionPct }: {
+  r: Rental; refund?: RefundRow; onUpdate: (status: string) => void; onRefresh: () => void; commissionPct: number;
+}) {
   const [expanded, setExpanded] = useState(false);
   const blockedDelivered = r.status !== "delivered" && r.status !== "returned";
+  const earnings = Number(r.subtotal) - Number(r.commission_amount || 0);
   return (
     <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="font-medium">{r.product?.title}</p>
+          <p className="font-medium">
+            {r.product?.title}
+            <Badge variant="outline" className="ml-2 capitalize">{r.kind}</Badge>
+            {r.quantity > 1 && <span className="text-xs text-muted-foreground ml-2">×{r.quantity}</span>}
+          </p>
           <p className="text-xs text-muted-foreground">
-            {r.customer?.full_name ?? "Customer"} · {format(new Date(r.start_date), "PP")} → {format(new Date(r.end_date), "PP")} · {r.days}d
+            {r.customer?.full_name ?? "Customer"}
+            {r.start_date && ` · ${format(new Date(r.start_date), "PP")} → ${format(new Date(r.end_date!), "PP")} · ${r.days}d`}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Net earnings: <strong>{inr(earnings)}</strong> (after {commissionPct}% commission)
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium">₹{Number(r.grand_total).toLocaleString("en-IN")}</span>
+          <span className="text-sm font-medium">{inr(r.grand_total)}</span>
           <Select value={r.status} onValueChange={onUpdate}>
             <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -212,21 +281,21 @@ function RentalRow({ r, refund, onUpdate, onRefresh }: { r: Rental; refund?: Ref
           </Button>
         </div>
       </div>
-      {blockedDelivered && (
+      {r.kind === "rent" && blockedDelivered && (
         <p className="text-xs text-muted-foreground">
           Upload at least one <strong>before-delivery</strong> photo before marking as delivered.
         </p>
       )}
-      {r.status === "returned" && (
+      {r.kind === "rent" && r.status === "returned" && (
         <div className="rounded-xl border border-dashed border-border bg-secondary/40 p-3 flex flex-wrap items-center justify-between gap-2">
           <div className="text-sm">
             <p className="font-medium">Deposit refund</p>
             {refund ? (
               <p className="text-xs text-muted-foreground">
-                {refund.condition_tier} · ₹{Number(refund.refund_amount).toLocaleString("en-IN")} ({refund.refund_percent}%) · <span className="capitalize">{refund.status.replace("_"," ")}</span>
+                {refund.condition_tier} · {inr(refund.refund_amount)} ({refund.refund_percent}%) · <span className="capitalize">{refund.status.replace("_"," ")}</span>
               </p>
             ) : (
-              <p className="text-xs text-muted-foreground">Not yet inspected. Deposit ₹{Number(r.deposit).toLocaleString("en-IN")}.</p>
+              <p className="text-xs text-muted-foreground">Not yet inspected. Deposit {inr(r.deposit)}.</p>
             )}
           </div>
           {!refund && (
@@ -254,54 +323,105 @@ function RentalRow({ r, refund, onUpdate, onRefresh }: { r: Rental; refund?: Ref
   );
 }
 
-function ProductDialog({ storeId, onCreated }: { storeId: string; onCreated: () => void }) {
+function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing?: Product; onSaved: () => void }) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<"dress" | "jewellery">("dress");
-  const [price, setPrice] = useState("");
-  const [deposit, setDeposit] = useState("");
-  const [size, setSize] = useState("");
-  const [color, setColor] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState(editing?.title ?? "");
+  const [description, setDescription] = useState(editing?.description ?? "");
+  const [category, setCategory] = useState<"dress" | "jewellery">(editing?.category ?? "dress");
+  const [purpose, setPurpose] = useState<"rent" | "buy" | "both">(editing?.purpose ?? "rent");
+  const [actualPrice, setActualPrice] = useState(editing?.actual_price?.toString() ?? "");
+  const [pricePerDay, setPricePerDay] = useState(editing?.price_per_day?.toString() ?? "");
+  const [discountPercent, setDiscountPercent] = useState(editing?.discount_percent?.toString() ?? "0");
+  const [discountFlat, setDiscountFlat] = useState(editing?.discount_flat?.toString() ?? "0");
+  const [deposit, setDeposit] = useState(editing?.security_deposit?.toString() ?? "");
+  const [quantity, setQuantity] = useState(editing?.quantity?.toString() ?? "1");
+  const [size, setSize] = useState(editing?.size ?? "");
+  const [color, setColor] = useState(editing?.color ?? "");
+  const [available, setAvailable] = useState(editing?.available ?? true);
+  const [files, setFiles] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>(editing?.images ?? []);
   const [busy, setBusy] = useState(false);
+
+  const isEdit = !!editing;
+  const finalUnit = discountedUnitPrice(Number(actualPrice) || 0, Number(discountPercent) || 0, Number(discountFlat) || 0);
+
+  async function uploadFiles(): Promise<string[]> {
+    if (files.length === 0) return [];
+    const urls: string[] = [];
+    for (const f of files) {
+      const path = `${user!.id}/${Date.now()}-${f.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const { error } = await supabase.storage.from("product-images").upload(path, f);
+      if (error) throw new Error(error.message);
+      const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+      urls.push(data.publicUrl);
+    }
+    return urls;
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+    if (!title.trim()) return toast.error("Title is required.");
+    if ((purpose === "buy" || purpose === "both") && (Number(actualPrice) || 0) <= 0)
+      return toast.error("Actual price is required for buy.");
+    if ((purpose === "rent" || purpose === "both") && (Number(pricePerDay) || 0) <= 0)
+      return toast.error("Rental price per day is required.");
+
     setBusy(true);
-    let imageUrl: string | null = null;
-    if (file) {
-      const path = `${user.id}/${Date.now()}-${file.name}`;
-      const { error: upErr } = await supabase.storage.from("product-images").upload(path, file);
-      if (upErr) { setBusy(false); return toast.error(upErr.message); }
-      const { data } = supabase.storage.from("product-images").getPublicUrl(path);
-      imageUrl = data.publicUrl;
+    try {
+      const newImages = await uploadFiles();
+      const images = [...existingImages, ...newImages];
+      const payload: any = {
+        store_id: storeId,
+        title: title.trim(),
+        description: description.trim() || null,
+        category, purpose,
+        actual_price: Number(actualPrice) || 0,
+        price_per_day: Number(pricePerDay) || 0,
+        discount_percent: Math.max(0, Math.min(100, Number(discountPercent) || 0)),
+        discount_flat: Math.max(0, Number(discountFlat) || 0),
+        security_deposit: Number(deposit) || 0,
+        quantity: Math.max(0, Number(quantity) || 0),
+        size: size || null, color: color || null,
+        images, available,
+      };
+      const { error } = isEdit
+        ? await supabase.from("products").update(payload).eq("id", editing!.id)
+        : await supabase.from("products").insert(payload);
+      if (error) throw new Error(error.message);
+      toast.success(isEdit ? "Product updated" : "Product added");
+      setOpen(false);
+      if (!isEdit) {
+        setTitle(""); setDescription(""); setActualPrice(""); setPricePerDay("");
+        setDiscountPercent("0"); setDiscountFlat("0"); setDeposit(""); setQuantity("1");
+        setSize(""); setColor(""); setFiles([]); setExistingImages([]);
+      }
+      onSaved();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setBusy(false);
     }
-    const { error } = await supabase.from("products").insert({
-      store_id: storeId, title, description, category,
-      price_per_day: Number(price), security_deposit: Number(deposit),
-      size, color, images: imageUrl ? [imageUrl] : [], available: true,
-    } as any);
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success("Product added");
-    setOpen(false);
-    setTitle(""); setDescription(""); setPrice(""); setDeposit(""); setSize(""); setColor(""); setFile(null);
-    onCreated();
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="hero"><Plus className="h-4 w-4 mr-2" /> Add product</Button>
+        {isEdit ? (
+          <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
+        ) : (
+          <Button variant="hero"><Plus className="h-4 w-4 mr-2" /> Add product</Button>
+        )}
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle className="font-display text-2xl">New product</DialogTitle></DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">{isEdit ? "Edit product" : "New product"}</DialogTitle>
+        </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
-          <div><Label>Title</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} required className="mt-1" /></div>
-          <div><Label>Description</Label><Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="mt-1" /></div>
+          <div><Label>Title</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={120} className="mt-1" /></div>
+          <div><Label>Description</Label><Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} maxLength={1000} className="mt-1" /></div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Category</Label>
@@ -313,22 +433,82 @@ function ProductDialog({ storeId, onCreated }: { storeId: string; onCreated: () 
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>Size</Label><Input value={size} onChange={(e) => setSize(e.target.value)} className="mt-1" placeholder="S / M / L" /></div>
+            <div>
+              <Label>Available for</Label>
+              <Select value={purpose} onValueChange={(v) => setPurpose(v as any)}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rent">Rent only</SelectItem>
+                  <SelectItem value="buy">Buy only</SelectItem>
+                  <SelectItem value="both">Both</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
           <div className="grid grid-cols-2 gap-3">
-            <div><Label>Price / day (₹)</Label><Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required className="mt-1" /></div>
-            <div><Label>Deposit (₹)</Label><Input type="number" value={deposit} onChange={(e) => setDeposit(e.target.value)} required className="mt-1" /></div>
+            <div><Label>Actual price (₹)</Label><Input type="number" min="0" step="0.01" value={actualPrice} onChange={(e) => setActualPrice(e.target.value)} className="mt-1" /></div>
+            <div><Label>Rental price / day (₹)</Label><Input type="number" min="0" step="0.01" value={pricePerDay} onChange={(e) => setPricePerDay(e.target.value)} className="mt-1" /></div>
           </div>
-          <div><Label>Color</Label><Input value={color} onChange={(e) => setColor(e.target.value)} className="mt-1" /></div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div><Label>Discount (%)</Label><Input type="number" min="0" max="100" value={discountPercent} onChange={(e) => setDiscountPercent(e.target.value)} className="mt-1" /></div>
+            <div><Label>Discount (flat ₹)</Label><Input type="number" min="0" step="0.01" value={discountFlat} onChange={(e) => setDiscountFlat(e.target.value)} className="mt-1" /></div>
+            <div><Label>Quantity in stock</Label><Input type="number" min="0" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="mt-1" /></div>
+          </div>
+
+          {(purpose === "buy" || purpose === "both") && Number(actualPrice) > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Final buy price after discount: <strong className="text-foreground">{inr(finalUnit)}</strong>
+            </p>
+          )}
+
+          <div className="grid grid-cols-3 gap-3">
+            <div><Label>Deposit (₹)</Label><Input type="number" min="0" value={deposit} onChange={(e) => setDeposit(e.target.value)} className="mt-1" /></div>
+            <div><Label>Size</Label><Input value={size} onChange={(e) => setSize(e.target.value)} className="mt-1" placeholder="S / M / L" /></div>
+            <div><Label>Color</Label><Input value={color} onChange={(e) => setColor(e.target.value)} className="mt-1" /></div>
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl border border-border bg-secondary/30 p-3">
+            <div>
+              <Label className="cursor-pointer">Listed / available</Label>
+              <p className="text-xs text-muted-foreground">Customers can see and order this product.</p>
+            </div>
+            <Switch checked={available} onCheckedChange={setAvailable} />
+          </div>
+
+          {existingImages.length > 0 && (
+            <div>
+              <Label>Existing images</Label>
+              <div className="grid grid-cols-4 gap-2 mt-1">
+                {existingImages.map((url) => (
+                  <div key={url} className="relative aspect-square rounded-lg overflow-hidden bg-petal">
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => setExistingImages(existingImages.filter((u) => u !== url))}
+                      className="absolute top-1 right-1 rounded-full bg-background/90 p-0.5 hover:bg-destructive hover:text-destructive-foreground">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div>
-            <Label>Image</Label>
+            <Label>{isEdit ? "Add more images" : "Images"}</Label>
             <label className="mt-1 flex items-center gap-2 rounded-xl border border-dashed border-border bg-background p-4 cursor-pointer hover:border-primary transition-smooth">
               <Upload className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{file ? file.name : "Choose an image"}</span>
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              <span className="text-sm text-muted-foreground">
+                {files.length > 0 ? `${files.length} file${files.length > 1 ? "s" : ""} selected` : "Choose images (multi-select)"}
+              </span>
+              <input type="file" accept="image/*" multiple className="hidden"
+                onChange={(e) => setFiles(Array.from(e.target.files ?? []))} />
             </label>
           </div>
-          <Button type="submit" variant="hero" className="w-full" disabled={busy}>{busy ? "Adding…" : "Add product"}</Button>
+
+          <Button type="submit" variant="hero" className="w-full" disabled={busy}>
+            {busy ? (isEdit ? "Saving…" : "Adding…") : (isEdit ? "Save changes" : "Add product")}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>
