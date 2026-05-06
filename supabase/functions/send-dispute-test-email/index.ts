@@ -50,17 +50,30 @@ Deno.serve(async (req) => {
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const admin = createClient(supabaseUrl, serviceKey);
 
-  // Identify the caller (admin) so we can attribute the log entry.
-  let triggeredBy: string | null = null;
+  // Require authenticated admin caller.
   const authHeader = req.headers.get("Authorization");
-  if (authHeader) {
-    try {
-      const userClient = createClient(supabaseUrl, anonKey, {
-        global: { headers: { Authorization: authHeader } },
-      });
-      const { data } = await userClient.auth.getUser();
-      triggeredBy = data.user?.id ?? null;
-    } catch (_e) { /* ignore */ }
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: userData, error: userErr } = await userClient.auth.getUser();
+  const triggeredBy = userData?.user?.id ?? null;
+  if (userErr || !triggeredBy) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const { data: isAdmin, error: roleErr } = await admin.rpc("has_role", {
+    _user_id: triggeredBy, _role: "admin",
+  });
+  if (roleErr || !isAdmin) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   // Detect whether email infrastructure is available
