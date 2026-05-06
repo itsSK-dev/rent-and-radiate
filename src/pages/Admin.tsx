@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminRefundsPanel } from "@/components/AdminRefundsPanel";
 import { DisputeStatusTimeline } from "@/components/DisputeStatusTimeline";
 import { PlatformSettingsPanel } from "@/components/PlatformSettingsPanel";
+import { AdminShopsPanel } from "@/components/AdminShopsPanel";
 
 type Dispute = {
   id: string;
