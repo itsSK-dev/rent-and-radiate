@@ -183,6 +183,9 @@ const MyRentals = () => {
                     )}
 
                     <div className="pt-2 flex flex-wrap gap-2">
+                      <Link to={`/track/${r.id}`}>
+                        <Button variant="outline" size="sm">Track order</Button>
+                      </Link>
                       {r.status === "pending" && (
                         <Button variant="ghost" size="sm" onClick={() => cancel(r.id)}>Cancel</Button>
                       )}
