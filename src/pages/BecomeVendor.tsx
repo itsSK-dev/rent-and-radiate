@@ -64,17 +64,14 @@ const BecomeVendor = () => {
 
     setBusy(true);
 
-    // 1) Ensure the user has the store_owner role BEFORE inserting the store
-    //    (the stores INSERT policy requires has_role('store_owner')).
+    // 1) Ensure the user has the store_owner role BEFORE inserting the store.
+    //    store_owner can no longer be self-INSERTed via RLS; use the secure RPC.
     if (!roles.includes("store_owner")) {
-      const { error: roleErr } = await supabase
-        .from("user_roles")
-        .insert({ user_id: user.id, role: "store_owner" });
-      if (roleErr && !roleErr.message.toLowerCase().includes("duplicate")) {
+      const { error: roleErr } = await (supabase as any).rpc("request_store_owner_role");
+      if (roleErr) {
         setBusy(false);
         return toast.error("Could not enable vendor mode: " + roleErr.message);
       }
-      // Refresh the roles cache so the very next insert passes RLS in this session.
       await refreshRoles();
     }
 
