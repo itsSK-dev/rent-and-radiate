@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import Checkout from "./pages/Checkout";
 import Receipt from "./pages/Receipt";
 import Cart from "./pages/Cart";
+import TrackOrder from "./pages/TrackOrder";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout/:rentalId" element={<Checkout />} />
             <Route path="/receipt/:rentalId" element={<Receipt />} />
+            <Route path="/track/:rentalId" element={<TrackOrder />} />
             <Route path="/become-vendor" element={<BecomeVendor />} />
             <Route path="/vendor" element={<Vendor />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
