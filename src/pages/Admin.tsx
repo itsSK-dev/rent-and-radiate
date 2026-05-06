@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminRefundsPanel } from "@/components/AdminRefundsPanel";
 import { DisputeStatusTimeline } from "@/components/DisputeStatusTimeline";
 import { PlatformSettingsPanel } from "@/components/PlatformSettingsPanel";
+import { AdminShopsPanel } from "@/components/AdminShopsPanel";
 
 type Dispute = {
   id: string;
@@ -107,6 +108,7 @@ const Admin = () => {
         <Tabs defaultValue="disputes">
           <TabsList>
             <TabsTrigger value="disputes">Disputes</TabsTrigger>
+            <TabsTrigger value="shops">Shops</TabsTrigger>
             <TabsTrigger value="refunds">Deposit refunds</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -133,6 +135,10 @@ const Admin = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="shops" className="mt-6">
+            <AdminShopsPanel />
           </TabsContent>
 
           <TabsContent value="refunds" className="mt-6">

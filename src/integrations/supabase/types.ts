@@ -629,6 +629,7 @@ export type Database = {
           owner_id: string
           rating: number
           rating_count: number
+          status: Database["public"]["Enums"]["store_status"]
           updated_at: string
         }
         Insert: {
@@ -645,6 +646,7 @@ export type Database = {
           owner_id: string
           rating?: number
           rating_count?: number
+          status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
         }
         Update: {
@@ -661,6 +663,7 @@ export type Database = {
           owner_id?: string
           rating?: number
           rating_count?: number
+          status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
         }
         Relationships: []
@@ -790,6 +793,7 @@ export type Database = {
         | "delivered"
         | "returned"
         | "cancelled"
+      store_status: "pending" | "approved" | "rejected" | "deleted"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -934,6 +938,7 @@ export const Constants = {
         "returned",
         "cancelled",
       ],
+      store_status: ["pending", "approved", "rejected", "deleted"],
     },
   },
 } as const
