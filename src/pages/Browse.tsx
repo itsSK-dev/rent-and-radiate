@@ -29,7 +29,7 @@ const Browse = () => {
       setLoading(true);
       let query = supabase
         .from("products")
-        .select("id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,approved)")
+        .select("id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,status,is_verified,is_active,is_blocked)")
         .eq("available", true);
       if (category !== "all") query = query.eq("category", category as any);
       if (storeId) query = query.eq("store_id", storeId);
@@ -38,8 +38,12 @@ const Browse = () => {
       else if (sort === "price_desc") query = query.order("price_per_day", { ascending: false });
       else query = query.order("created_at", { ascending: false });
       const { data } = await query;
-      // Filter to approved stores client-side guard
-      const filtered = (data ?? []).filter((p: any) => p.store?.approved !== false);
+      const filtered = (data ?? []).filter((p: any) =>
+        p.store?.status === "approved" &&
+        p.store?.is_verified === true &&
+        p.store?.is_active === true &&
+        p.store?.is_blocked === false,
+      );
       setProducts(filtered as any);
       setLoading(false);
     })();

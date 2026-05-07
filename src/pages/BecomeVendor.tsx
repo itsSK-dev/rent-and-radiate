@@ -27,7 +27,7 @@ const BecomeVendor = () => {
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [busy, setBusy] = useState(false);
-  const [existingStore, setExistingStore] = useState<{ id: string; name: string; approved: boolean } | null>(null);
+  const [existingStore, setExistingStore] = useState<{ id: string; name: string; status: string; is_verified: boolean; is_active: boolean; is_blocked: boolean } | null>(null);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ const BecomeVendor = () => {
       setChecking(true);
       const { data } = await supabase
         .from("stores")
-        .select("id,name,approved")
+        .select("id,name,status,is_verified,is_active,is_blocked")
         .eq("owner_id", user.id)
         .maybeSingle();
       setExistingStore(data ?? null);
@@ -86,7 +86,7 @@ const BecomeVendor = () => {
         address: parsed.data.address || null,
         approved: false,
       })
-      .select("id,name,approved")
+      .select("id,name,status,is_verified,is_active,is_blocked")
       .maybeSingle();
 
     setBusy(false);
@@ -115,7 +115,7 @@ const BecomeVendor = () => {
           <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">For vendors</p>
           <h1 className="font-display text-5xl mb-3">{existingStore.name}</h1>
 
-          {existingStore.approved ? (
+          {existingStore.status === "approved" && existingStore.is_verified && existingStore.is_active && !existingStore.is_blocked ? (
             <div className="rounded-3xl bg-gradient-blossom p-8 mt-6 shadow-card">
               <ShieldCheck className="h-8 w-8 text-rose-deep mb-3" />
               <h2 className="font-display text-3xl mb-2">You're approved ✨</h2>
