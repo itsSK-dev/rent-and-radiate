@@ -224,6 +224,12 @@ function ShopCard({
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-display text-xl truncate">{shop.name}</h3>
             <Badge variant="outline" className={tone[shop.status]}>{shop.status}</Badge>
+          <Badge
+            variant="outline"
+            className={shop.is_verified ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-amber-100 text-amber-800 border-amber-200"}
+          >
+            {shop.is_verified ? "Verified" : "Pending"}
+          </Badge>
             {shop.is_blocked && (
               <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-200">Blocked</Badge>
             )}
@@ -363,17 +369,26 @@ function ManageShopDialog({
   async function handleSave() {
     if (!shop) return;
     setSaving(true);
-    const { error } = await supabase
+    const nextVerified = status === "approved";
+    const { data, error } = await supabase
       .from("stores")
       .update({
         status,
+        is_verified: nextVerified,
+        approved: nextVerified,
         is_active: isActive,
         is_blocked: isBlocked,
       } as any)
-      .eq("id", shop.id);
+      .eq("id", shop.id)
+      .select("id")
+      .maybeSingle();
     setSaving(false);
     if (error) {
       toast.error(error.message || "Failed to save changes");
+      return;
+    }
+    if (!data) {
+      toast.error("Save failed. Admin access is required for this shop update.");
       return;
     }
     toast.success("Shop updated successfully");
