@@ -3,14 +3,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader,
+  DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Check, X, Trash2, RotateCcw, MapPin, Mail, Phone, Store as StoreIcon, ExternalLink } from "lucide-react";
+import {
+  Check, X, Trash2, RotateCcw, MapPin, Phone, Store as StoreIcon,
+  ExternalLink, Settings, Loader2, Ban,
+} from "lucide-react";
 
 type ShopStatus = "pending" | "approved" | "rejected" | "deleted";
 
@@ -23,17 +35,23 @@ type Shop = {
   logo_url: string | null;
   status: ShopStatus;
   approved: boolean;
+  is_active: boolean;
+  is_blocked: boolean;
   created_at: string;
+  updated_at?: string | null;
   owner_id: string;
   owner: { full_name: string | null; phone: string | null } | null;
 };
 
 const tone: Record<ShopStatus, string> = {
-  pending: "bg-gold/20 text-rose-deep",
-  approved: "bg-primary-soft text-rose-deep",
-  rejected: "bg-destructive/10 text-destructive",
-  deleted: "bg-secondary text-muted-foreground",
+  pending: "bg-amber-100 text-amber-800 border-amber-200",
+  approved: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  rejected: "bg-rose-100 text-rose-800 border-rose-200",
+  deleted: "bg-muted text-muted-foreground border-border",
 };
+
+const SELECT_COLS =
+  "id,name,description,city,address,logo_url,status,approved,is_active,is_blocked,created_at,updated_at,owner_id";
 
 export function AdminShopsPanel() {
   const [shops, setShops] = useState<Shop[]>([]);
@@ -41,45 +59,54 @@ export function AdminShopsPanel() {
   const [q, setQ] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<Shop | null>(null);
 
   async function load() {
     setLoading(true);
     const { data, error } = await supabase
       .from("stores")
-      .select("id,name,description,city,address,logo_url,status,approved,created_at,owner_id,owner:profiles!stores_owner_id_fkey(full_name,phone)" as any)
+      .select(SELECT_COLS as any)
       .order("created_at", { ascending: false });
-    setLoading(false);
     if (error) {
-      // Fallback without join if FK alias unavailable
-      const { data: d2, error: e2 } = await supabase
-        .from("stores")
-        .select("id,name,description,city,address,logo_url,status,approved,created_at,owner_id")
-        .order("created_at", { ascending: false });
-      if (e2) return toast.error(e2.message);
-      const ids = Array.from(new Set((d2 ?? []).map((s) => s.owner_id)));
-      const { data: profs } = await supabase
-        .from("profiles").select("id,full_name,phone").in("id", ids);
-      const byId = new Map((profs ?? []).map((p: any) => [p.id, p]));
-      setShops(((d2 as any) ?? []).map((s: any) => ({
-        ...s,
-        owner: byId.get(s.owner_id)
-          ? { full_name: byId.get(s.owner_id)!.full_name, phone: byId.get(s.owner_id)!.phone }
-          : null,
-      })));
+      setLoading(false);
+      toast.error(error.message);
       return;
     }
-    setShops((data as any) ?? []);
+    const rows = (data as any[]) ?? [];
+    const ids = Array.from(new Set(rows.map((s) => s.owner_id)));
+    let byId = new Map<string, any>();
+    if (ids.length) {
+      const { data: profs } = await supabase
+        .from("profiles").select("id,full_name,phone").in("id", ids);
+      byId = new Map((profs ?? []).map((p: any) => [p.id, p]));
+    }
+    setShops(rows.map((s) => ({
+      ...s,
+      owner: byId.get(s.owner_id)
+        ? { full_name: byId.get(s.owner_id).full_name, phone: byId.get(s.owner_id).phone }
+        : null,
+    })) as Shop[]);
+    setLoading(false);
   }
 
   useEffect(() => { load(); }, []);
 
-  async function setStatus(id: string, status: ShopStatus, successMsg: string) {
+  async function quickUpdate(id: string, patch: Partial<Shop>, msg: string) {
     setBusyId(id);
-    const { error } = await supabase.from("stores").update({ status } as any).eq("id", id);
+    const { error } = await supabase.from("stores").update(patch as any).eq("id", id);
     setBusyId(null);
     if (error) return toast.error(error.message);
-    toast.success(successMsg);
-    setShops((prev) => prev.map((s) => (s.id === id ? { ...s, status, approved: status === "approved" } : s)));
+    toast.success(msg);
+    await load();
+  }
+
+  async function hardDelete(id: string) {
+    setBusyId(id);
+    const { error } = await supabase.from("stores").delete().eq("id", id);
+    setBusyId(null);
+    if (error) return toast.error(error.message);
+    toast.success("Shop permanently deleted");
+    await load();
   }
 
   const filtered = useMemo(() => {
@@ -106,7 +133,9 @@ export function AdminShopsPanel() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display text-2xl">Shop verification</h2>
-          <p className="text-sm text-muted-foreground">Approve, reject, delete or restore registered shops.</p>
+          <p className="text-sm text-muted-foreground">
+            Approve, reject, hide, block, restore or delete registered shops.
+          </p>
         </div>
         <Input
           placeholder="Search by name, city, owner…"
@@ -140,10 +169,13 @@ export function AdminShopsPanel() {
                     key={shop.id}
                     shop={shop}
                     busy={busyId === shop.id}
-                    onApprove={() => setStatus(shop.id, "approved", "Shop approved successfully")}
-                    onReject={() => setStatus(shop.id, "rejected", "Shop rejected successfully")}
-                    onDelete={() => setStatus(shop.id, "deleted", "Shop deleted successfully")}
-                    onRestore={() => setStatus(shop.id, "pending", "Shop restored to pending")}
+                    onApprove={() => quickUpdate(shop.id, { status: "approved" }, "Shop approved")}
+                    onReject={() => quickUpdate(shop.id, { status: "rejected" }, "Shop rejected")}
+                    onSoftDelete={() => quickUpdate(shop.id, { status: "deleted" }, "Shop moved to deleted")}
+                    onRestore={() => quickUpdate(shop.id, { status: "pending" }, "Shop restored to pending")}
+                    onToggleBlock={() => quickUpdate(shop.id, { is_blocked: !shop.is_blocked }, shop.is_blocked ? "Shop unblocked" : "Shop blocked")}
+                    onHardDelete={() => hardDelete(shop.id)}
+                    onManage={() => setEditing(shop)}
                   />
                 ))}
               </div>
@@ -151,15 +183,24 @@ export function AdminShopsPanel() {
           </TabsContent>
         ))}
       </Tabs>
+
+      <ManageShopDialog
+        shop={editing}
+        onClose={() => setEditing(null)}
+        onSaved={async () => { setEditing(null); await load(); }}
+      />
     </div>
   );
 }
 
 function ShopCard({
-  shop, busy, onApprove, onReject, onDelete, onRestore,
+  shop, busy, onApprove, onReject, onSoftDelete, onRestore, onToggleBlock, onHardDelete, onManage,
 }: {
   shop: Shop; busy: boolean;
-  onApprove: () => void; onReject: () => void; onDelete: () => void; onRestore: () => void;
+  onApprove: () => void; onReject: () => void;
+  onSoftDelete: () => void; onRestore: () => void;
+  onToggleBlock: () => void; onHardDelete: () => void;
+  onManage: () => void;
 }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-card flex flex-col gap-4">
@@ -174,7 +215,13 @@ function ShopCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-display text-xl truncate">{shop.name}</h3>
-            <Badge className={tone[shop.status]}>{shop.status}</Badge>
+            <Badge variant="outline" className={tone[shop.status]}>{shop.status}</Badge>
+            {shop.is_blocked && (
+              <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-200">Blocked</Badge>
+            )}
+            {!shop.is_active && (
+              <Badge variant="outline" className="bg-muted text-muted-foreground border-border">Hidden</Badge>
+            )}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
             Owner: {shop.owner?.full_name ?? "—"}
@@ -208,17 +255,26 @@ function ShopCard({
       </div>
 
       <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
-        {shop.status !== "approved" && (
+        {shop.status !== "approved" && shop.status !== "deleted" && (
           <Button size="sm" variant="hero" disabled={busy} onClick={onApprove}>
-            <Check className="h-4 w-4" /> {busy ? "Processing…" : "Approve"}
+            <Check className="h-4 w-4" /> Approve
           </Button>
         )}
         {shop.status !== "rejected" && shop.status !== "deleted" && (
           <Button size="sm" variant="outline" disabled={busy} onClick={onReject}
             className="text-destructive border-destructive/40 hover:bg-destructive/10">
-            <X className="h-4 w-4" /> {busy ? "Processing…" : "Reject"}
+            <X className="h-4 w-4" /> Reject
           </Button>
         )}
+        {shop.status !== "deleted" && (
+          <Button size="sm" variant="outline" disabled={busy} onClick={onToggleBlock}>
+            <Ban className="h-4 w-4" /> {shop.is_blocked ? "Unblock" : "Block"}
+          </Button>
+        )}
+        <Button size="sm" variant="outline" disabled={busy} onClick={onManage}>
+          <Settings className="h-4 w-4" /> Manage
+        </Button>
+
         {shop.status !== "deleted" ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -228,24 +284,152 @@ function ShopCard({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete this shop?</AlertDialogTitle>
+                <AlertDialogTitle>Move shop to deleted?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete <strong>{shop.name}</strong>? It will be hidden from the
-                  public site but the data will be preserved and can be restored later.
+                  <strong>{shop.name}</strong> will be hidden from the public site. You can
+                  restore it later from the Deleted tab.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={onDelete}>Delete</AlertDialogAction>
+                <AlertDialogAction onClick={onSoftDelete}>Delete</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         ) : (
-          <Button size="sm" variant="outline" disabled={busy} onClick={onRestore}>
-            <RotateCcw className="h-4 w-4" /> {busy ? "Processing…" : "Restore"}
-          </Button>
+          <>
+            <Button size="sm" variant="outline" disabled={busy} onClick={onRestore}>
+              <RotateCcw className="h-4 w-4" /> Restore
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="destructive" disabled={busy}>
+                  <Trash2 className="h-4 w-4" /> Delete permanently
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Permanently delete this shop?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently remove <strong>{shop.name}</strong> and cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={onHardDelete}
+                  >
+                    Delete forever
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
         )}
       </div>
     </div>
+  );
+}
+
+function ManageShopDialog({
+  shop, onClose, onSaved,
+}: {
+  shop: Shop | null;
+  onClose: () => void;
+  onSaved: () => void | Promise<void>;
+}) {
+  const [status, setStatus] = useState<ShopStatus>("pending");
+  const [isActive, setIsActive] = useState(true);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (shop) {
+      setStatus(shop.status);
+      setIsActive(shop.is_active);
+      setIsBlocked(shop.is_blocked);
+    }
+  }, [shop]);
+
+  async function handleSave() {
+    if (!shop) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("stores")
+      .update({
+        status,
+        is_active: isActive,
+        is_blocked: isBlocked,
+      } as any)
+      .eq("id", shop.id);
+    setSaving(false);
+    if (error) {
+      toast.error(error.message || "Failed to save changes");
+      return;
+    }
+    toast.success("Shop updated successfully");
+    await onSaved();
+  }
+
+  return (
+    <Dialog open={!!shop} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Manage shop</DialogTitle>
+          <DialogDescription>
+            {shop?.name} — update verification, visibility and block status.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-5 py-2">
+          <div className="space-y-2">
+            <Label>Verification status</Label>
+            <Select value={status} onValueChange={(v) => setStatus(v as ShopStatus)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved (verified)</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="deleted">Deleted</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div>
+              <Label className="text-sm">Active (visible on website)</Label>
+              <p className="text-xs text-muted-foreground">
+                When off, the shop is hidden from the public site.
+              </p>
+            </div>
+            <Switch checked={isActive} onCheckedChange={setIsActive} />
+          </div>
+
+          <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div>
+              <Label className="text-sm">Blocked</Label>
+              <p className="text-xs text-muted-foreground">
+                Blocked shops cannot list products to customers.
+              </p>
+            </div>
+            <Switch checked={isBlocked} onCheckedChange={setIsBlocked} />
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button type="button" variant="hero" onClick={handleSave} disabled={saving}>
+            {saving ? (
+              <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+            ) : (
+              "Save Changes"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
