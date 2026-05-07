@@ -23,7 +23,15 @@ import { InspectionDialog } from "@/components/InspectionDialog";
 import { RentalDisputesList } from "@/components/RentalDisputesList";
 import { discountedUnitPrice, inr } from "@/lib/pricing";
 
-type Store = { id: string; name: string; city: string | null; approved: boolean };
+type Store = {
+  id: string;
+  name: string;
+  city: string | null;
+  status: "pending" | "approved" | "rejected" | "deleted";
+  is_verified: boolean;
+  is_active: boolean;
+  is_blocked: boolean;
+};
 type Product = {
   id: string; title: string; description: string | null; category: "dress" | "jewellery";
   price_per_day: number; security_deposit: number; available: boolean; images: string[];
@@ -56,7 +64,10 @@ const Vendor = () => {
 
   async function refresh() {
     if (!user) return;
-    const { data: s } = await supabase.from("stores").select("id,name,city,approved").eq("owner_id", user.id);
+    const { data: s } = await supabase
+      .from("stores")
+      .select("id,name,city,status,is_verified,is_active,is_blocked")
+      .eq("owner_id", user.id);
     setStores(s ?? []);
     const sid = s?.[0]?.id ?? null;
     setStoreId(sid);
@@ -111,7 +122,7 @@ const Vendor = () => {
     refresh();
   }
 
-  const isApproved = !!store?.approved;
+  const isApproved = !!store && store.status === "approved" && store.is_verified && store.is_active && !store.is_blocked;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
