@@ -29,7 +29,13 @@ const Index = () => {
         .limit(6);
       setProducts((data as any) ?? []);
       const { data: s } = await supabase
-        .from("stores").select("id,name,city,rating").eq("approved", true).limit(6);
+        .from("stores")
+        .select("id,name,city,rating")
+        .eq("status", "approved")
+        .eq("is_verified", true)
+        .eq("is_active", true)
+        .eq("is_blocked", false)
+        .limit(6);
       setStores(s ?? []);
     })();
   }, []);
