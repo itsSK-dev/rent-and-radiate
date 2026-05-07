@@ -35,6 +35,7 @@ type Shop = {
   logo_url: string | null;
   status: ShopStatus;
   approved: boolean;
+  is_verified: boolean;
   is_active: boolean;
   is_blocked: boolean;
   created_at: string;
@@ -51,7 +52,7 @@ const tone: Record<ShopStatus, string> = {
 };
 
 const SELECT_COLS =
-  "id,name,description,city,address,logo_url,status,approved,is_active,is_blocked,created_at,updated_at,owner_id";
+  "id,name,description,city,address,logo_url,status,approved,is_verified,is_active,is_blocked,created_at,updated_at,owner_id";
 
 export function AdminShopsPanel() {
   const [shops, setShops] = useState<Shop[]>([]);
@@ -93,18 +94,25 @@ export function AdminShopsPanel() {
 
   async function quickUpdate(id: string, patch: Partial<Shop>, msg: string) {
     setBusyId(id);
-    const { error } = await supabase.from("stores").update(patch as any).eq("id", id);
+    const { data, error } = await supabase
+      .from("stores")
+      .update(patch as any)
+      .eq("id", id)
+      .select("id")
+      .maybeSingle();
     setBusyId(null);
     if (error) return toast.error(error.message);
+    if (!data) return toast.error("Save failed. Admin access is required for this shop update.");
     toast.success(msg);
     await load();
   }
 
   async function hardDelete(id: string) {
     setBusyId(id);
-    const { error } = await supabase.from("stores").delete().eq("id", id);
+    const { data, error } = await supabase.from("stores").delete().eq("id", id).select("id").maybeSingle();
     setBusyId(null);
     if (error) return toast.error(error.message);
+    if (!data) return toast.error("Delete failed. Admin access is required for this shop.");
     toast.success("Shop permanently deleted");
     await load();
   }
