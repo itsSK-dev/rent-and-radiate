@@ -1,16 +1,21 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Shield, CreditCard, Banknote, Loader2 } from "lucide-react";
+import { Shield, Banknote, Loader2, QrCode, Copy, CheckCircle2, Clock } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 
 type Rental = {
   id: string;
   customer_id: string;
+  store_id: string;
   grand_total: number;
   rental_total: number;
   deposit: number;
@@ -23,24 +28,11 @@ type Rental = {
   product_id: string;
   kind: "rent" | "buy";
   quantity: number;
+  commission_amount: number;
 };
 
 type ProductLite = { title: string; images: string[] };
-
-declare global {
-  interface Window { Razorpay: any }
-}
-
-function loadRazorpay(): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (window.Razorpay) return resolve(true);
-    const s = document.createElement("script");
-    s.src = "https://checkout.razorpay.com/v1/checkout.js";
-    s.onload = () => resolve(true);
-    s.onerror = () => resolve(false);
-    document.body.appendChild(s);
-  });
-}
+type PaymentSettings = { upi_id: string; payee_name: string; qr_image_url: string | null; instructions: string };
 
 const Checkout = () => {
   const { rentalId } = useParams();
@@ -48,153 +40,77 @@ const Checkout = () => {
   const { user, loading: authLoading } = useAuth();
   const [rental, setRental] = useState<Rental | null>(null);
   const [product, setProduct] = useState<ProductLite | null>(null);
+  const [settings, setSettings] = useState<PaymentSettings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [paying, setPaying] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [codSubmitting, setCodSubmitting] = useState(false);
-  // Idempotency guards: prevent duplicate Razorpay orders on rapid double-clicks
-  // or React re-invocations while the SDK modal is opening.
-  const inFlightRef = useRef<Promise<void> | null>(null);
-  const rzpRef = useRef<any>(null);
+  const [reference, setReference] = useState("");
 
-  useEffect(() => {
-    document.title = "Checkout · Bloom";
-  }, []);
+  useEffect(() => { document.title = "Checkout · Bloom"; }, []);
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
-      navigate(`/auth?next=/checkout/${rentalId}`);
-      return;
-    }
+    if (!user) { navigate(`/auth?next=/checkout/${rentalId}`); return; }
     (async () => {
-      const { data, error } = await supabase
-        .from("rentals")
-        .select("id, customer_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity")
-        .eq("id", rentalId!)
-        .maybeSingle();
-      if (error || !data) {
-        toast.error("Could not load order");
-        navigate("/my-rentals");
-        return;
-      }
-      setRental(data as Rental);
-      const { data: p } = await supabase
-        .from("products").select("title, images").eq("id", (data as Rental).product_id).maybeSingle();
+      const [{ data: r, error }, { data: ps }] = await Promise.all([
+        supabase.from("rentals")
+          .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount")
+          .eq("id", rentalId!).maybeSingle(),
+        (supabase as any).from("payment_settings").select("upi_id,payee_name,qr_image_url,instructions").eq("id", true).maybeSingle(),
+      ]);
+      if (error || !r) { toast.error("Could not load order"); navigate("/my-rentals"); return; }
+      setRental(r as Rental);
+      setSettings((ps as PaymentSettings) ?? { upi_id: "", payee_name: "Bloom Rentals", qr_image_url: null, instructions: "" });
+      const { data: p } = await supabase.from("products").select("title, images").eq("id", (r as Rental).product_id).maybeSingle();
       if (p) setProduct(p as ProductLite);
       setLoading(false);
     })();
   }, [authLoading, user, rentalId, navigate]);
 
-  async function payWithRazorpay() {
-    if (!rental || !user) return;
-    // If a previous open modal still exists, just re-open it instead of creating a new order.
-    if (rzpRef.current) {
-      try { rzpRef.current.open(); return; } catch { /* fall through */ }
-    }
-    if (inFlightRef.current) return inFlightRef.current;
+  const upiUrl = useMemo(() => {
+    if (!rental || !settings?.upi_id) return "";
+    const params = new URLSearchParams({
+      pa: settings.upi_id,
+      pn: settings.payee_name || "Bloom Rentals",
+      am: Number(rental.grand_total).toFixed(2),
+      cu: "INR",
+      tn: `Order ${rental.id.slice(0, 8)}`,
+      tr: rental.id.slice(0, 12),
+    });
+    return `upi://pay?${params.toString()}`;
+  }, [rental, settings]);
 
-    const run = (async () => {
-      setPaying(true);
-      try {
-        const ok = await loadRazorpay();
-        if (!ok) { toast.error("Failed to load payment SDK. Check your connection."); return; }
+  async function copyUpi() {
+    if (!settings?.upi_id) return;
+    try {
+      await navigator.clipboard.writeText(settings.upi_id);
+      toast.success("UPI ID copied");
+    } catch { toast.error("Could not copy"); }
+  }
 
-        const { data, error } = await supabase.functions.invoke("razorpay-create-order", {
-          body: { rentalId: rental.id },
-        });
-        if (error || !data?.orderId) {
-          toast.error(error?.message ?? "Could not start payment");
-          return;
-        }
-
-        const rzp = new window.Razorpay({
-          key: data.keyId,
-          amount: data.amount,
-          currency: data.currency,
-          order_id: data.orderId,
-          name: "Bloom Rentals",
-          description: product?.title ?? "Dress rental",
-          prefill: { email: user.email ?? "" },
-          theme: { color: "#c2185b" },
-          method: { card: true, upi: true, netbanking: true, wallet: true },
-          handler: async (resp: any) => {
-            const { data: vData, error: vErr } = await supabase.functions.invoke(
-              "razorpay-verify-payment",
-              {
-                body: {
-                  rentalId: rental.id,
-                  razorpay_order_id: resp.razorpay_order_id,
-                  razorpay_payment_id: resp.razorpay_payment_id,
-                  razorpay_signature: resp.razorpay_signature,
-                  method: "razorpay",
-                },
-              },
-            );
-            rzpRef.current = null;
-            if (vErr || !vData?.ok) {
-              toast.error("Payment received but verification failed. Contact support.");
-              return;
-            }
-            toast.success("Payment successful!");
-            navigate("/my-rentals");
-          },
-          modal: {
-            ondismiss: async () => {
-              rzpRef.current = null;
-              await supabase.functions.invoke("razorpay-verify-payment", {
-                body: {
-                  rentalId: rental.id,
-                  razorpay_order_id: data.orderId,
-                  failure: { code: "USER_CANCELLED", description: "User closed checkout" },
-                },
-              });
-              toast("Payment cancelled. Your order is still pending.");
-            },
-          },
-        });
-
-        rzp.on("payment.failed", async (resp: any) => {
-          rzpRef.current = null;
-          await supabase.functions.invoke("razorpay-verify-payment", {
-            body: {
-              rentalId: rental.id,
-              razorpay_order_id: data.orderId,
-              razorpay_payment_id: resp.error?.metadata?.payment_id,
-              failure: {
-                code: resp.error?.code,
-                description: resp.error?.description,
-                reason: resp.error?.reason,
-                source: resp.error?.source,
-                step: resp.error?.step,
-              },
-              method: resp.error?.metadata?.payment_id ? "razorpay" : "unknown",
-            },
-          });
-          toast.error(resp.error?.description ?? "Payment failed. Order kept as pending.");
-        });
-
-        rzpRef.current = rzp;
-        rzp.open();
-      } finally {
-        setPaying(false);
-        inFlightRef.current = null;
-      }
-    })();
-
-    inFlightRef.current = run;
-    return run;
+  async function submitPaid() {
+    if (!rental || !user || !settings?.upi_id) return;
+    setSubmitting(true);
+    const { error } = await (supabase as any).from("manual_payments").insert({
+      rental_id: rental.id,
+      user_id: user.id,
+      store_id: rental.store_id,
+      amount: rental.grand_total,
+      upi_id: settings.upi_id,
+      user_reference: reference.trim() || null,
+      commission_amount: rental.commission_amount ?? 0,
+    });
+    setSubmitting(false);
+    if (error) return toast.error(error.message);
+    toast.success("Payment submitted! We'll verify it shortly.");
+    navigate("/my-rentals");
   }
 
   async function payCOD() {
     if (!rental) return;
     setCodSubmitting(true);
-    const { error } = await supabase
-      .from("rentals")
-      .update({
-        payment_status: "cod" as any,
-        payment_method: "cod",
-        status: "confirmed" as any,
-      })
+    const { error } = await supabase.from("rentals")
+      .update({ payment_status: "cod" as any, payment_method: "cod", status: "confirmed" as any })
       .eq("id", rental.id);
     setCodSubmitting(false);
     if (error) return toast.error(error.message);
@@ -215,13 +131,15 @@ const Checkout = () => {
   }
 
   const isPaid = rental.payment_status === "paid";
+  const isPending = rental.payment_status === "pending_verification";
+  const upiConfigured = !!settings?.upi_id;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <section className="container py-10 max-w-3xl">
         <h1 className="font-display text-4xl md:text-5xl">Checkout</h1>
-        <p className="text-muted-foreground mt-2">Complete payment to confirm your reservation.</p>
+        <p className="text-muted-foreground mt-2">Pay via UPI QR code. We'll verify your payment and confirm your order.</p>
 
         <div className="mt-8 rounded-3xl border border-border bg-card p-6 shadow-card space-y-5">
           <div className="flex items-center gap-4">
@@ -231,36 +149,89 @@ const Checkout = () => {
             <div>
               <p className="text-xs uppercase tracking-wider text-muted-foreground">Item</p>
               <p className="font-medium">{product?.title ?? "Rental"}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Order ID: {rental.id.slice(0, 8).toUpperCase()}</p>
             </div>
           </div>
 
           <div className="border-t border-border pt-4 space-y-2 text-sm">
             <Row label={`${rental.kind === "buy" ? "Purchase" : "Rental"}${rental.quantity > 1 ? ` × ${rental.quantity}` : ""}`} value={`₹${(Number(rental.subtotal) + Number(rental.discount_amount || 0)).toLocaleString("en-IN")}`} />
-            {Number(rental.discount_amount) > 0 && (
-              <Row label="Discount" value={`− ₹${Number(rental.discount_amount).toLocaleString("en-IN")}`} />
-            )}
-            {Number(rental.gst_amount) > 0 && (
-              <Row label="GST" value={`₹${Number(rental.gst_amount).toLocaleString("en-IN")}`} muted />
-            )}
-            {Number(rental.delivery_fee) > 0 && (
-              <Row label="Delivery" value={`₹${Number(rental.delivery_fee).toLocaleString("en-IN")}`} muted />
-            )}
-            {Number(rental.deposit) > 0 && (
-              <Row label="Refundable deposit" value={`₹${Number(rental.deposit).toLocaleString("en-IN")}`} muted />
-            )}
+            {Number(rental.discount_amount) > 0 && <Row label="Discount" value={`− ₹${Number(rental.discount_amount).toLocaleString("en-IN")}`} />}
+            {Number(rental.gst_amount) > 0 && <Row label="GST" value={`₹${Number(rental.gst_amount).toLocaleString("en-IN")}`} muted />}
+            {Number(rental.delivery_fee) > 0 && <Row label="Delivery" value={`₹${Number(rental.delivery_fee).toLocaleString("en-IN")}`} muted />}
+            {Number(rental.deposit) > 0 && <Row label="Refundable deposit" value={`₹${Number(rental.deposit).toLocaleString("en-IN")}`} muted />}
             <Row label="Total payable" value={`₹${Number(rental.grand_total).toLocaleString("en-IN")}`} bold />
           </div>
 
           {isPaid ? (
-            <div className="rounded-xl bg-secondary p-4 text-sm">
-              This order has already been paid. <Button variant="link" className="px-1" onClick={() => navigate("/my-rentals")}>View rentals</Button>
+            <div className="rounded-xl bg-secondary p-4 text-sm flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+              This order has already been paid.
+              <Button variant="link" className="px-1" onClick={() => navigate("/my-rentals")}>View rentals</Button>
+            </div>
+          ) : isPending ? (
+            <div className="rounded-xl bg-gold/20 p-4 text-sm flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Payment submitted — waiting for admin verification.
+              <Button variant="link" className="px-1" onClick={() => navigate("/my-rentals")}>View rentals</Button>
             </div>
           ) : (
-            <div className="space-y-3 pt-2">
-              <Button variant="hero" size="lg" className="w-full" onClick={payWithRazorpay} disabled={paying}>
-                {paying ? <><Loader2 className="h-4 w-4 animate-spin" /> Starting…</> : <><CreditCard className="h-4 w-4" /> Proceed to Payment</>}
-              </Button>
-              <p className="text-xs text-muted-foreground text-center">Cards · UPI · Net banking · Wallets — secured by Razorpay (test mode)</p>
+            <div className="space-y-5 pt-2">
+              {!upiConfigured ? (
+                <div className="rounded-xl bg-destructive/10 text-destructive text-sm p-4">
+                  UPI payments aren't configured yet. Please contact support or use Cash on Delivery.
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-border bg-blossom/30 p-5 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <QrCode className="h-4 w-4 text-rose-deep" />
+                    <h3 className="font-display text-xl">Pay via QR code</h3>
+                    <Badge variant="outline" className="ml-auto">UPI</Badge>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-3">
+                    {settings?.qr_image_url ? (
+                      <img src={settings.qr_image_url} alt="UPI QR" className="h-56 w-56 rounded-xl bg-white p-3 object-contain" />
+                    ) : (
+                      <div className="rounded-xl bg-white p-3">
+                        <QRCodeSVG value={upiUrl} size={224} level="M" includeMargin={false} />
+                      </div>
+                    )}
+                    <a href={upiUrl} className="text-xs text-rose-deep underline sm:hidden">Open in UPI app</a>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-lg bg-card border border-border p-3">
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Payable</p>
+                      <p className="font-semibold mt-0.5">₹{Number(rental.grand_total).toLocaleString("en-IN")}</p>
+                    </div>
+                    <div className="rounded-lg bg-card border border-border p-3">
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Payee</p>
+                      <p className="font-medium mt-0.5 truncate">{settings?.payee_name}</p>
+                    </div>
+                    <div className="rounded-lg bg-card border border-border p-3 col-span-2 flex items-center gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">UPI ID</p>
+                        <p className="font-mono text-sm truncate">{settings?.upi_id}</p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={copyUpi}><Copy className="h-3.5 w-3.5" /> Copy</Button>
+                    </div>
+                  </div>
+
+                  {settings?.instructions && (
+                    <p className="text-xs text-muted-foreground">{settings.instructions}</p>
+                  )}
+
+                  <div className="space-y-2 pt-2 border-t border-border">
+                    <Label htmlFor="ref" className="text-xs">UPI reference / txn ID (optional)</Label>
+                    <Input id="ref" value={reference} onChange={(e) => setReference(e.target.value.slice(0, 64))} placeholder="e.g. 412345678901" />
+                  </div>
+
+                  <Button variant="hero" size="lg" className="w-full" onClick={submitPaid} disabled={submitting}>
+                    {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : <><CheckCircle2 className="h-4 w-4" /> I have paid</>}
+                  </Button>
+                  <p className="text-[11px] text-muted-foreground text-center">Works with Google Pay, PhonePe, Paytm, BHIM and any UPI app.</p>
+                </div>
+              )}
 
               <div className="relative my-2">
                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
@@ -276,7 +247,7 @@ const Checkout = () => {
           )}
 
           <p className="text-xs text-muted-foreground flex items-center gap-1.5 pt-2 border-t border-border">
-            <Shield className="h-3.5 w-3.5" /> Payments are processed securely. Your card details never touch our servers.
+            <Shield className="h-3.5 w-3.5" /> Payments are reviewed by our team before orders are confirmed.
           </p>
         </div>
       </section>

@@ -200,6 +200,96 @@ export type Database = {
           },
         ]
       }
+      manual_payments: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          commission_amount: number
+          created_at: string
+          id: string
+          payout_amount: number | null
+          payout_notes: string | null
+          payout_paid_at: string | null
+          payout_status: Database["public"]["Enums"]["payout_status"]
+          rental_id: string
+          status: Database["public"]["Enums"]["manual_payment_status"]
+          store_id: string
+          updated_at: string
+          upi_id: string
+          user_id: string
+          user_reference: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          commission_amount?: number
+          created_at?: string
+          id?: string
+          payout_amount?: number | null
+          payout_notes?: string | null
+          payout_paid_at?: string | null
+          payout_status?: Database["public"]["Enums"]["payout_status"]
+          rental_id: string
+          status?: Database["public"]["Enums"]["manual_payment_status"]
+          store_id: string
+          updated_at?: string
+          upi_id: string
+          user_id: string
+          user_reference?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          commission_amount?: number
+          created_at?: string
+          id?: string
+          payout_amount?: number | null
+          payout_notes?: string | null
+          payout_paid_at?: string | null
+          payout_status?: Database["public"]["Enums"]["payout_status"]
+          rental_id?: string
+          status?: Database["public"]["Enums"]["manual_payment_status"]
+          store_id?: string
+          updated_at?: string
+          upi_id?: string
+          user_id?: string
+          user_reference?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
+      payment_settings: {
+        Row: {
+          id: boolean
+          instructions: string
+          payee_name: string
+          qr_image_url: string | null
+          updated_at: string
+          upi_id: string
+        }
+        Insert: {
+          id?: boolean
+          instructions?: string
+          payee_name?: string
+          qr_image_url?: string | null
+          updated_at?: string
+          upi_id?: string
+        }
+        Update: {
+          id?: boolean
+          instructions?: string
+          payee_name?: string
+          qr_image_url?: string | null
+          updated_at?: string
+          upi_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -790,8 +880,17 @@ export type Database = {
       delivery_method: "delivery" | "pickup"
       dispute_status: "open" | "reviewing" | "resolved" | "rejected"
       image_stage: "before_delivery" | "at_delivery" | "after_return"
+      manual_payment_status: "pending_verification" | "verified" | "failed"
       order_kind: "rent" | "buy"
-      payment_status: "unpaid" | "paid" | "refunded" | "partial_refund" | "cod"
+      payment_status:
+        | "unpaid"
+        | "paid"
+        | "refunded"
+        | "partial_refund"
+        | "cod"
+        | "pending_verification"
+        | "verification_failed"
+      payout_status: "unpaid" | "paid"
       product_category: "dress" | "jewellery"
       product_purpose: "rent" | "buy" | "both"
       refund_condition: "perfect" | "minor" | "moderate" | "severe"
@@ -934,8 +1033,18 @@ export const Constants = {
       delivery_method: ["delivery", "pickup"],
       dispute_status: ["open", "reviewing", "resolved", "rejected"],
       image_stage: ["before_delivery", "at_delivery", "after_return"],
+      manual_payment_status: ["pending_verification", "verified", "failed"],
       order_kind: ["rent", "buy"],
-      payment_status: ["unpaid", "paid", "refunded", "partial_refund", "cod"],
+      payment_status: [
+        "unpaid",
+        "paid",
+        "refunded",
+        "partial_refund",
+        "cod",
+        "pending_verification",
+        "verification_failed",
+      ],
+      payout_status: ["unpaid", "paid"],
       product_category: ["dress", "jewellery"],
       product_purpose: ["rent", "buy", "both"],
       refund_condition: ["perfect", "minor", "moderate", "severe"],
