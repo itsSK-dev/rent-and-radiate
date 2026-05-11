@@ -19,6 +19,8 @@ import { AdminRefundsPanel } from "@/components/AdminRefundsPanel";
 import { DisputeStatusTimeline } from "@/components/DisputeStatusTimeline";
 import { PlatformSettingsPanel } from "@/components/PlatformSettingsPanel";
 import { AdminShopsPanel } from "@/components/AdminShopsPanel";
+import { AdminPaymentsPanel } from "@/components/AdminPaymentsPanel";
+import { PaymentSettingsPanel } from "@/components/PaymentSettingsPanel";
 
 type Dispute = {
   id: string;
