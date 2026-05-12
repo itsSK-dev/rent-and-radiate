@@ -884,6 +884,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_moderation_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          from_value: Json | null
+          id: string
+          reason: string | null
+          target_user_id: string
+          to_value: Json | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          from_value?: Json | null
+          id?: string
+          reason?: string | null
+          target_user_id: string
+          to_value?: Json | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          from_value?: Json | null
+          id?: string
+          reason?: string | null
+          target_user_id?: string
+          to_value?: Json | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
