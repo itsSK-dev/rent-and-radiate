@@ -290,6 +290,54 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_verification_attempts: {
+        Row: {
+          amount: number | null
+          created_at: string
+          id: string
+          ip: string | null
+          outcome: string
+          provider: string
+          raw: Json | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          reason: string | null
+          rental_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          outcome: string
+          provider: string
+          raw?: Json | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          reason?: string | null
+          rental_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          outcome?: string
+          provider?: string
+          raw?: Json | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          reason?: string | null
+          rental_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number

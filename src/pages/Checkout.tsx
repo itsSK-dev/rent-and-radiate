@@ -109,11 +109,13 @@ const Checkout = () => {
   async function payCOD() {
     if (!rental) return;
     setCodSubmitting(true);
-    const { error } = await supabase.from("rentals")
-      .update({ payment_status: "cod" as any, payment_method: "cod", status: "confirmed" as any })
-      .eq("id", rental.id);
+    const { data, error } = await supabase.functions.invoke("confirm-cod-payment", {
+      body: { rentalId: rental.id },
+    });
     setCodSubmitting(false);
-    if (error) return toast.error(error.message);
+    if (error || (data as any)?.error) {
+      return toast.error((data as any)?.error ?? error?.message ?? "Could not confirm COD");
+    }
     toast.success("Order confirmed! Pay on delivery.");
     navigate("/my-rentals");
   }
