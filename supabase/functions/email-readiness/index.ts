@@ -18,10 +18,38 @@ type Readiness = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const notes: string[] = [];
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+  // Require authenticated admin caller — readiness data is admin-only.
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const token = authHeader.replace("Bearer ", "");
+  const { data: claims, error: claimsErr } = await userClient.auth.getClaims(token);
+  if (claimsErr || !claims?.claims?.sub) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   const admin = createClient(supabaseUrl, serviceKey);
+  const { data: isAdmin } = await admin.rpc("has_role", {
+    _user_id: claims.claims.sub, _role: "admin",
+  });
+  if (!isAdmin) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const notes: string[] = [];
 
   // 1. Check whether email infrastructure tables exist (proxy: try to read email_send_log)
   let infrastructureReady = false;
