@@ -64,18 +64,9 @@ const BecomeVendor = () => {
 
     setBusy(true);
 
-    // 1) Ensure the user has the store_owner role BEFORE inserting the store.
-    //    store_owner can no longer be self-INSERTed via RLS; use the secure RPC.
-    if (!roles.includes("store_owner")) {
-      const { error: roleErr } = await (supabase as any).rpc("request_store_owner_role");
-      if (roleErr) {
-        setBusy(false);
-        return toast.error("Could not enable vendor mode: " + roleErr.message);
-      }
-      await refreshRoles();
-    }
-
-    // 2) Submit the store, always as unapproved — admin reviews and approves.
+    // Submit the store as pending. The store_owner role is granted automatically
+    // by the backend only after an admin approves the store — users cannot
+    // self-assign the role.
     const { data: created, error } = await supabase
       .from("stores")
       .insert({

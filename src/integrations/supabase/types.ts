@@ -962,7 +962,6 @@ export type Database = {
         Args: { _rental_id: string; _user_id: string }
         Returns: boolean
       }
-      request_store_owner_role: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "customer" | "store_owner" | "admin"
