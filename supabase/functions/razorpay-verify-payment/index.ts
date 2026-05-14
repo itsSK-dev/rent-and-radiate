@@ -58,6 +58,26 @@ Deno.serve(async (req) => {
       return json({ error: "Forbidden" }, 403);
     }
 
+    // Guard against payment-credential replay across rentals: the submitted
+    // order ID must match the one we created on Razorpay for this rental.
+    if (
+      razorpay_order_id &&
+      rental.razorpay_order_id &&
+      rental.razorpay_order_id !== razorpay_order_id
+    ) {
+      await logAttempt(admin, {
+        rental_id: rentalId,
+        user_id: userId,
+        outcome: "order_id_mismatch",
+        reason: "Submitted razorpay_order_id does not match rental",
+        razorpay_order_id,
+        razorpay_payment_id: razorpay_payment_id ?? null,
+        amount: rental.grand_total,
+        ip, ua,
+      });
+      return json({ error: "Order ID mismatch" }, 400);
+    }
+
     // Failure path
     if (failure || !razorpay_payment_id || !razorpay_signature) {
       await admin.from("payments").insert({
