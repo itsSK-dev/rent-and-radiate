@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Allow authenticated select" ON public.stores;
