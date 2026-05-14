@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Allow authenticated insert" ON public.stores;
