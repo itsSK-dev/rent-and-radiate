@@ -19,6 +19,7 @@ import Checkout from "./pages/Checkout";
 import Receipt from "./pages/Receipt";
 import Cart from "./pages/Cart";
 import TrackOrder from "./pages/TrackOrder";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
