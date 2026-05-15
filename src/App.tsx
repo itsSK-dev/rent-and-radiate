@@ -19,6 +19,7 @@ import Checkout from "./pages/Checkout";
 import Receipt from "./pages/Receipt";
 import Cart from "./pages/Cart";
 import TrackOrder from "./pages/TrackOrder";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/browse" element={<Browse />} />
