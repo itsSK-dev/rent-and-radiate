@@ -175,6 +175,7 @@ const Checkout = () => {
                 name:
                   method === "upi" ? "Pay using UPI"
                   : method === "card" ? "Pay using Card"
+                  : method === "wallet" ? "Pay using Wallet"
                   : "Pay using Net Banking",
                 instruments: [{ method }],
               },
