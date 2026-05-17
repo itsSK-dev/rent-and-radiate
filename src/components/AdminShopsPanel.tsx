@@ -35,7 +35,7 @@ async function confirmVisibilityOrAlert(storeId: string, shopName: string) {
     });
   } else {
     toast.error(
-      `${shopName} was approved but is NOT visible to customers. Reason: ${result.reason}`,
+      `${shopName} was approved but is NOT visible to customers. Reason: ${(result as { reason: string }).reason}`,
       { duration: 10000, icon: <AlertTriangle className="h-4 w-4" /> },
     );
   }
