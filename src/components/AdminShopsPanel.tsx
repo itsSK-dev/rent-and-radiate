@@ -21,8 +21,25 @@ import {
 import { toast } from "sonner";
 import {
   Check, X, Trash2, RotateCcw, MapPin, Phone, Store as StoreIcon,
-  ExternalLink, Settings, Loader2, Ban,
+  ExternalLink, Settings, Loader2, Ban, AlertTriangle,
 } from "lucide-react";
+import { verifyStoreVisibleToCustomers } from "@/lib/verifyStoreVisibility";
+
+async function confirmVisibilityOrAlert(storeId: string, shopName: string) {
+  // Small delay to ensure triggers/replication settle
+  await new Promise((r) => setTimeout(r, 400));
+  const result = await verifyStoreVisibleToCustomers(storeId);
+  if (result.visible) {
+    toast.success(`${shopName} is now live and visible to customers.`, {
+      icon: <Check className="h-4 w-4" />,
+    });
+  } else {
+    toast.error(
+      `${shopName} was approved but is NOT visible to customers. Reason: ${result.reason}`,
+      { duration: 10000, icon: <AlertTriangle className="h-4 w-4" /> },
+    );
+  }
+}
 
 type ShopStatus = "pending" | "approved" | "rejected" | "deleted";
 
