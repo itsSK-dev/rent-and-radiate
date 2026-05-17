@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   Shield, Banknote, Loader2, QrCode, Copy, CheckCircle2, Clock,
-  Smartphone, CreditCard, Building2, ChevronRight, ArrowLeft,
+  Smartphone, CreditCard, Building2, ChevronRight, ArrowLeft, Wallet, Store as StoreIcon,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
