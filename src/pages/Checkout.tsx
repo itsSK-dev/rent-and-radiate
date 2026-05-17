@@ -128,17 +128,19 @@ const Checkout = () => {
     navigate("/my-rentals");
   }
 
-  async function payCOD() {
+  async function payDeferred(mode: "cod" | "pay_at_store") {
     if (!rental) return;
     setCodSubmitting(true);
     const { data, error } = await supabase.functions.invoke("confirm-cod-payment", {
-      body: { rentalId: rental.id },
+      body: { rentalId: rental.id, mode },
     });
     setCodSubmitting(false);
     if (error || (data as any)?.error) {
-      return toast.error((data as any)?.error ?? error?.message ?? "Could not confirm COD");
+      return toast.error((data as any)?.error ?? error?.message ?? "Could not confirm order");
     }
-    toast.success("Order confirmed! Pay on delivery.");
+    toast.success(
+      mode === "cod" ? "Order confirmed! Pay on delivery." : "Order confirmed! Pay when you pick up.",
+    );
     navigate("/my-rentals");
   }
 
