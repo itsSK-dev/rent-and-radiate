@@ -144,7 +144,7 @@ const Checkout = () => {
     navigate("/my-rentals");
   }
 
-  async function launchRazorpay(method: "upi" | "card" | "netbanking") {
+  async function launchRazorpay(method: "upi" | "card" | "netbanking" | "wallet") {
     if (!rental || !user) return;
     setLaunching(true);
     try {
