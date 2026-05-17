@@ -25,6 +25,8 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const rentalId = String(body?.rentalId ?? "");
+    const mode: "cod" | "pay_at_store" =
+      body?.mode === "pay_at_store" ? "pay_at_store" : "cod";
     if (!rentalId) return json({ error: "rentalId required" }, 400);
 
     const admin = createClient(
@@ -34,29 +36,34 @@ Deno.serve(async (req) => {
 
     const { data: rental, error: rErr } = await admin
       .from("rentals")
-      .select("id, customer_id, payment_status, grand_total")
+      .select("id, customer_id, payment_status, grand_total, kind")
       .eq("id", rentalId)
       .maybeSingle();
-    if (rErr || !rental) return logAndJson(admin, rentalId, userId, "not_found", "Rental not found", 404);
-    if (rental.customer_id !== userId) return logAndJson(admin, rentalId, userId, "forbidden", "Not your order", 403);
+    if (rErr || !rental) return logAndJson(admin, rentalId, userId, mode, "not_found", "Rental not found", 404);
+    if (rental.customer_id !== userId) return logAndJson(admin, rentalId, userId, mode, "forbidden", "Not your order", 403);
     if (!["unpaid", "verification_failed"].includes(rental.payment_status)) {
-      return logAndJson(admin, rentalId, userId, "failed", `Cannot switch to COD from ${rental.payment_status}`, 400);
+      return logAndJson(admin, rentalId, userId, mode, "failed", `Cannot switch to ${mode} from ${rental.payment_status}`, 400);
+    }
+    if (mode === "cod" && rental.kind !== "buy") {
+      return logAndJson(admin, rentalId, userId, mode, "failed", "Cash on delivery is available for purchases only", 400);
     }
 
     const { error: upErr } = await admin
       .from("rentals")
       .update({
+        // 'cod' is the only deferred-cash payment_status enum; the
+        // payment_method column distinguishes COD vs pay-at-store for admins.
         payment_status: "cod",
-        payment_method: "cod",
+        payment_method: mode,
         status: "confirmed",
       })
       .eq("id", rentalId);
-    if (upErr) return logAndJson(admin, rentalId, userId, "error", upErr.message, 500);
+    if (upErr) return logAndJson(admin, rentalId, userId, mode, "error", upErr.message, 500);
 
     await admin.from("payment_verification_attempts").insert({
       rental_id: rentalId,
       user_id: userId,
-      provider: "cod",
+      provider: mode,
       outcome: "success",
       amount: rental.grand_total,
       ip: req.headers.get("x-forwarded-for"),
@@ -70,11 +77,11 @@ Deno.serve(async (req) => {
   }
 });
 
-async function logAndJson(admin: any, rentalId: string, userId: string, outcome: string, reason: string, status: number) {
+async function logAndJson(admin: any, rentalId: string, userId: string, provider: string, outcome: string, reason: string, status: number) {
   await admin.from("payment_verification_attempts").insert({
     rental_id: rentalId || null,
     user_id: userId,
-    provider: "cod",
+    provider,
     outcome,
     reason,
   });

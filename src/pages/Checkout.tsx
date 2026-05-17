@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   Shield, Banknote, Loader2, QrCode, Copy, CheckCircle2, Clock,
-  Smartphone, CreditCard, Building2, ChevronRight, ArrowLeft,
+  Smartphone, CreditCard, Building2, ChevronRight, ArrowLeft, Wallet, Store as StoreIcon,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -37,7 +37,7 @@ type Rental = {
 type ProductLite = { title: string; images: string[] };
 type PaymentSettings = { upi_id: string; payee_name: string; qr_image_url: string | null; instructions: string };
 
-type MethodKey = "upi" | "qr" | "card" | "netbanking" | "cod";
+type MethodKey = "upi" | "qr" | "card" | "netbanking" | "wallet" | "cod" | "pay_at_store";
 
 declare global {
   interface Window { Razorpay?: any }
@@ -128,21 +128,23 @@ const Checkout = () => {
     navigate("/my-rentals");
   }
 
-  async function payCOD() {
+  async function payDeferred(mode: "cod" | "pay_at_store") {
     if (!rental) return;
     setCodSubmitting(true);
     const { data, error } = await supabase.functions.invoke("confirm-cod-payment", {
-      body: { rentalId: rental.id },
+      body: { rentalId: rental.id, mode },
     });
     setCodSubmitting(false);
     if (error || (data as any)?.error) {
-      return toast.error((data as any)?.error ?? error?.message ?? "Could not confirm COD");
+      return toast.error((data as any)?.error ?? error?.message ?? "Could not confirm order");
     }
-    toast.success("Order confirmed! Pay on delivery.");
+    toast.success(
+      mode === "cod" ? "Order confirmed! Pay on delivery." : "Order confirmed! Pay when you pick up.",
+    );
     navigate("/my-rentals");
   }
 
-  async function launchRazorpay(method: "upi" | "card" | "netbanking") {
+  async function launchRazorpay(method: "upi" | "card" | "netbanking" | "wallet") {
     if (!rental || !user) return;
     setLaunching(true);
     try {
@@ -173,6 +175,7 @@ const Checkout = () => {
                 name:
                   method === "upi" ? "Pay using UPI"
                   : method === "card" ? "Pay using Card"
+                  : method === "wallet" ? "Pay using Wallet"
                   : "Pay using Net Banking",
                 instruments: [{ method }],
               },
@@ -237,6 +240,8 @@ const Checkout = () => {
     { key: "qr", label: "QR code", desc: "Scan & pay, then submit reference", icon: QrCode, disabled: !upiConfigured, hint: !upiConfigured ? "Not configured" : undefined },
     { key: "card", label: "Debit / Credit card", desc: "Visa, Mastercard, RuPay, Amex", icon: CreditCard },
     { key: "netbanking", label: "Net banking", desc: "All major Indian banks", icon: Building2 },
+    { key: "wallet", label: "Wallets", desc: "Paytm, Amazon Pay, Mobikwik, Freecharge", icon: Wallet },
+    { key: "pay_at_store", label: "Pay at pickup / store", desc: "Reserve now, pay when you collect from the store", icon: StoreIcon },
     ...(allowCOD ? [{ key: "cod" as MethodKey, label: "Cash on delivery", desc: "Pay when your order arrives", icon: Banknote }] : []),
   ];
 
@@ -365,19 +370,25 @@ const Checkout = () => {
                 </div>
               )}
 
-              {(selected === "upi" || selected === "card" || selected === "netbanking") && (
+              {(selected === "upi" || selected === "card" || selected === "netbanking" || selected === "wallet") && (
                 <div className="rounded-2xl border border-border bg-blossom/30 p-5 space-y-4">
                   <div className="flex items-center gap-2">
                     {selected === "upi" ? <Smartphone className="h-4 w-4 text-rose-deep" /> :
                      selected === "card" ? <CreditCard className="h-4 w-4 text-rose-deep" /> :
+                     selected === "wallet" ? <Wallet className="h-4 w-4 text-rose-deep" /> :
                      <Building2 className="h-4 w-4 text-rose-deep" />}
                     <h3 className="font-display text-xl">
-                      {selected === "upi" ? "Pay using UPI" : selected === "card" ? "Pay using Card" : "Pay using Net Banking"}
+                      {selected === "upi" ? "Pay using UPI"
+                        : selected === "card" ? "Pay using Card"
+                        : selected === "wallet" ? "Pay using Wallet"
+                        : "Pay using Net Banking"}
                     </h3>
                     <Badge variant="outline" className="ml-auto">Secure</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    You'll complete payment of <span className="font-semibold text-foreground">₹{Number(rental.grand_total).toLocaleString("en-IN")}</span> through our secure payment gateway. Your order is confirmed automatically once payment succeeds.
+                    {selected === "wallet"
+                      ? <>You'll pay <span className="font-semibold text-foreground">₹{Number(rental.grand_total).toLocaleString("en-IN")}</span> with Paytm Wallet, Amazon Pay, Mobikwik, Freecharge or any other supported wallet via our secure gateway.</>
+                      : <>You'll complete payment of <span className="font-semibold text-foreground">₹{Number(rental.grand_total).toLocaleString("en-IN")}</span> through our secure payment gateway. Your order is confirmed automatically once payment succeeds.</>}
                   </p>
                   <Button variant="hero" size="lg" className="w-full" onClick={() => launchRazorpay(selected)} disabled={launching}>
                     {launching ? <><Loader2 className="h-4 w-4 animate-spin" /> Opening…</> : <>Pay ₹{Number(rental.grand_total).toLocaleString("en-IN")}</>}
@@ -394,8 +405,23 @@ const Checkout = () => {
                   <p className="text-sm text-muted-foreground">
                     Pay <span className="font-semibold text-foreground">₹{Number(rental.grand_total).toLocaleString("en-IN")}</span> in cash when your order is delivered. We'll confirm your order right away.
                   </p>
-                  <Button variant="hero" size="lg" className="w-full" onClick={payCOD} disabled={codSubmitting}>
+                  <Button variant="hero" size="lg" className="w-full" onClick={() => payDeferred("cod")} disabled={codSubmitting}>
                     {codSubmitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Confirming…</> : <><Banknote className="h-4 w-4" /> Confirm order</>}
+                  </Button>
+                </div>
+              )}
+
+              {selected === "pay_at_store" && (
+                <div className="rounded-2xl border border-border bg-blossom/30 p-5 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <StoreIcon className="h-4 w-4 text-rose-deep" />
+                    <h3 className="font-display text-xl">Pay at pickup / store</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Reserve your order now and pay <span className="font-semibold text-foreground">₹{Number(rental.grand_total).toLocaleString("en-IN")}</span> when you collect it from the store. The shop will mark the payment as received on pickup.
+                  </p>
+                  <Button variant="hero" size="lg" className="w-full" onClick={() => payDeferred("pay_at_store")} disabled={codSubmitting}>
+                    {codSubmitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Confirming…</> : <><StoreIcon className="h-4 w-4" /> Reserve & pay at store</>}
                   </Button>
                 </div>
               )}
