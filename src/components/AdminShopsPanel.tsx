@@ -194,7 +194,10 @@ export function AdminShopsPanel() {
                     key={shop.id}
                     shop={shop}
                     busy={busyId === shop.id}
-                    onApprove={() => quickUpdate(shop.id, { status: "approved" }, "Shop approved")}
+                    onApprove={async () => {
+                      await quickUpdate(shop.id, { status: "approved" }, "Shop approved");
+                      await confirmVisibilityOrAlert(shop.id, shop.name);
+                    }}
                     onReject={() => quickUpdate(shop.id, { status: "rejected" }, "Shop rejected")}
                     onSoftDelete={() => quickUpdate(shop.id, { status: "deleted" }, "Shop moved to deleted")}
                     onRestore={() => quickUpdate(shop.id, { status: "pending" }, "Shop restored to pending")}
