@@ -412,6 +412,9 @@ function ManageShopDialog({
       return;
     }
     toast.success("Shop updated successfully");
+    if (status === "approved") {
+      await confirmVisibilityOrAlert(shop.id, shop.name);
+    }
     await onSaved();
   }
 
