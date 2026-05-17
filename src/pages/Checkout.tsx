@@ -240,6 +240,8 @@ const Checkout = () => {
     { key: "qr", label: "QR code", desc: "Scan & pay, then submit reference", icon: QrCode, disabled: !upiConfigured, hint: !upiConfigured ? "Not configured" : undefined },
     { key: "card", label: "Debit / Credit card", desc: "Visa, Mastercard, RuPay, Amex", icon: CreditCard },
     { key: "netbanking", label: "Net banking", desc: "All major Indian banks", icon: Building2 },
+    { key: "wallet", label: "Wallets", desc: "Paytm, Amazon Pay, Mobikwik, Freecharge", icon: Wallet },
+    { key: "pay_at_store", label: "Pay at pickup / store", desc: "Reserve now, pay when you collect from the store", icon: StoreIcon },
     ...(allowCOD ? [{ key: "cod" as MethodKey, label: "Cash on delivery", desc: "Pay when your order arrives", icon: Banknote }] : []),
   ];
 
