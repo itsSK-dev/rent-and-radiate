@@ -77,11 +77,11 @@ Deno.serve(async (req) => {
   }
 });
 
-async function logAndJson(admin: any, rentalId: string, userId: string, outcome: string, reason: string, status: number) {
+async function logAndJson(admin: any, rentalId: string, userId: string, provider: string, outcome: string, reason: string, status: number) {
   await admin.from("payment_verification_attempts").insert({
     rental_id: rentalId || null,
     user_id: userId,
-    provider: "cod",
+    provider,
     outcome,
     reason,
   });
