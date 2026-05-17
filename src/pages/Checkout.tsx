@@ -37,7 +37,7 @@ type Rental = {
 type ProductLite = { title: string; images: string[] };
 type PaymentSettings = { upi_id: string; payee_name: string; qr_image_url: string | null; instructions: string };
 
-type MethodKey = "upi" | "qr" | "card" | "netbanking" | "cod";
+type MethodKey = "upi" | "qr" | "card" | "netbanking" | "wallet" | "cod" | "pay_at_store";
 
 declare global {
   interface Window { Razorpay?: any }
