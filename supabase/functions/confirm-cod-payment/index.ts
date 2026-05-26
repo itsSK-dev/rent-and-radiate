@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     return json({ ok: true });
   } catch (e) {
     console.error(e);
-    return json({ error: (e as Error).message }, 500);
+    return json({ error: "Internal server error" }, 500);
   }
 });
 
