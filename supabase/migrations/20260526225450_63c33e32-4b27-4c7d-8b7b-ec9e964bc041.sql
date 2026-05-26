@@ -1,0 +1,1 @@
+CREATE POLICY "Owners delete own store logos" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'store-logos' AND auth.uid()::text = (storage.foldername(name))[1]);
