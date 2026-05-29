@@ -80,6 +80,23 @@ const Auth = () => {
     }
   }
 
+  async function signInWithApple() {
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("apple", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        toast.error(result.error.message || "Apple sign-in failed");
+      }
+      if (result.redirected) {
+        return;
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
