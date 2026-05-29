@@ -14,3 +14,6 @@ verify_jwt = true
 
 [functions.razorpay-verify-payment]
 verify_jwt = true
+
+[functions.process-email-queue]
+verify_jwt = true
