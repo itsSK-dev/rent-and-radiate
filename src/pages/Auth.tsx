@@ -59,6 +59,9 @@ const Auth = () => {
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       setBusy(false);
+      if (error) return toast.error(error.message);
+    }
+  }
 
   async function signInWithGoogle() {
     setBusy(true);
@@ -74,9 +77,6 @@ const Auth = () => {
       }
     } finally {
       setBusy(false);
-    }
-  }
-
     }
   }
 
