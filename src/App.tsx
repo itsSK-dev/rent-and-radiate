@@ -20,6 +20,7 @@ import Receipt from "./pages/Receipt";
 import Cart from "./pages/Cart";
 import TrackOrder from "./pages/TrackOrder";
 import PaymentResult from "./pages/PaymentResult";
+import MyPayments from "./pages/MyPayments";
 import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();

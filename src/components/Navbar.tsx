@@ -35,6 +35,9 @@ export function Navbar() {
               <Button variant="ghost" size="sm" onClick={() => navigate("/my-rentals")}>
                 <ShoppingBag className="h-4 w-4 mr-2" /> My orders
               </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/my-payments")}>
+                My payments
+              </Button>
               {isVendor ? (
                 <Button variant="soft" size="sm" onClick={() => navigate("/vendor")}>
                   <Store className="h-4 w-4 mr-2" /> Vendor
@@ -77,6 +80,7 @@ export function Navbar() {
               <>
                 <Link to="/cart" onClick={() => setOpen(false)} className="py-2">Cart</Link>
                 <Link to="/my-rentals" onClick={() => setOpen(false)} className="py-2">My orders</Link>
+                <Link to="/my-payments" onClick={() => setOpen(false)} className="py-2">My payments</Link>
                 <Link to={isVendor ? "/vendor" : "/become-vendor"} onClick={() => setOpen(false)} className="py-2">
                   {isVendor ? "Vendor dashboard" : "Open a store"}
                 </Link>
