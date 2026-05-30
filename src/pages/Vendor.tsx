@@ -21,6 +21,7 @@ import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPan
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
 import { InspectionDialog } from "@/components/InspectionDialog";
 import { RentalDisputesList } from "@/components/RentalDisputesList";
+import { DeliveryStageControl, StoreExtensionRequests, StoreReturnControls, type ReturnRow } from "@/components/DeliveryTracking";
 import { discountedUnitPrice, inr } from "@/lib/pricing";
 
 type Store = {
@@ -43,6 +44,7 @@ type Rental = {
   id: string; start_date: string | null; end_date: string | null; days: number | null;
   grand_total: number; deposit: number; subtotal: number; commission_amount: number;
   status: string; store_id: string; customer_id: string; kind: "rent" | "buy"; quantity: number;
+  delivery_stage: string | null;
   product: { title: string } | null; customer: { full_name: string | null } | null;
 };
 type RefundRow = { id: string; rental_id: string; status: string; refund_amount: number; refund_percent: number; condition_tier: string };
@@ -78,7 +80,7 @@ const Vendor = () => {
         .eq("store_id", sid).order("created_at", { ascending: false });
       setProducts((p as any) ?? []);
       const { data: r } = await supabase.from("rentals")
-        .select("id,start_date,end_date,days,grand_total,deposit,subtotal,commission_amount,status,store_id,customer_id,kind,quantity,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)")
+        .select("id,start_date,end_date,days,grand_total,deposit,subtotal,commission_amount,status,store_id,customer_id,kind,quantity,delivery_stage,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)")
         .eq("store_id", sid).order("created_at", { ascending: false });
       setRentals((r as any) ?? []);
       const { data: rf } = await (supabase.from as any)("deposit_refunds").select("id,rental_id,status,refund_amount,refund_percent,condition_tier").eq("store_id", sid);
@@ -158,6 +160,7 @@ const Vendor = () => {
           <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="bookings">Orders</TabsTrigger>
+            <TabsTrigger value="returns">Returns & extensions</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products" className="mt-6">
@@ -239,6 +242,21 @@ const Vendor = () => {
               </div>
             )}
           </TabsContent>
+
+          <TabsContent value="returns" className="mt-6 space-y-6">
+            {storeId ? (
+              <>
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <h3 className="font-display text-xl mb-3">Active return requests</h3>
+                  <StoreReturnsList storeId={storeId} />
+                </div>
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <h3 className="font-display text-xl mb-3">Extension requests</h3>
+                  <StoreExtensionRequests storeId={storeId} />
+                </div>
+              </>
+            ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
+          </TabsContent>
         </Tabs>
       </section>
       <Footer />
@@ -318,6 +336,12 @@ function RentalRow({ r, refund, onUpdate, onRefresh, commissionPct }: {
               onCreated={onRefresh}
             />
           )}
+        </div>
+      )}
+      {r.kind === "rent" && r.status !== "returned" && r.status !== "cancelled" && (
+        <div className="rounded-xl border border-border bg-secondary/30 p-3">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Delivery</p>
+          <DeliveryStageControl rentalId={r.id} currentStage={r.delivery_stage} onChanged={onRefresh} />
         </div>
       )}
       <RentalStatusTimeline rentalId={r.id} currentStatus={r.status} />
@@ -523,6 +547,47 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function StoreReturnsList({ storeId }: { storeId: string }) {
+  const [rows, setRows] = useState<(ReturnRow & { rental: any })[]>([]);
+
+  async function load() {
+    const { data } = await supabase
+      .from("return_requests")
+      .select("*, rental:rentals(id,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name))")
+      .eq("store_id", storeId)
+      .order("created_at", { ascending: false });
+    setRows((data as any) ?? []);
+  }
+  useEffect(() => {
+    load();
+    const ch = supabase
+      .channel(`ret-store-${storeId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "return_requests", filter: `store_id=eq.${storeId}` }, load)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [storeId]);
+
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground">No return requests yet.</p>;
+
+  return (
+    <div className="space-y-4">
+      {rows.map((r) => (
+        <div key={r.id} className="rounded-xl border border-border p-4 bg-card">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <p className="font-medium">{r.rental?.product?.title ?? "Order"}</p>
+              <p className="text-xs text-muted-foreground">{r.rental?.customer?.full_name ?? "Customer"} · opened {format(new Date(r.created_at), "PP")}</p>
+              {r.reason && <p className="text-xs italic mt-1">"{r.reason}"</p>}
+            </div>
+            <Badge className="bg-primary-soft text-rose-deep capitalize">{r.status.replace(/_/g, " ")}</Badge>
+          </div>
+          <StoreReturnControls ret={r} onChanged={load} />
+        </div>
+      ))}
+    </div>
   );
 }
 

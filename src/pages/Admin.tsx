@@ -21,6 +21,7 @@ import { PlatformSettingsPanel } from "@/components/PlatformSettingsPanel";
 import { AdminShopsPanel } from "@/components/AdminShopsPanel";
 import { AdminPaymentsPanel } from "@/components/AdminPaymentsPanel";
 import { PaymentSettingsPanel } from "@/components/PaymentSettingsPanel";
+import { AdminDeliveryPanel } from "@/components/AdminDeliveryPanel";
 
 type Dispute = {
   id: string;
@@ -112,6 +113,7 @@ const Admin = () => {
             <TabsTrigger value="disputes">Disputes</TabsTrigger>
             <TabsTrigger value="shops">Shops</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
+            <TabsTrigger value="delivery">Delivery</TabsTrigger>
             <TabsTrigger value="refunds">Deposit refunds</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -148,9 +150,14 @@ const Admin = () => {
             <AdminPaymentsPanel />
           </TabsContent>
 
+          <TabsContent value="delivery" className="mt-6">
+            <AdminDeliveryPanel />
+          </TabsContent>
+
           <TabsContent value="refunds" className="mt-6">
             <AdminRefundsPanel />
           </TabsContent>
+
 
           <TabsContent value="settings" className="mt-6 space-y-6">
             <PaymentSettingsPanel />
