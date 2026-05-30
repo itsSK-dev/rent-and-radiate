@@ -352,6 +352,10 @@ export type Database = {
       }
       payment_settings: {
         Row: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_ifsc: string | null
+          bank_name: string | null
           id: boolean
           instructions: string
           payee_name: string
@@ -360,6 +364,10 @@ export type Database = {
           upi_id: string
         }
         Insert: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
           id?: boolean
           instructions?: string
           payee_name?: string
@@ -368,6 +376,10 @@ export type Database = {
           upi_id?: string
         }
         Update: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
           id?: boolean
           instructions?: string
           payee_name?: string
