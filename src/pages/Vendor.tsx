@@ -338,6 +338,12 @@ function RentalRow({ r, refund, onUpdate, onRefresh, commissionPct }: {
           )}
         </div>
       )}
+      {r.kind === "rent" && r.status !== "returned" && r.status !== "cancelled" && (
+        <div className="rounded-xl border border-border bg-secondary/30 p-3">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Delivery</p>
+          <DeliveryStageControl rentalId={r.id} currentStage={r.delivery_stage} onChanged={onRefresh} />
+        </div>
+      )}
       <RentalStatusTimeline rentalId={r.id} currentStatus={r.status} />
       {expanded && (
         <div className="pt-2 border-t border-border space-y-3">
