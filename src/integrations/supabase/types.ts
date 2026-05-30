@@ -670,6 +670,57 @@ export type Database = {
           },
         ]
       }
+      rental_extension_requests: {
+        Row: {
+          additional_days: number
+          created_at: string
+          current_end_date: string | null
+          customer_id: string
+          id: string
+          reason: string | null
+          rental_id: string
+          requested_end_date: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_notes: string | null
+          status: Database["public"]["Enums"]["extension_status"]
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          additional_days: number
+          created_at?: string
+          current_end_date?: string | null
+          customer_id: string
+          id?: string
+          reason?: string | null
+          rental_id: string
+          requested_end_date: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["extension_status"]
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          additional_days?: number
+          created_at?: string
+          current_end_date?: string | null
+          customer_id?: string
+          id?: string
+          reason?: string | null
+          rental_id?: string
+          requested_end_date?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["extension_status"]
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rental_images: {
         Row: {
           created_at: string
@@ -745,6 +796,7 @@ export type Database = {
       }
       rentals: {
         Row: {
+          actual_delivered_at: string | null
           address: string | null
           commission_amount: number
           created_at: string
@@ -752,9 +804,12 @@ export type Database = {
           days: number | null
           delivery_fee: number
           delivery_method: Database["public"]["Enums"]["delivery_method"]
+          delivery_partner: string | null
+          delivery_stage: string | null
           deposit: number
           discount_amount: number
           end_date: string | null
+          expected_delivery_date: string | null
           grand_total: number
           gst_amount: number
           id: string
@@ -768,13 +823,17 @@ export type Database = {
           razorpay_signature: string | null
           refund_amount: number | null
           rental_total: number
+          return_initiated_at: string | null
+          returned_at: string | null
           start_date: string | null
           status: Database["public"]["Enums"]["rental_status"]
           store_id: string
           subtotal: number
+          tracking_number: string | null
           updated_at: string
         }
         Insert: {
+          actual_delivered_at?: string | null
           address?: string | null
           commission_amount?: number
           created_at?: string
@@ -782,9 +841,12 @@ export type Database = {
           days?: number | null
           delivery_fee?: number
           delivery_method?: Database["public"]["Enums"]["delivery_method"]
+          delivery_partner?: string | null
+          delivery_stage?: string | null
           deposit?: number
           discount_amount?: number
           end_date?: string | null
+          expected_delivery_date?: string | null
           grand_total: number
           gst_amount?: number
           id?: string
@@ -798,13 +860,17 @@ export type Database = {
           razorpay_signature?: string | null
           refund_amount?: number | null
           rental_total?: number
+          return_initiated_at?: string | null
+          returned_at?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["rental_status"]
           store_id: string
           subtotal?: number
+          tracking_number?: string | null
           updated_at?: string
         }
         Update: {
+          actual_delivered_at?: string | null
           address?: string | null
           commission_amount?: number
           created_at?: string
@@ -812,9 +878,12 @@ export type Database = {
           days?: number | null
           delivery_fee?: number
           delivery_method?: Database["public"]["Enums"]["delivery_method"]
+          delivery_partner?: string | null
+          delivery_stage?: string | null
           deposit?: number
           discount_amount?: number
           end_date?: string | null
+          expected_delivery_date?: string | null
           grand_total?: number
           gst_amount?: number
           id?: string
@@ -828,10 +897,13 @@ export type Database = {
           razorpay_signature?: string | null
           refund_amount?: number | null
           rental_total?: number
+          return_initiated_at?: string | null
+          returned_at?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["rental_status"]
           store_id?: string
           subtotal?: number
+          tracking_number?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -850,6 +922,99 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      return_requests: {
+        Row: {
+          admin_notes: string | null
+          completed_at: string | null
+          created_at: string
+          customer_id: string
+          customer_notes: string | null
+          id: string
+          photos: string[]
+          picked_up_at: string | null
+          pickup_address: string | null
+          pickup_scheduled_at: string | null
+          reason: string | null
+          refund_processed_at: string | null
+          rental_id: string
+          returned_at: string | null
+          status: Database["public"]["Enums"]["return_status"]
+          store_id: string
+          store_notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id: string
+          customer_notes?: string | null
+          id?: string
+          photos?: string[]
+          picked_up_at?: string | null
+          pickup_address?: string | null
+          pickup_scheduled_at?: string | null
+          reason?: string | null
+          refund_processed_at?: string | null
+          rental_id: string
+          returned_at?: string | null
+          status?: Database["public"]["Enums"]["return_status"]
+          store_id: string
+          store_notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string
+          customer_notes?: string | null
+          id?: string
+          photos?: string[]
+          picked_up_at?: string | null
+          pickup_address?: string | null
+          pickup_scheduled_at?: string | null
+          reason?: string | null
+          refund_processed_at?: string | null
+          rental_id?: string
+          returned_at?: string | null
+          status?: Database["public"]["Enums"]["return_status"]
+          store_id?: string
+          store_notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      return_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          from_status: Database["public"]["Enums"]["return_status"] | null
+          id: string
+          note: string | null
+          return_request_id: string
+          to_status: Database["public"]["Enums"]["return_status"]
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["return_status"] | null
+          id?: string
+          note?: string | null
+          return_request_id: string
+          to_status: Database["public"]["Enums"]["return_status"]
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["return_status"] | null
+          id?: string
+          note?: string | null
+          return_request_id?: string
+          to_status?: Database["public"]["Enums"]["return_status"]
+        }
+        Relationships: []
       }
       stores: {
         Row: {
@@ -1115,6 +1280,7 @@ export type Database = {
       app_role: "customer" | "store_owner" | "admin"
       delivery_method: "delivery" | "pickup"
       dispute_status: "open" | "reviewing" | "resolved" | "rejected"
+      extension_status: "pending" | "approved" | "rejected"
       image_stage: "before_delivery" | "at_delivery" | "after_return"
       manual_payment_status: "pending_verification" | "verified" | "failed"
       order_kind: "rent" | "buy"
@@ -1137,6 +1303,15 @@ export type Database = {
         | "delivered"
         | "returned"
         | "cancelled"
+      return_status:
+        | "requested"
+        | "approved"
+        | "rejected"
+        | "pickup_scheduled"
+        | "picked_up"
+        | "returned_to_store"
+        | "refund_processed"
+        | "completed"
       store_status: "pending" | "approved" | "rejected" | "deleted"
     }
     CompositeTypes: {
@@ -1268,6 +1443,7 @@ export const Constants = {
       app_role: ["customer", "store_owner", "admin"],
       delivery_method: ["delivery", "pickup"],
       dispute_status: ["open", "reviewing", "resolved", "rejected"],
+      extension_status: ["pending", "approved", "rejected"],
       image_stage: ["before_delivery", "at_delivery", "after_return"],
       manual_payment_status: ["pending_verification", "verified", "failed"],
       order_kind: ["rent", "buy"],
@@ -1291,6 +1467,16 @@ export const Constants = {
         "delivered",
         "returned",
         "cancelled",
+      ],
+      return_status: [
+        "requested",
+        "approved",
+        "rejected",
+        "pickup_scheduled",
+        "picked_up",
+        "returned_to_store",
+        "refund_processed",
+        "completed",
       ],
       store_status: ["pending", "approved", "rejected", "deleted"],
     },
