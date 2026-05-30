@@ -19,6 +19,7 @@ import Checkout from "./pages/Checkout";
 import Receipt from "./pages/Receipt";
 import Cart from "./pages/Cart";
 import TrackOrder from "./pages/TrackOrder";
+import PaymentResult from "./pages/PaymentResult";
 import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,9 @@ const App = () => (
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout/:rentalId" element={<Checkout />} />
             <Route path="/receipt/:rentalId" element={<Receipt />} />
+            <Route path="/payment/success/:rentalId" element={<PaymentResult kind="success" />} />
+            <Route path="/payment/failure/:rentalId" element={<PaymentResult kind="failure" />} />
+            <Route path="/payment/failure" element={<PaymentResult kind="failure" />} />
             <Route path="/track/:rentalId" element={<TrackOrder />} />
             <Route path="/become-vendor" element={<BecomeVendor />} />
             <Route path="/vendor" element={<Vendor />} />
