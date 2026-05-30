@@ -150,9 +150,14 @@ const Admin = () => {
             <AdminPaymentsPanel />
           </TabsContent>
 
+          <TabsContent value="delivery" className="mt-6">
+            <AdminDeliveryPanel />
+          </TabsContent>
+
           <TabsContent value="refunds" className="mt-6">
             <AdminRefundsPanel />
           </TabsContent>
+
 
           <TabsContent value="settings" className="mt-6 space-y-6">
             <PaymentSettingsPanel />
