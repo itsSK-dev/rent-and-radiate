@@ -79,7 +79,7 @@ const Vendor = () => {
         .eq("store_id", sid).order("created_at", { ascending: false });
       setProducts((p as any) ?? []);
       const { data: r } = await supabase.from("rentals")
-        .select("id,start_date,end_date,days,grand_total,deposit,subtotal,commission_amount,status,store_id,customer_id,kind,quantity,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)")
+        .select("id,start_date,end_date,days,grand_total,deposit,subtotal,commission_amount,status,store_id,customer_id,kind,quantity,delivery_stage,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)")
         .eq("store_id", sid).order("created_at", { ascending: false });
       setRentals((r as any) ?? []);
       const { data: rf } = await (supabase.from as any)("deposit_refunds").select("id,rental_id,status,refund_amount,refund_percent,condition_tier").eq("store_id", sid);
