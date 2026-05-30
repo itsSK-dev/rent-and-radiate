@@ -159,6 +159,7 @@ const Vendor = () => {
           <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="bookings">Orders</TabsTrigger>
+            <TabsTrigger value="returns">Returns & extensions</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products" className="mt-6">
