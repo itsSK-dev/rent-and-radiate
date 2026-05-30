@@ -43,6 +43,7 @@ type Rental = {
   id: string; start_date: string | null; end_date: string | null; days: number | null;
   grand_total: number; deposit: number; subtotal: number; commission_amount: number;
   status: string; store_id: string; customer_id: string; kind: "rent" | "buy"; quantity: number;
+  delivery_stage: string | null;
   product: { title: string } | null; customer: { full_name: string | null } | null;
 };
 type RefundRow = { id: string; rental_id: string; status: string; refund_amount: number; refund_percent: number; condition_tier: string };
