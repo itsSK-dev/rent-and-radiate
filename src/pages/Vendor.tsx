@@ -550,4 +550,45 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
   );
 }
 
+function StoreReturnsList({ storeId }: { storeId: string }) {
+  const [rows, setRows] = useState<(ReturnRow & { rental: any })[]>([]);
+
+  async function load() {
+    const { data } = await supabase
+      .from("return_requests")
+      .select("*, rental:rentals(id,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name))")
+      .eq("store_id", storeId)
+      .order("created_at", { ascending: false });
+    setRows((data as any) ?? []);
+  }
+  useEffect(() => {
+    load();
+    const ch = supabase
+      .channel(`ret-store-${storeId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "return_requests", filter: `store_id=eq.${storeId}` }, load)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [storeId]);
+
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground">No return requests yet.</p>;
+
+  return (
+    <div className="space-y-4">
+      {rows.map((r) => (
+        <div key={r.id} className="rounded-xl border border-border p-4 bg-card">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <p className="font-medium">{r.rental?.product?.title ?? "Order"}</p>
+              <p className="text-xs text-muted-foreground">{r.rental?.customer?.full_name ?? "Customer"} · opened {format(new Date(r.created_at), "PP")}</p>
+              {r.reason && <p className="text-xs italic mt-1">"{r.reason}"</p>}
+            </div>
+            <Badge className="bg-primary-soft text-rose-deep capitalize">{r.status.replace(/_/g, " ")}</Badge>
+          </div>
+          <StoreReturnControls ret={r} onChanged={load} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default Vendor;
