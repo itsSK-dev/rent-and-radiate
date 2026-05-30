@@ -21,6 +21,7 @@ import { PlatformSettingsPanel } from "@/components/PlatformSettingsPanel";
 import { AdminShopsPanel } from "@/components/AdminShopsPanel";
 import { AdminPaymentsPanel } from "@/components/AdminPaymentsPanel";
 import { PaymentSettingsPanel } from "@/components/PaymentSettingsPanel";
+import { AdminDeliveryPanel } from "@/components/AdminDeliveryPanel";
 
 type Dispute = {
   id: string;
