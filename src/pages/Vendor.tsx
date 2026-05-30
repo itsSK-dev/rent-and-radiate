@@ -241,6 +241,21 @@ const Vendor = () => {
               </div>
             )}
           </TabsContent>
+
+          <TabsContent value="returns" className="mt-6 space-y-6">
+            {storeId ? (
+              <>
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <h3 className="font-display text-xl mb-3">Active return requests</h3>
+                  <StoreReturnsList storeId={storeId} />
+                </div>
+                <div className="rounded-2xl border border-border bg-card p-5">
+                  <h3 className="font-display text-xl mb-3">Extension requests</h3>
+                  <StoreExtensionRequests storeId={storeId} />
+                </div>
+              </>
+            ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
+          </TabsContent>
         </Tabs>
       </section>
       <Footer />
