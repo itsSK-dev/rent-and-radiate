@@ -22,6 +22,7 @@ import TrackOrder from "./pages/TrackOrder";
 import PaymentResult from "./pages/PaymentResult";
 import MyPayments from "./pages/MyPayments";
 import ScrollToTop from "./components/ScrollToTop";
+import Unsubscribe from "./pages/Unsubscribe";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/email-previews" element={<AdminEmailPreview />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
