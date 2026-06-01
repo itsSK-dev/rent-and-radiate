@@ -11,6 +11,24 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Truck, PackageCheck, Package, ClipboardList, Undo2, Camera } from "lucide-react";
+import { notifyRentalStatus } from "@/lib/notifyRentalStatus";
+
+const STAGE_HEADLINES: Record<string, string> = {
+  accepted: "Your order has been accepted",
+  packed: "Your order is packed",
+  out_for_delivery: "Your order is out for delivery",
+  delivered: "Your order has been delivered",
+};
+
+const RETURN_HEADLINES: Record<string, string> = {
+  approved: "Return approved",
+  rejected: "Return request rejected",
+  pickup_scheduled: "Return pickup scheduled",
+  picked_up: "Return picked up",
+  returned_to_store: "Return received by store",
+  refund_processed: "Refund processed",
+  completed: "Return completed",
+};
 
 /* -------------------- Delivery stages -------------------- */
 
@@ -52,6 +70,13 @@ export function DeliveryStageControl({
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success(`Marked as ${stage.replace(/_/g, " ")}`);
+    notifyRentalStatus({
+      rentalId,
+      eventKey: `delivery-${stage}`,
+      headline: STAGE_HEADLINES[stage] ?? `Order update: ${stage}`,
+      statusLine: `Status: ${stage.replace(/_/g, " ")}`,
+      audience: ["customer"],
+    });
     onChanged?.();
   }
 
@@ -131,6 +156,14 @@ export function RequestExtensionDialog({
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("Extension requested");
+    notifyRentalStatus({
+      rentalId: rental.id,
+      eventKey: `ext-requested-${Date.now()}`,
+      headline: "New rental extension request",
+      statusLine: `Customer requested +${extraDays} day${Number(extraDays) === 1 ? "" : "s"}`,
+      message: reason ? `Reason: ${reason}` : undefined,
+      audience: ["store"],
+    });
     setOpen(false);
     onCreated?.();
   }
@@ -185,6 +218,14 @@ export function InitiateReturnDialog({
       return toast.error(error.message);
     }
     toast.success("Return request submitted");
+    notifyRentalStatus({
+      rentalId: rental.id,
+      eventKey: `return-requested-${Date.now()}`,
+      headline: "New return request",
+      statusLine: "Customer initiated a return",
+      message: reason || notes || undefined,
+      audience: ["store"],
+    });
     setOpen(false);
     onCreated?.();
   }
@@ -349,6 +390,14 @@ export function StoreReturnControls({ ret, onChanged }: { ret: ReturnRow; onChan
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success(`Return ${status.replace(/_/g, " ")}`);
+    notifyRentalStatus({
+      rentalId: ret.rental_id,
+      eventKey: `return-${status}`,
+      headline: RETURN_HEADLINES[status] ?? `Return update: ${status}`,
+      statusLine: `Return status: ${status.replace(/_/g, " ")}`,
+      message: notes || undefined,
+      audience: ["customer"],
+    });
     onChanged?.();
   }
 
@@ -416,9 +465,22 @@ export function StoreExtensionRequests({ storeId, onChanged }: { storeId: string
   }, [storeId]);
 
   async function review(id: string, status: "approved" | "rejected", reviewer_notes?: string) {
+    const row = rows.find((r) => r.id === id);
     const { error } = await supabase.from("rental_extension_requests").update({ status, reviewer_notes: reviewer_notes || null }).eq("id", id);
     if (error) return toast.error(error.message);
     toast.success(`Extension ${status}`);
+    if (row?.rental_id) {
+      notifyRentalStatus({
+        rentalId: row.rental_id,
+        eventKey: `ext-${status}-${id}`,
+        headline: status === "approved" ? "Extension approved" : "Extension request declined",
+        statusLine: status === "approved"
+          ? `+${row.additional_days} day${row.additional_days === 1 ? "" : "s"} approved`
+          : "Your store could not approve this extension",
+        message: reviewer_notes || undefined,
+        audience: ["customer"],
+      });
+    }
     load();
     onChanged?.();
   }
