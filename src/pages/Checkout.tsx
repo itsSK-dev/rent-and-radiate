@@ -74,14 +74,15 @@ const Checkout = () => {
     if (authLoading) return;
     if (!user) { navigate(`/auth?next=/checkout/${rentalId}`); return; }
     (async () => {
-      const [{ data: r, error }, { data: ps }] = await Promise.all([
+      const [{ data: r, error }, { data: psRows }] = await Promise.all([
         supabase.from("rentals")
           .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount")
           .eq("id", rentalId!).maybeSingle(),
-        (supabase as any).from("payment_settings").select("upi_id,payee_name,qr_image_url,instructions").eq("id", true).maybeSingle(),
+        (supabase as any).rpc("get_public_payment_settings"),
       ]);
       if (error || !r) { toast.error("Could not load order"); navigate("/my-rentals"); return; }
       setRental(r as Rental);
+      const ps = Array.isArray(psRows) ? psRows[0] : psRows;
       setSettings((ps as PaymentSettings) ?? { upi_id: "", payee_name: "Bloom Rentals", qr_image_url: null, instructions: "" });
       const { data: p } = await supabase.from("products").select("title, images").eq("id", (r as Rental).product_id).maybeSingle();
       if (p) setProduct(p as ProductLite);
