@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminRefundsPanel } from "@/components/AdminRefundsPanel";
 import { DisputeStatusTimeline } from "@/components/DisputeStatusTimeline";
 import { PlatformSettingsPanel } from "@/components/PlatformSettingsPanel";
+import { ProofImage, ProofLink } from "@/components/ProofImage";
 import { AdminShopsPanel } from "@/components/AdminShopsPanel";
 import { AdminPaymentsPanel } from "@/components/AdminPaymentsPanel";
 import { PaymentSettingsPanel } from "@/components/PaymentSettingsPanel";
@@ -290,9 +291,9 @@ function DisputeCard({ d, onUpdate }: { d: Dispute; onUpdate: (patch: Partial<Di
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {evidence.map((url) => (
               <div key={url} className="relative group aspect-square rounded-lg overflow-hidden bg-petal">
-                <a href={url} target="_blank" rel="noreferrer" className="block w-full h-full">
-                  <img src={url} alt="admin evidence" className="w-full h-full object-cover" loading="lazy" />
-                </a>
+                <ProofLink src={url} className="block w-full h-full">
+                  <ProofImage src={url} alt="admin evidence" className="w-full h-full object-cover" loading="lazy" />
+                </ProofLink>
                 <button
                   type="button"
                   onClick={() => removeAdminEvidence(url)}
