@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ShieldAlert } from "lucide-react";
 import { DisputeStatusTimeline } from "./DisputeStatusTimeline";
+import { ProofImage, ProofLink } from "@/components/ProofImage";
 
 type Dispute = {
   id: string;
@@ -60,9 +61,9 @@ export function RentalDisputesList({ rentalId }: { rentalId: string }) {
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5">Evidence</p>
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                 {d.evidence_images.map((url) => (
-                  <a key={url} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden bg-petal block">
-                    <img src={url} alt="dispute evidence" className="w-full h-full object-cover" loading="lazy" />
-                  </a>
+                  <ProofLink key={url} src={url} className="aspect-square rounded-lg overflow-hidden bg-petal block">
+                    <ProofImage src={url} alt="dispute evidence" className="w-full h-full object-cover" loading="lazy" />
+                  </ProofLink>
                 ))}
               </div>
             </div>

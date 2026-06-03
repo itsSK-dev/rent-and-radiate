@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Camera, Upload, ShieldAlert, CheckCircle2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ProofImage, ProofLink } from "@/components/ProofImage";
 
 type Stage = "before_delivery" | "at_delivery" | "after_return";
 type ProofImage = { id: string; image_url: string; stage: Stage; uploaded_by: string; created_at: string };
@@ -225,9 +226,9 @@ export function RentalProofPanel({ rentalId, role, stages = ["before_delivery", 
             {stageImgs.length > 0 ? (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {stageImgs.map((img) => (
-                  <a key={img.id} href={img.image_url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden bg-petal block">
-                    <img src={img.image_url} alt={`${meta.label} proof`} className="w-full h-full object-cover" loading="lazy" />
-                  </a>
+                  <ProofLink key={img.id} src={img.image_url} className="aspect-square rounded-lg overflow-hidden bg-petal block">
+                    <ProofImage src={img.image_url} alt={`${meta.label} proof`} className="w-full h-full object-cover" loading="lazy" />
+                  </ProofLink>
                 ))}
               </div>
             ) : allowed ? (

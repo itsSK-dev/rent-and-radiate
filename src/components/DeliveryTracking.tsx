@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Truck, PackageCheck, Package, ClipboardList, Undo2, Camera } from "lucide-react";
 import { notifyRentalStatus } from "@/lib/notifyRentalStatus";
+import { ProofImage } from "@/components/ProofImage";
 
 const STAGE_HEADLINES: Record<string, string> = {
   accepted: "Your order has been accepted",
@@ -367,7 +368,7 @@ export function CustomerReturnPanel({ rentalId }: { rentalId: string }) {
       <div>
         <Label className="text-xs">Return photos</Label>
         <div className="flex flex-wrap gap-2 mt-2">
-          {ret.photos?.map((u) => <img key={u} src={u} alt="return" className="h-20 w-20 rounded-lg object-cover" />)}
+          {ret.photos?.map((u) => <ProofImage key={u} src={u} alt="return" className="h-20 w-20 rounded-lg object-cover" />)}
           <label className="h-20 w-20 rounded-lg border border-dashed border-border flex items-center justify-center cursor-pointer hover:border-primary text-muted-foreground">
             <Camera className="h-5 w-5" />
             <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0])} />
