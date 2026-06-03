@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ShieldAlert } from "lucide-react";
 import { DisputeStatusTimeline } from "./DisputeStatusTimeline";
+import { ProofImage, ProofLink } from "@/components/ProofImage";
 
 type Dispute = {
   id: string;
