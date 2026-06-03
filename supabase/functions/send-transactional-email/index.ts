@@ -26,8 +26,9 @@ function generateToken(): string {
 }
 
 // Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
-// gateway validates the caller's JWT (anon or service_role) before the request
-// reaches this code. No in-function auth check is needed.
+// gateway validates the caller's JWT before the request reaches this code.
+// In addition, we require the caller to be either the service role or an admin
+// user — preventing any signed-in user from sending arbitrary emails.
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -47,6 +48,43 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
+  }
+
+  // --- Caller authorization: service-role or admin only ---
+  const authHeader = req.headers.get('Authorization') ?? ''
+  const callerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+  if (!callerToken) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+  {
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    })
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(callerToken)
+    if (claimsErr || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+    const role = (claimsData.claims as any).role as string | undefined
+    const callerId = (claimsData.claims as any).sub as string | undefined
+    if (role !== 'service_role') {
+      const adminCheck = createClient(supabaseUrl, supabaseServiceKey)
+      const { data: isAdmin } = await adminCheck.rpc('has_role', {
+        _user_id: callerId, _role: 'admin',
+      })
+      if (isAdmin !== true) {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+    }
   }
 
   // Parse request body
