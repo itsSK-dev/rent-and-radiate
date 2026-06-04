@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_role: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+          summary: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_role?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+          summary?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_role?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          summary?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       cart_items: {
         Row: {
           created_at: string
@@ -1231,6 +1270,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _is_service_role: { Args: never; Returns: boolean }
       admin_set_user_role: {
         Args: {
           _grant?: boolean
@@ -1266,6 +1306,21 @@ export type Database = {
       is_store_owner_of_rental: {
         Args: { _rental_id: string; _user_id: string }
         Returns: boolean
+      }
+      log_admin_event: {
+        Args: {
+          _action: string
+          _entity_id: string
+          _entity_type: string
+          _metadata?: Json
+          _summary?: string
+          _target_user_id?: string
+        }
+        Returns: string
+      }
+      log_proof_access: {
+        Args: { _context?: string; _path: string }
+        Returns: undefined
       }
       move_to_dlq: {
         Args: {
