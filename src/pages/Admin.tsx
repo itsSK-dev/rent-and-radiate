@@ -23,6 +23,7 @@ import { AdminShopsPanel } from "@/components/AdminShopsPanel";
 import { AdminPaymentsPanel } from "@/components/AdminPaymentsPanel";
 import { PaymentSettingsPanel } from "@/components/PaymentSettingsPanel";
 import { AdminDeliveryPanel } from "@/components/AdminDeliveryPanel";
+import { AdminAuditLogPanel } from "@/components/AdminAuditLogPanel";
 
 type Dispute = {
   id: string;

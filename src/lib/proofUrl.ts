@@ -14,16 +14,24 @@ export function extractProofPath(stored: string): string {
 }
 
 const cache = new Map<string, { url: string; exp: number }>();
+const accessLogged = new Set<string>();
+
+function logAccess(path: string) {
+  if (accessLogged.has(path)) return;
+  accessLogged.add(path);
+  (supabase as any).rpc("log_proof_access", { _path: path, _context: "rental-proofs view" }).then(() => {});
+}
 
 export async function getSignedProofUrl(stored: string): Promise<string> {
   if (!stored) return stored;
   const path = extractProofPath(stored);
   const now = Date.now();
   const hit = cache.get(path);
-  if (hit && hit.exp > now + 30_000) return hit.url;
+  if (hit && hit.exp > now + 30_000) { logAccess(path); return hit.url; }
   const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, SIGN_TTL);
   if (error || !data?.signedUrl) return stored;
   cache.set(path, { url: data.signedUrl, exp: now + SIGN_TTL * 1000 });
+  logAccess(path);
   return data.signedUrl;
 }
 
