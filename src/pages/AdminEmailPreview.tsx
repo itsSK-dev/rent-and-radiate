@@ -57,7 +57,7 @@ const AdminEmailPreview = () => {
   const [savingContact, setSavingContact] = useState(false);
 
   useEffect(() => {
-    document.title = "Email previews · Admin · Bloom";
+    document.title = "Email previews · Admin · Rent & Radiate";
   }, []);
 
   useEffect(() => {

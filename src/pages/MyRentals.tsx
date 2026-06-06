@@ -62,7 +62,7 @@ const MyRentals = () => {
   const navigate = useNavigate();
   const [rentals, setRentals] = useState<Rental[]>([]);
 
-  useEffect(() => { document.title = "My rentals · Bloom"; }, []);
+  useEffect(() => { document.title = "My rentals · Rent & Radiate"; }, []);
   const [refunds, setRefunds] = useState<RefundRow[]>([]);
 
   useEffect(() => {

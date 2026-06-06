@@ -60,7 +60,7 @@ const Admin = () => {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [filter, setFilter] = useState<"all" | "open" | "reviewing" | "resolved" | "rejected">("open");
 
-  useEffect(() => { document.title = "Admin · Disputes · Bloom"; }, []);
+  useEffect(() => { document.title = "Admin · Disputes · Rent & Radiate"; }, []);
 
   useEffect(() => {
     if (loading) return;

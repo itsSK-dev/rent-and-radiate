@@ -51,8 +51,8 @@ export function SendTestEmailDialog() {
     customerEmail: "",
     storeName: "Petals & Pearls",
     storeEmail: "",
-    fromName: "Bloom Disputes",
-    fromEmail: "disputes@bloom.example",
+    fromName: "Rent & Radiate Disputes",
+    fromEmail: "disputes@rentandradiate.example",
     replyTo: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
@@ -261,7 +261,7 @@ export function SendTestEmailDialog() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">From name</Label>
-                  <Input value={form.fromName} onChange={(e) => update("fromName", e.target.value)} placeholder="Bloom Disputes" />
+                  <Input value={form.fromName} onChange={(e) => update("fromName", e.target.value)} placeholder="Rent & Radiate Disputes" />
                   {errors.fromName && <p className="text-xs text-destructive">{errors.fromName}</p>}
                 </div>
                 <div className="space-y-1.5">

@@ -31,7 +31,7 @@ const BecomeVendor = () => {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    document.title = "Open a store · Bloom";
+    document.title = "Open a store · Rent & Radiate";
   }, []);
 
   useEffect(() => {

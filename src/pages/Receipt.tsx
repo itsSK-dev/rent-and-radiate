@@ -32,7 +32,7 @@ const Receipt = () => {
   const [r, setR] = useState<Receipt | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { document.title = "Receipt · Bloom"; }, []);
+  useEffect(() => { document.title = "Receipt · Rent & Radiate"; }, []);
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -89,7 +89,7 @@ const Receipt = () => {
         <div className="rounded-3xl border border-border bg-card p-8 shadow-card space-y-6 print:shadow-none print:border-0">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-rose-deep">Bloom Rentals</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-rose-deep">Rent & Radiate</p>
               <h1 className="font-display text-4xl mt-1">Receipt</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Issued {format(new Date(r.created_at), "PPP")}

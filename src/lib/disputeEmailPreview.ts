@@ -86,7 +86,7 @@ export function buildPlainText(
 
   if (template === "dispute-opened") {
     return [
-      `BLOOM · RENTALS`,
+      `RENT & RADIATE`,
       ``,
       `Hi ${data.recipientName},`,
       ``,
@@ -105,7 +105,7 @@ export function buildPlainText(
       `Open your rental dashboard: ${dashboard}`,
       ``,
       `Need help? Reach ${support}.${hours}`,
-      `© ${new Date().getFullYear()} Bloom`,
+      `© ${new Date().getFullYear()} Rent & Radiate`,
     ].join("\n");
   }
 
@@ -121,7 +121,7 @@ export function buildPlainText(
       : `  Reply within 7 days with new evidence to re-open.\n`);
 
   return [
-    `BLOOM · RENTALS`,
+    `RENT & RADIATE`,
     ``,
     `Hi ${r.recipientName},`,
     ``,
@@ -144,7 +144,7 @@ export function buildPlainText(
     `View rental: ${dashboard}`,
     ``,
     `Questions? Reach ${support}.${hours}`,
-    `© ${new Date().getFullYear()} Bloom`,
+    `© ${new Date().getFullYear()} Rent & Radiate`,
   ].join("\n");
 }
 

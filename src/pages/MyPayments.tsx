@@ -59,7 +59,7 @@ export default function MyPayments() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
 
-  useEffect(() => { document.title = "My payments · Bloom"; }, []);
+  useEffect(() => { document.title = "My payments · Rent & Radiate"; }, []);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth?next=/my-payments");

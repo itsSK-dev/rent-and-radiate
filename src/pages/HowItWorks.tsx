@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Shield, Truck, Camera, Sparkles } from "lucide-react";
 
 const HowItWorks = () => {
-  useEffect(() => { document.title = "How Bloom works · Trust & safety"; }, []);
+  useEffect(() => { document.title = "How Rent & Radiate works · Trust & safety"; }, []);
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -12,7 +12,7 @@ const HowItWorks = () => {
         <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">How it works</p>
         <h1 className="font-display text-5xl md:text-6xl">A more beautiful way to dress up.</h1>
         <p className="text-lg text-muted-foreground mt-4">
-          Bloom connects you with neighbourhood boutiques and fine jewellers. Rent for a day, a weekend, a wedding — without owning forever.
+          Rent & Radiate connects you with neighbourhood boutiques and fine jewellers. Rent for a day, a weekend, a wedding — without owning forever.
         </p>
 
         <div className="grid sm:grid-cols-2 gap-5 mt-12">

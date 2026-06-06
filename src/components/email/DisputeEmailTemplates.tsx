@@ -17,7 +17,7 @@ const BRAND = {
   body: "#fafafa",
 };
 
-const SITE_NAME = "Bloom";
+const SITE_NAME = "Rent & Radiate";
 const APP_URL = "https://rent-my-dresses.lovable.app";
 
 import type { SupportContact } from "@/hooks/useSupportContact";
@@ -46,7 +46,7 @@ function Shell({ children, preview, contact }: { children: React.ReactNode; prev
         <tbody>
           <tr>
             <td style={{ background: BRAND.blossom, padding: "28px 32px", borderBottom: `1px solid ${BRAND.border}` }}>
-              <p style={{ margin: 0, fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: BRAND.rose }}>Bloom · Rentals</p>
+              <p style={{ margin: 0, fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: BRAND.rose }}>Rent & Radiate</p>
               <h1 style={{ margin: "6px 0 0", fontSize: 28, fontWeight: 400, color: BRAND.ink, fontFamily: "Georgia, serif" }}>{SITE_NAME}</h1>
             </td>
           </tr>
@@ -171,7 +171,7 @@ export function DisputeOpenedEmail({ data, contact = SUPPORT_CONTACT_FALLBACK }:
       <Button href={`${APP_URL}/${data.recipientRole === "customer" ? "my-rentals" : "vendor"}`} label="Open rental dashboard" />
 
       <p style={{ margin: "28px 0 0", fontSize: 12, color: BRAND.muted }}>
-        Please don't reply directly to the other party through email — keep all evidence inside Bloom so our team can review it.
+        Please don't reply directly to the other party through email — keep all evidence inside Rent & Radiate so our team can review it.
       </p>
     </Shell>
   );
