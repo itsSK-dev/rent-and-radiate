@@ -10,7 +10,7 @@ export type SupportContact = {
 };
 
 export const SUPPORT_CONTACT_FALLBACK: SupportContact = {
-  email: "support@bloom.example",
+  email: "support@rentandradiate.example",
   phone: null,
   link_url: null,
   link_label: null,

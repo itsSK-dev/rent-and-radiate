@@ -59,7 +59,7 @@ const Vendor = () => {
   const [rentals, setRentals] = useState<Rental[]>([]);
   const [refunds, setRefunds] = useState<RefundRow[]>([]);
 
-  useEffect(() => { document.title = "Vendor · Bloom"; }, []);
+  useEffect(() => { document.title = "Vendor · Rent & Radiate"; }, []);
   useEffect(() => {
     if (!loading && !user) navigate("/auth?next=/vendor");
   }, [user, loading, navigate]);

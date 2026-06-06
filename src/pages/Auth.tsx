@@ -30,7 +30,7 @@ const Auth = () => {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    document.title = `${mode === "signup" ? "Create your account" : "Sign in"} · Bloom`;
+    document.title = `${mode === "signup" ? "Create your account" : "Sign in"} · Rent & Radiate`;
   }, [mode]);
 
   useEffect(() => {
@@ -55,7 +55,7 @@ const Auth = () => {
       });
       setBusy(false);
       if (error) return toast.error(error.message);
-      toast.success("Welcome to Bloom!");
+      toast.success("Welcome to Rent & Radiate!");
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       setBusy(false);
@@ -104,7 +104,7 @@ const Auth = () => {
         <div className="w-full max-w-md">
           <div className="text-center mb-8 animate-fade-up">
             <h1 className="font-display text-4xl md:text-5xl">
-              {mode === "signup" ? "Join Bloom" : "Welcome back"}
+              {mode === "signup" ? "Join Rent & Radiate" : "Welcome back"}
             </h1>
             <p className="text-muted-foreground mt-2 text-sm">
               {mode === "signup" ? "Create an account to rent or to open your store." : "Sign in to continue."}
@@ -190,7 +190,7 @@ const Auth = () => {
               </Button>
             </div>
             <p className="text-sm text-center text-muted-foreground">
-              {mode === "signup" ? "Already have an account?" : "New to Bloom?"}{" "}
+              {mode === "signup" ? "Already have an account?" : "New to Rent & Radiate?"}{" "}
               <button type="button" className="text-primary hover:underline" onClick={() => setMode(mode === "signup" ? "signin" : "signup")}>
                 {mode === "signup" ? "Sign in" : "Create one"}
               </button>
@@ -198,7 +198,7 @@ const Auth = () => {
           </form>
 
           <p className="text-xs text-muted-foreground text-center mt-6">
-            By continuing you agree to Bloom's <Link to="/how-it-works" className="underline">terms</Link>.
+            By continuing you agree to Rent & Radiate's <Link to="/how-it-works" className="underline">terms</Link>.
           </p>
         </div>
       </section>

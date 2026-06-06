@@ -8,7 +8,7 @@ export function Footer() {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Flower2 className="h-5 w-5 text-primary" strokeWidth={1.5} />
-            <span className="font-display text-xl">Bloom</span>
+            <span className="font-display text-xl">Rent & Radiate</span>
           </div>
           <p className="text-sm text-muted-foreground max-w-xs">
             Rent the most beautiful dresses and jewellery from local boutiques near you.
@@ -20,7 +20,7 @@ export function Footer() {
       </div>
       <div className="border-t border-border/60">
         <div className="container py-6 text-xs text-muted-foreground flex flex-col md:flex-row justify-between gap-2">
-          <span>© {new Date().getFullYear()} Bloom Rentals. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} Rent & Radiate. All rights reserved.</span>
           <span>Made with care, for special days.</span>
         </div>
       </div>

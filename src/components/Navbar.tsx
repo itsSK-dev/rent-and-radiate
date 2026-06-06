@@ -16,7 +16,7 @@ export function Navbar() {
       <div className="container flex h-16 items-center justify-between gap-4">
         <Link to="/" className="flex items-center gap-2 group">
           <Flower2 className="h-6 w-6 text-primary group-hover:rotate-12 transition-smooth" strokeWidth={1.5} />
-          <span className="font-display text-2xl tracking-tight">Bloom</span>
+          <span className="font-display text-2xl tracking-tight">Rent & Radiate</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8 text-sm">

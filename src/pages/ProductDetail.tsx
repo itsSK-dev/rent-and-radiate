@@ -62,7 +62,7 @@ const ProductDetail = () => {
         .eq("id", id!).maybeSingle();
       setProduct(data as any);
       if (data) {
-        document.title = `${(data as any).title} · Bloom`;
+        document.title = `${(data as any).title} · Rent & Radiate`;
         const purpose = (data as any).purpose ?? "rent";
         if (purpose === "buy") setMode("buy");
       }

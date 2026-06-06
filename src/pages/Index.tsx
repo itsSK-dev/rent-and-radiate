@@ -16,9 +16,9 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.title = "Bloom — Rent designer dresses & jewellery near you";
+    document.title = "Rent & Radiate — Rent designer dresses & jewellery near you";
     const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", "Bloom is a marketplace to rent designer dresses and fine jewellery from boutiques near you. Pay rental + refundable deposit. Pickup or delivery.");
+    if (meta) meta.setAttribute("content", "Rent & Radiate is a marketplace to rent designer dresses and fine jewellery from boutiques near you. Pay rental + refundable deposit. Pickup or delivery.");
 
     (async () => {
       await seedDemoProductsIfEmpty();
@@ -147,7 +147,7 @@ const Index = () => {
         <div className="container">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Effortless</p>
-            <h2 className="font-display text-4xl md:text-5xl">How Bloom works</h2>
+            <h2 className="font-display text-4xl md:text-5xl">How Rent & Radiate works</h2>
           </div>
           <div className="grid md:grid-cols-4 gap-8">
             {[

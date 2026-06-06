@@ -68,7 +68,7 @@ const Checkout = () => {
   const [selected, setSelected] = useState<MethodKey | null>(null);
   const [launching, setLaunching] = useState(false);
 
-  useEffect(() => { document.title = "Checkout · Bloom"; }, []);
+  useEffect(() => { document.title = "Checkout · Rent & Radiate"; }, []);
 
   useEffect(() => {
     if (authLoading) return;
@@ -83,7 +83,7 @@ const Checkout = () => {
       if (error || !r) { toast.error("Could not load order"); navigate("/my-rentals"); return; }
       setRental(r as Rental);
       const ps = Array.isArray(psRows) ? psRows[0] : psRows;
-      setSettings((ps as PaymentSettings) ?? { upi_id: "", payee_name: "Bloom Rentals", qr_image_url: null, instructions: "" });
+      setSettings((ps as PaymentSettings) ?? { upi_id: "", payee_name: "Rent & Radiate", qr_image_url: null, instructions: "" });
       const { data: p } = await supabase.from("products").select("title, images").eq("id", (r as Rental).product_id).maybeSingle();
       if (p) setProduct(p as ProductLite);
       setLoading(false);
@@ -94,7 +94,7 @@ const Checkout = () => {
     if (!rental || !settings?.upi_id) return "";
     const params = new URLSearchParams({
       pa: settings.upi_id,
-      pn: settings.payee_name || "Bloom Rentals",
+      pn: settings.payee_name || "Rent & Radiate",
       am: Number(rental.grand_total).toFixed(2),
       cu: "INR",
       tn: `Order ${rental.id.slice(0, 8)}`,
@@ -165,7 +165,7 @@ const Checkout = () => {
         key: keyId,
         amount,
         currency,
-        name: "Bloom Rentals",
+        name: "Rent & Radiate",
         description: `Order ${rental.id.slice(0, 8).toUpperCase()}`,
         order_id: orderId,
         prefill: { method },

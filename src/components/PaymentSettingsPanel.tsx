@@ -21,7 +21,7 @@ type Settings = {
 
 const EMPTY: Settings = {
   upi_id: "",
-  payee_name: "Bloom Rentals",
+  payee_name: "Rent & Radiate",
   qr_image_url: null,
   instructions: "",
   bank_account_name: "",
@@ -49,7 +49,7 @@ export function PaymentSettingsPanel() {
     const { error } = await (supabase as any).from("payment_settings")
       .update({
         upi_id: s.upi_id.trim(),
-        payee_name: s.payee_name.trim() || "Bloom Rentals",
+        payee_name: s.payee_name.trim() || "Rent & Radiate",
         qr_image_url: s.qr_image_url?.trim() || null,
         instructions: s.instructions,
         bank_account_name: s.bank_account_name?.trim() || null,
@@ -65,7 +65,7 @@ export function PaymentSettingsPanel() {
   if (!s) return <div className="text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</div>;
 
   const previewUrl = s.upi_id
-    ? `upi://pay?pa=${encodeURIComponent(s.upi_id)}&pn=${encodeURIComponent(s.payee_name || "Bloom")}&cu=INR`
+    ? `upi://pay?pa=${encodeURIComponent(s.upi_id)}&pn=${encodeURIComponent(s.payee_name || "Rent & Radiate")}&cu=INR`
     : "";
 
   return (

@@ -71,7 +71,7 @@ const TrackOrder = () => {
   const [rental, setRental] = useState<Rental | null>(null);
   const [fetching, setFetching] = useState(true);
 
-  useEffect(() => { document.title = "Track order · Bloom"; }, []);
+  useEffect(() => { document.title = "Track order · Rent & Radiate"; }, []);
   useEffect(() => { if (!loading && !user) navigate(`/auth?next=/track/${rentalId}`); }, [user, loading, rentalId, navigate]);
 
   useEffect(() => {

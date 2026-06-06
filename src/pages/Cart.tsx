@@ -42,7 +42,7 @@ const Cart = () => {
   const [address, setAddress] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => { document.title = "Cart · Bloom"; }, []);
+  useEffect(() => { document.title = "Cart · Rent & Radiate"; }, []);
 
   useEffect(() => {
     if (authLoading) return;

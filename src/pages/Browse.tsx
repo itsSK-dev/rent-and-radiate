@@ -21,7 +21,7 @@ const Browse = () => {
   const storeId = params.get("store");
 
   useEffect(() => {
-    document.title = `Browse ${category === "all" ? "all" : category} · Bloom`;
+    document.title = `Browse ${category === "all" ? "all" : category} · Rent & Radiate`;
   }, [category]);
 
   useEffect(() => {
