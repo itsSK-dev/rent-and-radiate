@@ -163,6 +163,10 @@ const Admin = () => {
             <AdminRefundsPanel />
           </TabsContent>
 
+          <TabsContent value="ads" className="mt-6">
+            <AdminAdsPanel />
+          </TabsContent>
+
           <TabsContent value="audit" className="mt-6">
             <AdminAuditLogPanel />
           </TabsContent>
