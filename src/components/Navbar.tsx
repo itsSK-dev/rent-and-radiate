@@ -24,6 +24,7 @@ export function Navbar() {
           <NavItem to="/browse?category=jewellery">Jewellery</NavItem>
           <NavItem to="/browse">All Stores</NavItem>
           <NavItem to="/how-it-works">How it works</NavItem>
+          <NavItem to="/advertise">Advertise</NavItem>
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
@@ -75,6 +76,7 @@ export function Navbar() {
             <Link to="/browse?category=jewellery" onClick={() => setOpen(false)} className="py-2">Jewellery</Link>
             <Link to="/browse" onClick={() => setOpen(false)} className="py-2">All Stores</Link>
             <Link to="/how-it-works" onClick={() => setOpen(false)} className="py-2">How it works</Link>
+            <Link to="/advertise" onClick={() => setOpen(false)} className="py-2">Advertise</Link>
             <div className="h-px bg-border my-2" />
             {user ? (
               <>

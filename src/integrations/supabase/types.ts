@@ -14,6 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_packages: {
+        Row: {
+          created_at: string
+          duration_days: number
+          id: string
+          is_active: boolean
+          name: string
+          perks: string[]
+          price: number
+          sort_order: number
+          tier: Database["public"]["Enums"]["ad_tier"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_days?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          perks?: string[]
+          price?: number
+          sort_order?: number
+          tier: Database["public"]["Enums"]["ad_tier"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_days?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          perks?: string[]
+          price?: number
+          sort_order?: number
+          tier?: Database["public"]["Enums"]["ad_tier"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ad_platform_stats: {
+        Row: {
+          engagement_pct: number
+          id: boolean
+          monthly_views: number
+          partners_count: number
+          reach_count: number
+          updated_at: string
+          users_count: number
+        }
+        Insert: {
+          engagement_pct?: number
+          id?: boolean
+          monthly_views?: number
+          partners_count?: number
+          reach_count?: number
+          updated_at?: string
+          users_count?: number
+        }
+        Update: {
+          engagement_pct?: number
+          id?: boolean
+          monthly_views?: number
+          partners_count?: number
+          reach_count?: number
+          updated_at?: string
+          users_count?: number
+        }
+        Relationships: []
+      }
+      ad_request_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          from_status: Database["public"]["Enums"]["ad_request_status"] | null
+          id: string
+          note: string | null
+          request_id: string
+          to_status: Database["public"]["Enums"]["ad_request_status"]
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["ad_request_status"] | null
+          id?: string
+          note?: string | null
+          request_id: string
+          to_status: Database["public"]["Enums"]["ad_request_status"]
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["ad_request_status"] | null
+          id?: string
+          note?: string | null
+          request_id?: string
+          to_status?: Database["public"]["Enums"]["ad_request_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_request_status_history_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "advertisement_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_audit_log: {
         Row: {
           action: string
@@ -52,6 +159,133 @@ export type Database = {
           target_user_id?: string | null
         }
         Relationships: []
+      }
+      advertisement_requests: {
+        Row: {
+          ad_type: Database["public"]["Enums"]["ad_type"]
+          admin_notes: string | null
+          advertiser_id: string
+          budget: number
+          company_name: string
+          contact_person: string
+          created_at: string
+          creative_url: string | null
+          description: string | null
+          duration_days: number
+          email: string
+          end_date: string | null
+          id: string
+          logo_url: string | null
+          mobile: string
+          package_id: string | null
+          payment_status: Database["public"]["Enums"]["ad_payment_status"]
+          set_price: number | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["ad_request_status"]
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          ad_type: Database["public"]["Enums"]["ad_type"]
+          admin_notes?: string | null
+          advertiser_id: string
+          budget?: number
+          company_name: string
+          contact_person: string
+          created_at?: string
+          creative_url?: string | null
+          description?: string | null
+          duration_days?: number
+          email: string
+          end_date?: string | null
+          id?: string
+          logo_url?: string | null
+          mobile: string
+          package_id?: string | null
+          payment_status?: Database["public"]["Enums"]["ad_payment_status"]
+          set_price?: number | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["ad_request_status"]
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          ad_type?: Database["public"]["Enums"]["ad_type"]
+          admin_notes?: string | null
+          advertiser_id?: string
+          budget?: number
+          company_name?: string
+          contact_person?: string
+          created_at?: string
+          creative_url?: string | null
+          description?: string | null
+          duration_days?: number
+          email?: string
+          end_date?: string | null
+          id?: string
+          logo_url?: string | null
+          mobile?: string
+          package_id?: string | null
+          payment_status?: Database["public"]["Enums"]["ad_payment_status"]
+          set_price?: number | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["ad_request_status"]
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertisement_requests_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "ad_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advertisements: {
+        Row: {
+          created_at: string
+          headline: string
+          id: string
+          image_url: string
+          is_active: boolean
+          link_url: string | null
+          request_id: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          headline: string
+          id?: string
+          image_url: string
+          is_active?: boolean
+          link_url?: string | null
+          request_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          headline?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          link_url?: string | null
+          request_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertisements_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "advertisement_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cart_items: {
         Row: {
@@ -1341,6 +1575,22 @@ export type Database = {
       }
     }
     Enums: {
+      ad_payment_status: "unpaid" | "paid" | "refunded"
+      ad_request_status:
+        | "draft"
+        | "pending"
+        | "changes_requested"
+        | "approved"
+        | "rejected"
+        | "active"
+        | "completed"
+      ad_tier: "basic" | "premium" | "featured"
+      ad_type:
+        | "banner"
+        | "featured_listing"
+        | "sponsored_product"
+        | "homepage_promotion"
+        | "custom"
       app_role: "customer" | "store_owner" | "admin"
       delivery_method: "delivery" | "pickup"
       dispute_status: "open" | "reviewing" | "resolved" | "rejected"
@@ -1504,6 +1754,24 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ad_payment_status: ["unpaid", "paid", "refunded"],
+      ad_request_status: [
+        "draft",
+        "pending",
+        "changes_requested",
+        "approved",
+        "rejected",
+        "active",
+        "completed",
+      ],
+      ad_tier: ["basic", "premium", "featured"],
+      ad_type: [
+        "banner",
+        "featured_listing",
+        "sponsored_product",
+        "homepage_promotion",
+        "custom",
+      ],
       app_role: ["customer", "store_owner", "admin"],
       delivery_method: ["delivery", "pickup"],
       dispute_status: ["open", "reviewing", "resolved", "rejected"],

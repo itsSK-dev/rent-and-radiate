@@ -23,6 +23,9 @@ import PaymentResult from "./pages/PaymentResult";
 import MyPayments from "./pages/MyPayments";
 import ScrollToTop from "./components/ScrollToTop";
 import Unsubscribe from "./pages/Unsubscribe";
+import Advertise from "./pages/Advertise";
+import AdvertiseBook from "./pages/AdvertiseBook";
+import MyAdvertisements from "./pages/MyAdvertisements";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +56,9 @@ const App = () => (
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/email-previews" element={<AdminEmailPreview />} />
+            <Route path="/advertise" element={<Advertise />} />
+            <Route path="/advertise/book" element={<AdvertiseBook />} />
+            <Route path="/my-advertisements" element={<MyAdvertisements />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
