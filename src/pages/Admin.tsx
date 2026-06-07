@@ -24,6 +24,7 @@ import { AdminPaymentsPanel } from "@/components/AdminPaymentsPanel";
 import { PaymentSettingsPanel } from "@/components/PaymentSettingsPanel";
 import { AdminDeliveryPanel } from "@/components/AdminDeliveryPanel";
 import { AdminAuditLogPanel } from "@/components/AdminAuditLogPanel";
+import { AdminAdsPanel } from "@/components/AdminAdsPanel";
 
 type Dispute = {
   id: string;
@@ -117,6 +118,7 @@ const Admin = () => {
             <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="delivery">Delivery</TabsTrigger>
             <TabsTrigger value="refunds">Deposit refunds</TabsTrigger>
+            <TabsTrigger value="ads">Ads</TabsTrigger>
             <TabsTrigger value="audit">Audit log</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>

@@ -16,7 +16,7 @@ export function Footer() {
         </div>
         <FooterCol title="Discover" links={[["Dresses","/browse?category=dress"],["Jewellery","/browse?category=jewellery"],["All stores","/browse"]]} />
         <FooterCol title="For vendors" links={[["Open a store","/become-vendor"],["Vendor dashboard","/vendor"]]} />
-        <FooterCol title="Company" links={[["How it works","/how-it-works"],["Trust & safety","/how-it-works"]]} />
+        <FooterCol title="Company" links={[["How it works","/how-it-works"],["Trust & safety","/how-it-works"],["Advertise with us","/advertise"]]} />
       </div>
       <div className="border-t border-border/60">
         <div className="container py-6 text-xs text-muted-foreground flex flex-col md:flex-row justify-between gap-2">

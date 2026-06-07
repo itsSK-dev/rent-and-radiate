@@ -24,6 +24,7 @@ export function Navbar() {
           <NavItem to="/browse?category=jewellery">Jewellery</NavItem>
           <NavItem to="/browse">All Stores</NavItem>
           <NavItem to="/how-it-works">How it works</NavItem>
+          <NavItem to="/advertise">Advertise</NavItem>
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
