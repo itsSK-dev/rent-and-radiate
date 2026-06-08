@@ -2,6 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Flower2, ShoppingBag, ShoppingCart, Store, User as UserIcon, LogOut, Menu } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-2">
           {user ? (
             <>
+              <NotificationBell />
               <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} aria-label="Cart">
                 <ShoppingCart className="h-4 w-4" />
               </Button>
