@@ -58,8 +58,9 @@ export default function NotificationSettings() {
     const next = { ...prefs, [key]: value };
     setPrefs(next);
     setSaving(true);
+    const patch = { [key]: value } as never;
     const { error } = await supabase
-      .from("notification_preferences").update({ [key]: value }).eq("user_id", user.id);
+      .from("notification_preferences").update(patch).eq("user_id", user.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
   }

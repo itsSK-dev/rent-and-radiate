@@ -26,6 +26,8 @@ import Unsubscribe from "./pages/Unsubscribe";
 import Advertise from "./pages/Advertise";
 import AdvertiseBook from "./pages/AdvertiseBook";
 import MyAdvertisements from "./pages/MyAdvertisements";
+import Notifications from "./pages/Notifications";
+import NotificationSettings from "./pages/NotificationSettings";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +62,8 @@ const App = () => (
             <Route path="/advertise/book" element={<AdvertiseBook />} />
             <Route path="/my-advertisements" element={<MyAdvertisements />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/settings/notifications" element={<NotificationSettings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

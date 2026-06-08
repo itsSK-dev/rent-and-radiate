@@ -25,6 +25,7 @@ import { PaymentSettingsPanel } from "@/components/PaymentSettingsPanel";
 import { AdminDeliveryPanel } from "@/components/AdminDeliveryPanel";
 import { AdminAuditLogPanel } from "@/components/AdminAuditLogPanel";
 import { AdminAdsPanel } from "@/components/AdminAdsPanel";
+import { AdminNotificationsPanel } from "@/components/AdminNotificationsPanel";
 
 type Dispute = {
   id: string;

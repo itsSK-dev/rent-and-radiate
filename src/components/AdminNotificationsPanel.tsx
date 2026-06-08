@@ -54,8 +54,8 @@ export function AdminNotificationsPanel() {
     if (!title.trim()) return toast.error("Title required");
     setBusy(true);
     const filter = buildFilter();
-    const status = schedule ? "scheduled" : (send ? "sending" : "draft");
-    const { data, error } = await supabase.from("notification_campaigns").insert({
+    const status: "draft" | "scheduled" | "sending" = schedule ? "scheduled" : (send ? "sending" : "draft");
+    const insertRow = {
       title: title.trim(),
       body: body.trim() || null,
       link_url: link.trim() || null,
@@ -64,7 +64,11 @@ export function AdminNotificationsPanel() {
       audience_filter: filter,
       scheduled_for: schedule || null,
       status,
-    }).select("*").single();
+    };
+    const { data, error } = await supabase
+      .from("notification_campaigns")
+      .insert(insertRow as never)
+      .select("*").single();
     if (error || !data) { setBusy(false); return toast.error(error?.message ?? "failed"); }
 
     if (send && !schedule) {
