@@ -623,6 +623,186 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_campaign_recipients: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          id: string
+          notification_id: string | null
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          id?: string
+          notification_id?: string | null
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          notification_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "notification_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_campaign_recipients_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_campaigns: {
+        Row: {
+          audience_filter: Json
+          audience_type: Database["public"]["Enums"]["campaign_audience"]
+          body: string | null
+          created_at: string
+          created_by: string | null
+          error: string | null
+          id: string
+          image_url: string | null
+          link_url: string | null
+          recipient_count: number
+          scheduled_for: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["campaign_status"]
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          updated_at: string
+        }
+        Insert: {
+          audience_filter?: Json
+          audience_type?: Database["public"]["Enums"]["campaign_audience"]
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          recipient_count?: number
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["campaign_status"]
+          title: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          updated_at?: string
+        }
+        Update: {
+          audience_filter?: Json
+          audience_type?: Database["public"]["Enums"]["campaign_audience"]
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          id?: string
+          image_url?: string | null
+          link_url?: string | null
+          recipient_count?: number
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["campaign_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          discounts_offers: boolean
+          new_products: boolean
+          order_updates: boolean
+          promotional: boolean
+          rental_updates: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discounts_offers?: boolean
+          new_products?: boolean
+          order_updates?: boolean
+          promotional?: boolean
+          rental_updates?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discounts_offers?: boolean
+          new_products?: boolean
+          order_updates?: boolean
+          promotional?: boolean
+          rental_updates?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          clicked_at: string | null
+          created_at: string
+          delivered_at: string
+          id: string
+          image_url: string | null
+          is_deleted: boolean
+          is_read: boolean
+          link_url: string | null
+          metadata: Json
+          read_at: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          clicked_at?: string | null
+          created_at?: string
+          delivered_at?: string
+          id?: string
+          image_url?: string | null
+          is_deleted?: boolean
+          is_read?: boolean
+          link_url?: string | null
+          metadata?: Json
+          read_at?: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          clicked_at?: string | null
+          created_at?: string
+          delivered_at?: string
+          id?: string
+          image_url?: string | null
+          is_deleted?: boolean
+          is_read?: boolean
+          link_url?: string | null
+          metadata?: Json
+          read_at?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_settings: {
         Row: {
           bank_account_name: string | null
@@ -1499,6 +1679,35 @@ export type Database = {
         }
         Relationships: []
       }
+      wishlists: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlists_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1512,6 +1721,18 @@ export type Database = {
           _target_user: string
         }
         Returns: undefined
+      }
+      create_notification: {
+        Args: {
+          _body?: string
+          _image_url?: string
+          _link_url?: string
+          _metadata?: Json
+          _title: string
+          _type: Database["public"]["Enums"]["notification_type"]
+          _user_id: string
+        }
+        Returns: string
       }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -1592,11 +1813,21 @@ export type Database = {
         | "homepage_promotion"
         | "custom"
       app_role: "customer" | "store_owner" | "admin"
+      campaign_audience: "all" | "selected" | "city" | "category"
+      campaign_status: "draft" | "scheduled" | "sending" | "sent" | "failed"
       delivery_method: "delivery" | "pickup"
       dispute_status: "open" | "reviewing" | "resolved" | "rejected"
       extension_status: "pending" | "approved" | "rejected"
       image_stage: "before_delivery" | "at_delivery" | "after_return"
       manual_payment_status: "pending_verification" | "verified" | "failed"
+      notification_type:
+        | "new_product"
+        | "discount"
+        | "back_in_stock"
+        | "order_update"
+        | "rental_update"
+        | "promo"
+        | "admin_broadcast"
       order_kind: "rent" | "buy"
       payment_status:
         | "unpaid"
@@ -1773,11 +2004,22 @@ export const Constants = {
         "custom",
       ],
       app_role: ["customer", "store_owner", "admin"],
+      campaign_audience: ["all", "selected", "city", "category"],
+      campaign_status: ["draft", "scheduled", "sending", "sent", "failed"],
       delivery_method: ["delivery", "pickup"],
       dispute_status: ["open", "reviewing", "resolved", "rejected"],
       extension_status: ["pending", "approved", "rejected"],
       image_stage: ["before_delivery", "at_delivery", "after_return"],
       manual_payment_status: ["pending_verification", "verified", "failed"],
+      notification_type: [
+        "new_product",
+        "discount",
+        "back_in_stock",
+        "order_update",
+        "rental_update",
+        "promo",
+        "admin_broadcast",
+      ],
       order_kind: ["rent", "buy"],
       payment_status: [
         "unpaid",
