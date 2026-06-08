@@ -83,8 +83,10 @@ export function Navbar() {
             {user ? (
               <>
                 <Link to="/cart" onClick={() => setOpen(false)} className="py-2">Cart</Link>
+                <Link to="/notifications" onClick={() => setOpen(false)} className="py-2">Notifications</Link>
                 <Link to="/my-rentals" onClick={() => setOpen(false)} className="py-2">My orders</Link>
                 <Link to="/my-payments" onClick={() => setOpen(false)} className="py-2">My payments</Link>
+                <Link to="/settings/notifications" onClick={() => setOpen(false)} className="py-2">Notification settings</Link>
                 <Link to={isVendor ? "/vendor" : "/become-vendor"} onClick={() => setOpen(false)} className="py-2">
                   {isVendor ? "Vendor dashboard" : "Open a store"}
                 </Link>
