@@ -29,11 +29,11 @@ Deno.serve(async (req) => {
   })
   const admin = createClient(supabaseUrl, serviceKey)
 
-  const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token)
-  if (claimsErr || !claimsData?.claims) return json({ error: 'Unauthorized' }, 401)
+  const { data: userData, error: userErr } = await userClient.auth.getUser()
+  if (userErr || !userData?.user) return json({ error: 'Unauthorized' }, 401)
 
-  const callerRole = (claimsData.claims as any).role as string | undefined
-  const callerId = (claimsData.claims as any).sub as string | undefined
+  const callerId = userData.user.id
+  const callerRole = (userData.user as any).role as string | undefined
   const isServiceRole = callerRole === 'service_role'
 
   let body: any
