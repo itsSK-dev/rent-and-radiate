@@ -64,15 +64,15 @@ Deno.serve(async (req) => {
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     })
-    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(callerToken)
-    if (claimsErr || !claimsData?.claims) {
+    const { data: userData, error: userErr } = await userClient.auth.getUser()
+    if (userErr || !userData?.user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
-    const role = (claimsData.claims as any).role as string | undefined
-    const callerId = (claimsData.claims as any).sub as string | undefined
+    const role = (userData.user as any).role as string | undefined
+    const callerId = userData.user.id
     if (role !== 'service_role') {
       const adminCheck = createClient(supabaseUrl, supabaseServiceKey)
       const { data: isAdmin } = await adminCheck.rpc('has_role', {
