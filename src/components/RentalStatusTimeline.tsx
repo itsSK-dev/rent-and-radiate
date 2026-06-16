@@ -32,7 +32,12 @@ type ProofImage = {
 
 const statusTone: Record<string, string> = {
   pending: "bg-secondary text-foreground",
+  accepted: "bg-sky-100 text-sky-900",
   confirmed: "bg-primary-soft text-rose-deep",
+  rejected: "bg-destructive/10 text-destructive",
+  packing: "bg-indigo-100 text-indigo-900",
+  ready_for_pickup: "bg-violet-100 text-violet-900",
+  shipped: "bg-blue-100 text-blue-900",
   delivered: "bg-blossom text-rose-deep",
   returned: "bg-gold/20 text-rose-deep",
   cancelled: "bg-destructive/10 text-destructive",
