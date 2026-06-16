@@ -1,16 +1,18 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Flower2, ShoppingBag, ShoppingCart, Store, User as UserIcon, LogOut, Menu } from "lucide-react";
+import { Flower2, ShoppingBag, ShoppingCart, Store, User as UserIcon, LogOut, Menu, Package } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useNewOrderCount } from "@/hooks/useNewOrderCount";
 
 export function Navbar() {
   const { user, roles, signOut } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const isVendor = roles.includes("store_owner");
+  const newOrderCount = useNewOrderCount();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
@@ -42,9 +44,19 @@ export function Navbar() {
                 My payments
               </Button>
               {isVendor ? (
-                <Button variant="soft" size="sm" onClick={() => navigate("/vendor")}>
-                  <Store className="h-4 w-4 mr-2" /> Vendor
-                </Button>
+                <>
+                  <Button variant="ghost" size="sm" className="relative" onClick={() => navigate("/vendor/orders")}>
+                    <Package className="h-4 w-4 mr-2" /> Orders
+                    {newOrderCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
+                        {newOrderCount > 99 ? "99+" : newOrderCount}
+                      </span>
+                    )}
+                  </Button>
+                  <Button variant="soft" size="sm" onClick={() => navigate("/vendor")}>
+                    <Store className="h-4 w-4 mr-2" /> Vendor
+                  </Button>
+                </>
               ) : (
                 <Button variant="soft" size="sm" onClick={() => navigate("/become-vendor")}>
                   <Store className="h-4 w-4 mr-2" /> Open a store
@@ -90,6 +102,16 @@ export function Navbar() {
                 <Link to={isVendor ? "/vendor" : "/become-vendor"} onClick={() => setOpen(false)} className="py-2">
                   {isVendor ? "Vendor dashboard" : "Open a store"}
                 </Link>
+                {isVendor && (
+                  <Link to="/vendor/orders" onClick={() => setOpen(false)} className="py-2 flex items-center gap-2">
+                    Vendor orders
+                    {newOrderCount > 0 && (
+                      <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
+                        {newOrderCount > 99 ? "99+" : newOrderCount}
+                      </span>
+                    )}
+                  </Link>
+                )}
                 <button onClick={() => { signOut(); setOpen(false); }} className="py-2 text-left">Sign out</button>
               </>
             ) : (
