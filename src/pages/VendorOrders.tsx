@@ -246,9 +246,9 @@ export default function VendorOrders() {
                   <div className="space-y-2 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium truncate">{r.product?.title ?? "Item"}</span>
-                      <Badge className={STATUS_TONE[r.status] ?? ""}>{r.status.replaceAll("_", " ")}</Badge>
+                      <Badge className={STATUS_TONE[r.status] ?? ""}>{r.status.replace(/_/g, " ")}</Badge>
                       <Badge className={PAYMENT_TONE[r.payment_status] ?? ""}>
-                        {r.payment_status.replaceAll("_", " ")}
+                        {r.payment_status.replace(/_/g, " ")}
                       </Badge>
                       <Badge variant="outline" className="text-[10px]">
                         {r.kind === "buy" ? "Purchase" : "Rental"}
