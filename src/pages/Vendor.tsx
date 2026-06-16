@@ -138,7 +138,10 @@ const Vendor = () => {
               {isApproved ? "Approved · live" : "Awaiting approval"}{store?.city ? ` · ${store.city}` : ""}
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center flex-wrap">
+            <Button variant="soft" size="sm" onClick={() => navigate("/vendor/orders")}>
+              Manage orders →
+            </Button>
             <Stat label="Products" value={products.length.toString()} />
             <Stat label="Bookings" value={rentals.length.toString()} />
             <Stat label="Earnings (net)" value={inr(earnings)} />
