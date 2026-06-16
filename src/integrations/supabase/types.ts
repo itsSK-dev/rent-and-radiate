@@ -1848,6 +1848,11 @@ export type Database = {
         | "delivered"
         | "returned"
         | "cancelled"
+        | "accepted"
+        | "rejected"
+        | "packing"
+        | "ready_for_pickup"
+        | "shipped"
       return_status:
         | "requested"
         | "approved"
@@ -2041,6 +2046,11 @@ export const Constants = {
         "delivered",
         "returned",
         "cancelled",
+        "accepted",
+        "rejected",
+        "packing",
+        "ready_for_pickup",
+        "shipped",
       ],
       return_status: [
         "requested",
