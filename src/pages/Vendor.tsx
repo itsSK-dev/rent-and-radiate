@@ -23,6 +23,7 @@ import { InspectionDialog } from "@/components/InspectionDialog";
 import { RentalDisputesList } from "@/components/RentalDisputesList";
 import { DeliveryStageControl, StoreExtensionRequests, StoreReturnControls, type ReturnRow } from "@/components/DeliveryTracking";
 import { discountedUnitPrice, inr } from "@/lib/pricing";
+import { VendorSettlementsPanel } from "@/components/VendorSettlementsPanel";
 
 type Store = {
   id: string;
