@@ -975,22 +975,28 @@ export type Database = {
         Row: {
           commission_percent: number
           delivery_fee: number
+          gateway_fee_percent: number
           gst_percent: number
           id: boolean
+          payout_hold_days: number
           updated_at: string
         }
         Insert: {
           commission_percent?: number
           delivery_fee?: number
+          gateway_fee_percent?: number
           gst_percent?: number
           id?: boolean
+          payout_hold_days?: number
           updated_at?: string
         }
         Update: {
           commission_percent?: number
           delivery_fee?: number
+          gateway_fee_percent?: number
           gst_percent?: number
           id?: boolean
+          payout_hold_days?: number
           updated_at?: string
         }
         Relationships: []
@@ -1706,6 +1712,93 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_settlements: {
+        Row: {
+          created_at: string
+          customer_id: string
+          delivery_fee: number
+          eligible_at: string | null
+          gateway_fee: number
+          gst_amount: number
+          id: string
+          kind: Database["public"]["Enums"]["order_kind"]
+          net_payout: number
+          notes: string | null
+          other_deductions: number
+          paid_at: string | null
+          paid_by: string | null
+          platform_fee: number
+          platform_fee_percent: number
+          rental_id: string
+          sale_price: number
+          status: Database["public"]["Enums"]["settlement_status"]
+          store_id: string
+          total_deductions: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          delivery_fee?: number
+          eligible_at?: string | null
+          gateway_fee?: number
+          gst_amount?: number
+          id?: string
+          kind: Database["public"]["Enums"]["order_kind"]
+          net_payout?: number
+          notes?: string | null
+          other_deductions?: number
+          paid_at?: string | null
+          paid_by?: string | null
+          platform_fee?: number
+          platform_fee_percent?: number
+          rental_id: string
+          sale_price?: number
+          status?: Database["public"]["Enums"]["settlement_status"]
+          store_id: string
+          total_deductions?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          delivery_fee?: number
+          eligible_at?: string | null
+          gateway_fee?: number
+          gst_amount?: number
+          id?: string
+          kind?: Database["public"]["Enums"]["order_kind"]
+          net_payout?: number
+          notes?: string | null
+          other_deductions?: number
+          paid_at?: string | null
+          paid_by?: string | null
+          platform_fee?: number
+          platform_fee_percent?: number
+          rental_id?: string
+          sale_price?: number
+          status?: Database["public"]["Enums"]["settlement_status"]
+          store_id?: string
+          total_deductions?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_settlements_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: true
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_settlements_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wishlists: {
         Row: {
           created_at: string
@@ -1813,6 +1906,7 @@ export type Database = {
         }
         Returns: number
       }
+      promote_eligible_settlements: { Args: never; Returns: number }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -1895,6 +1989,12 @@ export type Database = {
         | "returned_to_store"
         | "refund_processed"
         | "completed"
+      settlement_status:
+        | "pending"
+        | "eligible"
+        | "paid"
+        | "on_hold"
+        | "reversed"
       store_status: "pending" | "approved" | "rejected" | "deleted"
     }
     CompositeTypes: {
@@ -2102,6 +2202,7 @@ export const Constants = {
         "refund_processed",
         "completed",
       ],
+      settlement_status: ["pending", "eligible", "paid", "on_hold", "reversed"],
       store_status: ["pending", "approved", "rejected", "deleted"],
     },
   },
