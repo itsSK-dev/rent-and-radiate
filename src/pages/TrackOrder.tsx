@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format, differenceInCalendarDays } from "date-fns";
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
+import { OrderTypeBadge } from "@/components/OrderTypeBadge";
+
 import {
   CheckCircle2, Package, Truck, Home, ClipboardCheck, XCircle, Clock, ShieldCheck, MapPin, CalendarClock,
 } from "lucide-react";
@@ -158,7 +160,8 @@ const TrackOrder = () => {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
+              <div className="space-y-1.5 min-w-0">
+                <OrderTypeBadge kind={isBuy ? "buy" : "rent"} size="sm" />
                 <h2 className="font-display text-2xl truncate">{rental.product?.title}</h2>
                 <p className="text-sm text-muted-foreground">
                   {rental.store?.name}{rental.store?.city ? ` · ${rental.store.city}` : ""}
@@ -168,6 +171,7 @@ const TrackOrder = () => {
                 {rental.status}
               </Badge>
             </div>
+
             <div className="mt-2 text-sm text-muted-foreground">
               {!isBuy && rental.start_date && rental.end_date && (
                 <span>{format(new Date(rental.start_date), "PP")} – {format(new Date(rental.end_date), "PP")} · {rental.days}d · </span>

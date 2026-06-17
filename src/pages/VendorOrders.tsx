@@ -14,6 +14,7 @@ import { inr } from "@/lib/pricing";
 import { format } from "date-fns";
 import { Search, Package, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { OrderTypeBadge, RentalDates } from "@/components/OrderTypeBadge";
 
 type Row = {
   id: string;
@@ -26,9 +27,12 @@ type Row = {
   payment_status: string;
   customer_id: string;
   store_id: string;
+  start_date: string | null;
+  end_date: string | null;
   product: { title: string; images: string[] | null } | null;
   customer: { full_name: string | null } | null;
 };
+
 
 const STATUS_GROUPS: { key: string; label: string; statuses: string[] }[] = [
   { key: "all", label: "All", statuses: [] },
@@ -95,10 +99,11 @@ export default function VendorOrders() {
       .from("rentals")
       .select(`
         id, created_at, status, kind, quantity, grand_total, address, payment_status,
-        customer_id, store_id,
+        customer_id, store_id, start_date, end_date,
         product:products(title, images),
         customer:profiles!rentals_customer_id_fkey(full_name)
       `)
+
       .in("store_id", ids)
       .order("created_at", { ascending: false })
       .limit(500);
@@ -227,7 +232,12 @@ export default function VendorOrders() {
         ) : (
           <div className="space-y-3">
             {filtered.map((r) => (
-              <Card key={r.id} className="p-4 md:p-5">
+              <Card
+                key={r.id}
+                className={`p-4 md:p-5 border-l-4 ${
+                  r.kind === "buy" ? "border-l-emerald-500" : "border-l-sky-500"
+                }`}
+              >
                 <div className="grid grid-cols-1 md:grid-cols-[80px_1fr_auto] gap-4">
                   <div className="hidden md:block">
                     {r.product?.images?.[0] ? (
@@ -245,15 +255,26 @@ export default function VendorOrders() {
 
                   <div className="space-y-2 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium truncate">{r.product?.title ?? "Item"}</span>
+                      <OrderTypeBadge kind={r.kind} size="md" />
                       <Badge className={STATUS_TONE[r.status] ?? ""}>{r.status.replace(/_/g, " ")}</Badge>
                       <Badge className={PAYMENT_TONE[r.payment_status] ?? ""}>
                         {r.payment_status.replace(/_/g, " ")}
                       </Badge>
-                      <Badge variant="outline" className="text-[10px]">
-                        {r.kind === "buy" ? "Purchase" : "Rental"}
-                      </Badge>
                     </div>
+                    <div className="font-medium truncate">{r.product?.title ?? "Item"}</div>
+                    {r.kind === "rent" && (
+                      <RentalDates
+                        startDate={r.start_date}
+                        endDate={r.end_date}
+                        returnDue={r.end_date}
+                        className="rounded-md bg-sky-50 border border-sky-200 px-2.5 py-1.5"
+                      />
+                    )}
+                    {r.kind === "buy" && (
+                      <p className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 inline-block rounded-md px-2 py-0.5">
+                        No return required — product is sold
+                      </p>
+                    )}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-xs text-muted-foreground">
                       <div><span className="text-foreground/70">Order:</span> #{r.id.slice(0, 8)}</div>
                       <div><span className="text-foreground/70">Customer:</span> {r.customer?.full_name ?? "—"}</div>
@@ -282,6 +303,7 @@ export default function VendorOrders() {
                 </div>
               </Card>
             ))}
+
           </div>
         )}
       </main>

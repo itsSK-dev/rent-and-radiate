@@ -12,10 +12,13 @@ import { toast } from "sonner";
 import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
 import { RentalDisputesList } from "@/components/RentalDisputesList";
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
+import { OrderTypeBadge } from "@/components/OrderTypeBadge";
 import { REFUND_STATUS_LABEL, REFUND_STATUS_TONE } from "@/lib/refundTiers";
+
 
 type Rental = {
   id: string;
+  kind: "buy" | "rent";
   start_date: string;
   end_date: string;
   days: number;
@@ -30,6 +33,7 @@ type Rental = {
   product: { title: string; images: string[] } | null;
   store: { name: string; city: string | null } | null;
 };
+
 
 const statusTone: Record<string, string> = {
   pending: "bg-secondary text-foreground",
@@ -74,7 +78,7 @@ const MyRentals = () => {
     (async () => {
       const { data } = await supabase
         .from("rentals")
-        .select("id,start_date,end_date,days,rental_total,deposit,grand_total,status,payment_status,payment_method,razorpay_payment_id,delivery_method,product:products(title,images),store:stores(name,city)")
+        .select("id,kind,start_date,end_date,days,rental_total,deposit,grand_total,status,payment_status,payment_method,razorpay_payment_id,delivery_method,product:products(title,images),store:stores(name,city)")
         .eq("customer_id", user.id)
         .order("created_at", { ascending: false });
       setRentals((data as any) ?? []);
@@ -119,15 +123,23 @@ const MyRentals = () => {
                   </div>
                   <div className="flex-1 space-y-2">
                     <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div>
+                      <div className="space-y-1.5">
+                        <OrderTypeBadge kind={r.kind} size="sm" />
                         <h3 className="font-display text-2xl">{r.product?.title}</h3>
                         <p className="text-sm text-muted-foreground">{r.store?.name}{r.store?.city ? ` · ${r.store.city}` : ""}</p>
                       </div>
                       <Badge className={statusTone[r.status] ?? ""}>{r.status}</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {format(new Date(r.start_date), "PP")} – {format(new Date(r.end_date), "PP")} · {r.days} day{r.days === 1 ? "" : "s"} · {r.delivery_method}
-                    </p>
+                    {r.kind === "rent" ? (
+                      <p className="text-sm text-muted-foreground">
+                        <strong className="text-foreground">Rental:</strong> {format(new Date(r.start_date), "PP")} – {format(new Date(r.end_date), "PP")} · {r.days} day{r.days === 1 ? "" : "s"} · Return due <strong className="text-rose-deep">{format(new Date(r.end_date), "PP")}</strong> · {r.delivery_method}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Purchase · No return required · {r.delivery_method}
+                      </p>
+                    )}
+
                     <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm pt-1">
                       <span>Rental: <strong>₹{Number(r.rental_total).toLocaleString("en-IN")}</strong></span>
                       <span>Deposit: <strong>₹{Number(r.deposit).toLocaleString("en-IN")}</strong></span>
