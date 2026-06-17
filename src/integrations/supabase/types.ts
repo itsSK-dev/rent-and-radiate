@@ -1841,7 +1841,13 @@ export type Database = {
       product_category: "dress" | "jewellery"
       product_purpose: "rent" | "buy" | "both"
       refund_condition: "perfect" | "minor" | "moderate" | "severe"
-      refund_status: "pending_admin" | "approved" | "rejected"
+      refund_status:
+        | "pending_admin"
+        | "approved"
+        | "rejected"
+        | "processing"
+        | "completed"
+        | "failed"
       rental_status:
         | "pending"
         | "confirmed"
@@ -2039,7 +2045,14 @@ export const Constants = {
       product_category: ["dress", "jewellery"],
       product_purpose: ["rent", "buy", "both"],
       refund_condition: ["perfect", "minor", "moderate", "severe"],
-      refund_status: ["pending_admin", "approved", "rejected"],
+      refund_status: [
+        "pending_admin",
+        "approved",
+        "rejected",
+        "processing",
+        "completed",
+        "failed",
+      ],
       rental_status: [
         "pending",
         "confirmed",
