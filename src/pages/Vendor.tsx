@@ -261,6 +261,12 @@ const Vendor = () => {
               </>
             ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
           </TabsContent>
+
+          <TabsContent value="payouts" className="mt-6">
+            {storeId ? (
+              <VendorSettlementsPanel storeId={storeId} />
+            ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
+          </TabsContent>
         </Tabs>
       </section>
       <Footer />
