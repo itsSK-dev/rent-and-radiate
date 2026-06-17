@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Loader2, CheckCircle2, XCircle, Wallet, Download } from "lucide-react";
 import { format } from "date-fns";
+import { VendorSettlementsPanel } from "@/components/VendorSettlementsPanel";
 
 type Row = {
   id: string;
