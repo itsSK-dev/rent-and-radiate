@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Loader2, CheckCircle2, XCircle, Wallet, Download } from "lucide-react";
 import { format } from "date-fns";
+import { VendorSettlementsPanel } from "@/components/VendorSettlementsPanel";
 
 type Row = {
   id: string;
@@ -130,6 +131,7 @@ export function AdminPaymentsPanel() {
         <TabsList>
           <TabsTrigger value="verify">Verification</TabsTrigger>
           <TabsTrigger value="payouts">Shop payouts</TabsTrigger>
+          <TabsTrigger value="settlements">Platform fees</TabsTrigger>
         </TabsList>
 
         <TabsContent value="verify" className="mt-4 space-y-4">
@@ -161,6 +163,10 @@ export function AdminPaymentsPanel() {
 
         <TabsContent value="payouts" className="mt-4 space-y-3">
           <PayoutsList rows={rows.filter((r) => r.status === "verified")} onChanged={load} />
+        </TabsContent>
+
+        <TabsContent value="settlements" className="mt-4">
+          <VendorSettlementsPanel admin />
         </TabsContent>
       </Tabs>
     </div>

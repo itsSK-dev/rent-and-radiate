@@ -23,6 +23,7 @@ import { InspectionDialog } from "@/components/InspectionDialog";
 import { RentalDisputesList } from "@/components/RentalDisputesList";
 import { DeliveryStageControl, StoreExtensionRequests, StoreReturnControls, type ReturnRow } from "@/components/DeliveryTracking";
 import { discountedUnitPrice, inr } from "@/lib/pricing";
+import { VendorSettlementsPanel } from "@/components/VendorSettlementsPanel";
 
 type Store = {
   id: string;
@@ -164,6 +165,7 @@ const Vendor = () => {
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="bookings">Orders</TabsTrigger>
             <TabsTrigger value="returns">Returns & extensions</TabsTrigger>
+            <TabsTrigger value="payouts">Payouts & fees</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products" className="mt-6">
@@ -258,6 +260,12 @@ const Vendor = () => {
                   <StoreExtensionRequests storeId={storeId} />
                 </div>
               </>
+            ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
+          </TabsContent>
+
+          <TabsContent value="payouts" className="mt-6">
+            {storeId ? (
+              <VendorSettlementsPanel storeId={storeId} />
             ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
           </TabsContent>
         </Tabs>
