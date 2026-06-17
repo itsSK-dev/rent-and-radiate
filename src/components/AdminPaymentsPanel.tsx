@@ -163,6 +163,10 @@ export function AdminPaymentsPanel() {
         <TabsContent value="payouts" className="mt-4 space-y-3">
           <PayoutsList rows={rows.filter((r) => r.status === "verified")} onChanged={load} />
         </TabsContent>
+
+        <TabsContent value="settlements" className="mt-4">
+          <VendorSettlementsPanel admin />
+        </TabsContent>
       </Tabs>
     </div>
   );
