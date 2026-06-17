@@ -130,6 +130,7 @@ export function AdminPaymentsPanel() {
         <TabsList>
           <TabsTrigger value="verify">Verification</TabsTrigger>
           <TabsTrigger value="payouts">Shop payouts</TabsTrigger>
+          <TabsTrigger value="settlements">Platform fees</TabsTrigger>
         </TabsList>
 
         <TabsContent value="verify" className="mt-4 space-y-4">
