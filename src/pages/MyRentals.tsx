@@ -12,7 +12,9 @@ import { toast } from "sonner";
 import { RentalProofPanel, OpenDisputeButton } from "@/components/RentalProofPanel";
 import { RentalDisputesList } from "@/components/RentalDisputesList";
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
+import { OrderTypeBadge } from "@/components/OrderTypeBadge";
 import { REFUND_STATUS_LABEL, REFUND_STATUS_TONE } from "@/lib/refundTiers";
+
 
 type Rental = {
   id: string;
