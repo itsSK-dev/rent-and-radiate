@@ -19,13 +19,19 @@ export function calculateRefund(deposit: number, tier: RefundTier): { percent: n
 }
 
 export const REFUND_STATUS_LABEL: Record<string, string> = {
-  pending_admin: "Awaiting admin approval",
+  pending_admin: "Pending admin approval",
   approved: "Approved",
+  processing: "Processing refund",
+  completed: "Refund completed",
+  failed: "Refund failed",
   rejected: "Rejected",
 };
 
 export const REFUND_STATUS_TONE: Record<string, string> = {
-  pending_admin: "bg-amber-100 text-amber-700 border-amber-200",
-  approved: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  rejected: "bg-rose-100 text-rose-700 border-rose-200",
+  pending_admin: "bg-amber-100 text-amber-800 border-amber-200",
+  approved: "bg-sky-100 text-sky-800 border-sky-200",
+  processing: "bg-indigo-100 text-indigo-800 border-indigo-200",
+  completed: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  failed: "bg-rose-100 text-rose-800 border-rose-200",
+  rejected: "bg-rose-100 text-rose-800 border-rose-200",
 };

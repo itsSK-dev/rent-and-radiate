@@ -326,62 +326,89 @@ export type Database = {
       deposit_refunds: {
         Row: {
           admin_notes: string | null
+          auto_created: boolean
           condition_tier: Database["public"]["Enums"]["refund_condition"]
           created_at: string
           customer_id: string
+          damage_charges: number
           deposit_amount: number
           id: string
           initiated_at: string
           initiated_by: string
           inspection_images: string[]
           inspection_notes: string | null
+          late_fee: number
+          razorpay_refund_id: string | null
           refund_amount: number
+          refund_failure_reason: string | null
           refund_percent: number
+          refunded_at: string | null
+          rental_charges: number
           rental_id: string
           reviewed_at: string | null
           reviewed_by: string | null
           status: Database["public"]["Enums"]["refund_status"]
           store_id: string
+          total_deductions: number
+          total_paid: number
           updated_at: string
         }
         Insert: {
           admin_notes?: string | null
+          auto_created?: boolean
           condition_tier: Database["public"]["Enums"]["refund_condition"]
           created_at?: string
           customer_id: string
+          damage_charges?: number
           deposit_amount: number
           id?: string
           initiated_at?: string
           initiated_by: string
           inspection_images?: string[]
           inspection_notes?: string | null
+          late_fee?: number
+          razorpay_refund_id?: string | null
           refund_amount: number
+          refund_failure_reason?: string | null
           refund_percent: number
+          refunded_at?: string | null
+          rental_charges?: number
           rental_id: string
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["refund_status"]
           store_id: string
+          total_deductions?: number
+          total_paid?: number
           updated_at?: string
         }
         Update: {
           admin_notes?: string | null
+          auto_created?: boolean
           condition_tier?: Database["public"]["Enums"]["refund_condition"]
           created_at?: string
           customer_id?: string
+          damage_charges?: number
           deposit_amount?: number
           id?: string
           initiated_at?: string
           initiated_by?: string
           inspection_images?: string[]
           inspection_notes?: string | null
+          late_fee?: number
+          razorpay_refund_id?: string | null
           refund_amount?: number
+          refund_failure_reason?: string | null
           refund_percent?: number
+          refunded_at?: string | null
+          rental_charges?: number
           rental_id?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["refund_status"]
           store_id?: string
+          total_deductions?: number
+          total_paid?: number
           updated_at?: string
         }
         Relationships: []
@@ -1841,7 +1868,13 @@ export type Database = {
       product_category: "dress" | "jewellery"
       product_purpose: "rent" | "buy" | "both"
       refund_condition: "perfect" | "minor" | "moderate" | "severe"
-      refund_status: "pending_admin" | "approved" | "rejected"
+      refund_status:
+        | "pending_admin"
+        | "approved"
+        | "rejected"
+        | "processing"
+        | "completed"
+        | "failed"
       rental_status:
         | "pending"
         | "confirmed"
@@ -2039,7 +2072,14 @@ export const Constants = {
       product_category: ["dress", "jewellery"],
       product_purpose: ["rent", "buy", "both"],
       refund_condition: ["perfect", "minor", "moderate", "severe"],
-      refund_status: ["pending_admin", "approved", "rejected"],
+      refund_status: [
+        "pending_admin",
+        "approved",
+        "rejected",
+        "processing",
+        "completed",
+        "failed",
+      ],
       rental_status: [
         "pending",
         "confirmed",

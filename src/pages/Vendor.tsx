@@ -319,28 +319,32 @@ function RentalRow({ r, refund, onUpdate, onRefresh, commissionPct }: {
         </p>
       )}
       {r.kind === "rent" && r.status === "returned" && (
-        <div className="rounded-xl border border-dashed border-border bg-secondary/40 p-3 flex flex-wrap items-center justify-between gap-2">
-          <div className="text-sm">
-            <p className="font-medium">Deposit refund</p>
-            {refund ? (
-              <p className="text-xs text-muted-foreground">
-                {refund.condition_tier} · {inr(refund.refund_amount)} ({refund.refund_percent}%) · <span className="capitalize">{refund.status.replace("_"," ")}</span>
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">Not yet inspected. Deposit {inr(r.deposit)}.</p>
+        <div className="rounded-xl border border-dashed border-border bg-secondary/40 p-3 space-y-1">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-medium text-sm">Customer refund (admin-processed)</p>
+            {refund && (
+              <span className={`text-[11px] px-2 py-0.5 rounded-full border capitalize ${
+                refund.status === "completed" ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                : refund.status === "failed" || refund.status === "rejected" ? "bg-rose-100 text-rose-800 border-rose-200"
+                : "bg-amber-100 text-amber-800 border-amber-200"
+              }`}>
+                {refund.status.replace(/_/g, " ")}
+              </span>
             )}
           </div>
-          {!refund && (
-            <InspectionDialog
-              rentalId={r.id}
-              storeId={r.store_id}
-              customerId={r.customer_id}
-              deposit={Number(r.deposit)}
-              onCreated={onRefresh}
-            />
+          {refund ? (
+            <p className="text-xs text-muted-foreground">
+              Refund {inr(refund.refund_amount)} of {inr(r.deposit)} deposit
+              {" · "}condition: {refund.condition_tier} ({refund.refund_percent}%)
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Awaiting refund record (deposit {inr(r.deposit)}). Only the platform admin can approve and process customer refunds.
+            </p>
           )}
         </div>
       )}
+
       {r.kind === "rent" && r.status !== "returned" && r.status !== "cancelled" && (
         <div className="rounded-xl border border-border bg-secondary/30 p-3">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Delivery</p>
