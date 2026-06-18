@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 
 type Settings = {
   gst_percent: number; delivery_fee: number; commission_percent: number;
-  gateway_fee_percent: number; payout_hold_days: number;
+  gateway_fee_percent: number; payout_hold_days: number; rental_price_percent: number;
 };
 
 export function PlatformSettingsPanel() {
@@ -18,9 +18,9 @@ export function PlatformSettingsPanel() {
   async function load() {
     const { data } = await (supabase as any)
       .from("platform_settings")
-      .select("gst_percent,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days")
+      .select("gst_percent,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days,rental_price_percent")
       .eq("id", true).maybeSingle();
-    setS(data ?? { gst_percent: 18, delivery_fee: 50, commission_percent: 10, gateway_fee_percent: 0, payout_hold_days: 7 });
+    setS(data ?? { gst_percent: 18, delivery_fee: 50, commission_percent: 10, gateway_fee_percent: 0, payout_hold_days: 7, rental_price_percent: 10 });
   }
   useEffect(() => { load(); }, []);
 
@@ -34,6 +34,7 @@ export function PlatformSettingsPanel() {
         commission_percent: Number(s.commission_percent),
         gateway_fee_percent: Number(s.gateway_fee_percent),
         payout_hold_days: Number(s.payout_hold_days),
+        rental_price_percent: Number(s.rental_price_percent),
       }).eq("id", true);
     setSaving(false);
     if (error) return toast.error(error.message);
