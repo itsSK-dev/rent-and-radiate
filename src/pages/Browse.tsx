@@ -19,6 +19,7 @@ const Browse = () => {
   const q = params.get("q") ?? "";
   const sort = (params.get("sort") as Sort) ?? "newest";
   const storeId = params.get("store");
+  const purpose = params.get("purpose") ?? "all";
 
   useEffect(() => {
     document.title = `Browse ${category === "all" ? "all" : category} · Rent & Radiate`;
@@ -34,6 +35,8 @@ const Browse = () => {
       if (category !== "all") query = query.eq("category", category as any);
       if (storeId) query = query.eq("store_id", storeId);
       if (q) query = query.ilike("title", `%${q}%`);
+      if (purpose === "rent") query = query.in("purpose", ["rent", "both"] as any);
+      else if (purpose === "buy") query = query.in("purpose", ["buy", "both"] as any);
       if (sort === "price_asc") query = query.order("price_per_day", { ascending: true });
       else if (sort === "price_desc") query = query.order("price_per_day", { ascending: false });
       else query = query.order("created_at", { ascending: false });
@@ -47,7 +50,7 @@ const Browse = () => {
       setProducts(filtered as any);
       setLoading(false);
     })();
-  }, [category, q, sort, storeId]);
+  }, [category, q, sort, storeId, purpose]);
 
   function update(key: string, value: string) {
     const next = new URLSearchParams(params);
@@ -56,10 +59,12 @@ const Browse = () => {
   }
 
   const heading = useMemo(() => {
+    if (purpose === "rent") return "Rent the look";
+    if (purpose === "buy") return "Buy something new";
     if (category === "dress") return "Dresses to fall for";
     if (category === "jewellery") return "Jewellery that sparkles";
     return "Everything in bloom";
-  }, [category]);
+  }, [category, purpose]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -78,6 +83,14 @@ const Browse = () => {
             onKeyDown={(e) => { if (e.key === "Enter") update("q", (e.target as HTMLInputElement).value); }}
             className="md:max-w-xs"
           />
+          <Select value={purpose} onValueChange={(v) => update("purpose", v)}>
+            <SelectTrigger className="md:w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Rent & buy</SelectItem>
+              <SelectItem value="rent">For rent</SelectItem>
+              <SelectItem value="buy">For sale</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={category} onValueChange={(v) => update("category", v)}>
             <SelectTrigger className="md:w-44"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -94,7 +107,7 @@ const Browse = () => {
               <SelectItem value="price_desc">Price: high to low</SelectItem>
             </SelectContent>
           </Select>
-          {(q || storeId || category !== "all") && (
+          {(q || storeId || category !== "all" || purpose !== "all") && (
             <Button variant="ghost" size="sm" onClick={() => setParams(new URLSearchParams())}>Clear filters</Button>
           )}
         </div>
