@@ -416,8 +416,8 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
     if (!title.trim()) return toast.error("Title is required.");
     if ((purpose === "buy" || purpose === "both") && (Number(actualPrice) || 0) <= 0)
       return toast.error("Actual price is required for buy.");
-    if ((purpose === "rent" || purpose === "both") && (Number(pricePerDay) || 0) <= 0)
-      return toast.error("Rental price per day is required.");
+    if ((purpose === "rent" || purpose === "both") && (Number(actualPrice) || 0) <= 0)
+      return toast.error("Actual price is required so the platform can calculate the rental rate.");
 
     setBusy(true);
     try {
