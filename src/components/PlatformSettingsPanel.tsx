@@ -80,6 +80,14 @@ export function PlatformSettingsPanel() {
           <Input type="number" min="0" max="60" step="1" value={s.payout_hold_days}
             onChange={(e) => setS({ ...s, payout_hold_days: Number(e.target.value) })} className="mt-1" />
         </div>
+        <div>
+          <Label>Rental price (% of selling price)</Label>
+          <Input type="number" min="0" max="100" step="0.1" value={s.rental_price_percent}
+            onChange={(e) => setS({ ...s, rental_price_percent: Number(e.target.value) })} className="mt-1" />
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Daily rental price for every product is auto-calculated as this % of its selling price. Shop owners cannot override it.
+          </p>
+        </div>
       </div>
 
       <Button variant="hero" onClick={save} disabled={saving}>
