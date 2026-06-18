@@ -498,8 +498,20 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div><Label>Actual price (₹)</Label><Input type="number" min="0" step="0.01" value={actualPrice} onChange={(e) => setActualPrice(e.target.value)} className="mt-1" /></div>
-            <div><Label>Rental price / day (₹)</Label><Input type="number" min="0" step="0.01" value={pricePerDay} onChange={(e) => setPricePerDay(e.target.value)} className="mt-1" /></div>
+            <div>
+              <Label>Actual price (₹)</Label>
+              <Input type="number" min="0" step="0.01" value={actualPrice} onChange={(e) => setActualPrice(e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <Label className="flex items-center gap-1">
+                Rental price / day (₹)
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">auto</span>
+              </Label>
+              <Input type="text" value={Number(actualPrice) > 0 ? inr(dailyRental) : "—"} readOnly disabled className="mt-1 bg-muted/40" />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Auto-calculated by the platform: {settings.rental_price_percent}% of the actual price. Only the admin can change this rule.
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
@@ -513,6 +525,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
               Final buy price after discount: <strong className="text-foreground">{inr(finalUnit)}</strong>
             </p>
           )}
+
 
           <div className="grid grid-cols-3 gap-3">
             <div><Label>Deposit (₹)</Label><Input type="number" min="0" value={deposit} onChange={(e) => setDeposit(e.target.value)} className="mt-1" /></div>
