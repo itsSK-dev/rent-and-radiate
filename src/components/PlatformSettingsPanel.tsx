@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 
 type Settings = {
   gst_percent: number; delivery_fee: number; commission_percent: number;
-  gateway_fee_percent: number; payout_hold_days: number;
+  gateway_fee_percent: number; payout_hold_days: number; rental_price_percent: number;
 };
 
 export function PlatformSettingsPanel() {
@@ -18,9 +18,9 @@ export function PlatformSettingsPanel() {
   async function load() {
     const { data } = await (supabase as any)
       .from("platform_settings")
-      .select("gst_percent,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days")
+      .select("gst_percent,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days,rental_price_percent")
       .eq("id", true).maybeSingle();
-    setS(data ?? { gst_percent: 18, delivery_fee: 50, commission_percent: 10, gateway_fee_percent: 0, payout_hold_days: 7 });
+    setS(data ?? { gst_percent: 18, delivery_fee: 50, commission_percent: 10, gateway_fee_percent: 0, payout_hold_days: 7, rental_price_percent: 10 });
   }
   useEffect(() => { load(); }, []);
 
@@ -34,6 +34,7 @@ export function PlatformSettingsPanel() {
         commission_percent: Number(s.commission_percent),
         gateway_fee_percent: Number(s.gateway_fee_percent),
         payout_hold_days: Number(s.payout_hold_days),
+        rental_price_percent: Number(s.rental_price_percent),
       }).eq("id", true);
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -78,6 +79,14 @@ export function PlatformSettingsPanel() {
           <Label>Payout hold (days)</Label>
           <Input type="number" min="0" max="60" step="1" value={s.payout_hold_days}
             onChange={(e) => setS({ ...s, payout_hold_days: Number(e.target.value) })} className="mt-1" />
+        </div>
+        <div>
+          <Label>Rental price (% of selling price)</Label>
+          <Input type="number" min="0" max="100" step="0.1" value={s.rental_price_percent}
+            onChange={(e) => setS({ ...s, rental_price_percent: Number(e.target.value) })} className="mt-1" />
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Daily rental price for every product is auto-calculated as this % of its selling price. Shop owners cannot override it.
+          </p>
         </div>
       </div>
 

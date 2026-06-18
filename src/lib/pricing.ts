@@ -4,13 +4,22 @@ export type PlatformSettings = {
   gst_percent: number;
   delivery_fee: number;
   commission_percent: number;
+  rental_price_percent: number;
 };
 
 export const DEFAULT_SETTINGS: PlatformSettings = {
   gst_percent: 18,
   delivery_fee: 50,
   commission_percent: 10,
+  rental_price_percent: 10,
 };
+
+/** Daily rental price = rental_price_percent of the product's actual (selling) price. */
+export function computeDailyRentalPrice(actualPrice: number, rentalPercent: number): number {
+  const ap = Number(actualPrice) || 0;
+  const pct = Math.max(0, Number(rentalPercent) || 0);
+  return Math.round(((ap * pct) / 100) * 100) / 100;
+}
 
 export function discountedUnitPrice(
   actual: number,

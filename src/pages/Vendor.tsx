@@ -375,13 +375,13 @@ function RentalRow({ r, refund, onUpdate, onRefresh, commissionPct }: {
 
 function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing?: Product; onSaved: () => void }) {
   const { user } = useAuth();
+  const { settings } = usePlatformSettings();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(editing?.title ?? "");
   const [description, setDescription] = useState(editing?.description ?? "");
   const [category, setCategory] = useState<"dress" | "jewellery">(editing?.category ?? "dress");
   const [purpose, setPurpose] = useState<"rent" | "buy" | "both">(editing?.purpose ?? "rent");
   const [actualPrice, setActualPrice] = useState(editing?.actual_price?.toString() ?? "");
-  const [pricePerDay, setPricePerDay] = useState(editing?.price_per_day?.toString() ?? "");
   const [discountPercent, setDiscountPercent] = useState(editing?.discount_percent?.toString() ?? "0");
   const [discountFlat, setDiscountFlat] = useState(editing?.discount_flat?.toString() ?? "0");
   const [deposit, setDeposit] = useState(editing?.security_deposit?.toString() ?? "");
@@ -395,6 +395,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
 
   const isEdit = !!editing;
   const finalUnit = discountedUnitPrice(Number(actualPrice) || 0, Number(discountPercent) || 0, Number(discountFlat) || 0);
+  const dailyRental = Math.round(((Number(actualPrice) || 0) * (settings.rental_price_percent || 10)) / 100 * 100) / 100;
 
   async function uploadFiles(): Promise<string[]> {
     if (files.length === 0) return [];
@@ -415,8 +416,8 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
     if (!title.trim()) return toast.error("Title is required.");
     if ((purpose === "buy" || purpose === "both") && (Number(actualPrice) || 0) <= 0)
       return toast.error("Actual price is required for buy.");
-    if ((purpose === "rent" || purpose === "both") && (Number(pricePerDay) || 0) <= 0)
-      return toast.error("Rental price per day is required.");
+    if ((purpose === "rent" || purpose === "both") && (Number(actualPrice) || 0) <= 0)
+      return toast.error("Actual price is required so the platform can calculate the rental rate.");
 
     setBusy(true);
     try {
@@ -428,7 +429,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
         description: description.trim() || null,
         category, purpose,
         actual_price: Number(actualPrice) || 0,
-        price_per_day: Number(pricePerDay) || 0,
+        // price_per_day is auto-calculated by the platform from actual_price
         discount_percent: Math.max(0, Math.min(100, Number(discountPercent) || 0)),
         discount_flat: Math.max(0, Number(discountFlat) || 0),
         security_deposit: Number(deposit) || 0,
@@ -443,7 +444,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
       toast.success(isEdit ? "Product updated" : "Product added");
       setOpen(false);
       if (!isEdit) {
-        setTitle(""); setDescription(""); setActualPrice(""); setPricePerDay("");
+        setTitle(""); setDescription(""); setActualPrice("");
         setDiscountPercent("0"); setDiscountFlat("0"); setDeposit(""); setQuantity("1");
         setSize(""); setColor(""); setFiles([]); setExistingImages([]);
       }
@@ -497,8 +498,20 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div><Label>Actual price (₹)</Label><Input type="number" min="0" step="0.01" value={actualPrice} onChange={(e) => setActualPrice(e.target.value)} className="mt-1" /></div>
-            <div><Label>Rental price / day (₹)</Label><Input type="number" min="0" step="0.01" value={pricePerDay} onChange={(e) => setPricePerDay(e.target.value)} className="mt-1" /></div>
+            <div>
+              <Label>Actual price (₹)</Label>
+              <Input type="number" min="0" step="0.01" value={actualPrice} onChange={(e) => setActualPrice(e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <Label className="flex items-center gap-1">
+                Rental price / day (₹)
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">auto</span>
+              </Label>
+              <Input type="text" value={Number(actualPrice) > 0 ? inr(dailyRental) : "—"} readOnly disabled className="mt-1 bg-muted/40" />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Auto-calculated by the platform: {settings.rental_price_percent}% of the actual price. Only the admin can change this rule.
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
@@ -512,6 +525,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
               Final buy price after discount: <strong className="text-foreground">{inr(finalUnit)}</strong>
             </p>
           )}
+
 
           <div className="grid grid-cols-3 gap-3">
             <div><Label>Deposit (₹)</Label><Input type="number" min="0" value={deposit} onChange={(e) => setDeposit(e.target.value)} className="mt-1" /></div>

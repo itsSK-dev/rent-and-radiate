@@ -979,6 +979,7 @@ export type Database = {
           gst_percent: number
           id: boolean
           payout_hold_days: number
+          rental_price_percent: number
           updated_at: string
         }
         Insert: {
@@ -988,6 +989,7 @@ export type Database = {
           gst_percent?: number
           id?: boolean
           payout_hold_days?: number
+          rental_price_percent?: number
           updated_at?: string
         }
         Update: {
@@ -997,6 +999,7 @@ export type Database = {
           gst_percent?: number
           id?: boolean
           payout_hold_days?: number
+          rental_price_percent?: number
           updated_at?: string
         }
         Relationships: []

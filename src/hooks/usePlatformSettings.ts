@@ -11,7 +11,7 @@ export function usePlatformSettings() {
     (async () => {
       const { data } = await (supabase as any)
         .from("platform_settings")
-        .select("gst_percent,delivery_fee,commission_percent")
+        .select("gst_percent,delivery_fee,commission_percent,rental_price_percent")
         .eq("id", true)
         .maybeSingle();
       if (mounted && data) {
@@ -19,6 +19,7 @@ export function usePlatformSettings() {
           gst_percent: Number(data.gst_percent),
           delivery_fee: Number(data.delivery_fee),
           commission_percent: Number(data.commission_percent),
+          rental_price_percent: Number(data.rental_price_percent ?? 10),
         });
       }
       if (mounted) setLoading(false);
