@@ -444,7 +444,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
       toast.success(isEdit ? "Product updated" : "Product added");
       setOpen(false);
       if (!isEdit) {
-        setTitle(""); setDescription(""); setActualPrice(""); setPricePerDay("");
+        setTitle(""); setDescription(""); setActualPrice("");
         setDiscountPercent("0"); setDiscountFlat("0"); setDeposit(""); setQuantity("1");
         setSize(""); setColor(""); setFiles([]); setExistingImages([]);
       }
