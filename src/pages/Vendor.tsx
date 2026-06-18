@@ -375,13 +375,13 @@ function RentalRow({ r, refund, onUpdate, onRefresh, commissionPct }: {
 
 function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing?: Product; onSaved: () => void }) {
   const { user } = useAuth();
+  const { settings } = usePlatformSettings();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(editing?.title ?? "");
   const [description, setDescription] = useState(editing?.description ?? "");
   const [category, setCategory] = useState<"dress" | "jewellery">(editing?.category ?? "dress");
   const [purpose, setPurpose] = useState<"rent" | "buy" | "both">(editing?.purpose ?? "rent");
   const [actualPrice, setActualPrice] = useState(editing?.actual_price?.toString() ?? "");
-  const [pricePerDay, setPricePerDay] = useState(editing?.price_per_day?.toString() ?? "");
   const [discountPercent, setDiscountPercent] = useState(editing?.discount_percent?.toString() ?? "0");
   const [discountFlat, setDiscountFlat] = useState(editing?.discount_flat?.toString() ?? "0");
   const [deposit, setDeposit] = useState(editing?.security_deposit?.toString() ?? "");
@@ -395,6 +395,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
 
   const isEdit = !!editing;
   const finalUnit = discountedUnitPrice(Number(actualPrice) || 0, Number(discountPercent) || 0, Number(discountFlat) || 0);
+  const dailyRental = Math.round(((Number(actualPrice) || 0) * (settings.rental_price_percent || 10)) / 100 * 100) / 100;
 
   async function uploadFiles(): Promise<string[]> {
     if (files.length === 0) return [];
