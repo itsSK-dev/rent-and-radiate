@@ -263,7 +263,10 @@ const ProductDetail = () => {
 
             <div className="space-y-1.5 text-sm border-t border-border pt-4">
               {mode === "rent" && (
-                <Row label={`Rental (${days || 0} day${days === 1 ? "" : "s"} × ${qty})`} value={inr(line.base)} />
+                <>
+                  <Row label="Rate / day" value={inr(product.price_per_day)} muted />
+                  <Row label={`Rental (${days || 0} day${days === 1 ? "" : "s"} × ${qty})`} value={inr(line.base)} />
+                </>
               )}
               {mode === "buy" && (
                 <Row label={`Price × ${qty}`} value={inr(line.base)} />
