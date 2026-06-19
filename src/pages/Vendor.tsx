@@ -395,7 +395,10 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
 
   const isEdit = !!editing;
   const finalUnit = discountedUnitPrice(Number(actualPrice) || 0, Number(discountPercent) || 0, Number(discountFlat) || 0);
-  const dailyRental = Math.round(((Number(actualPrice) || 0) * (settings.rental_price_percent || 10)) / 100 * 100) / 100;
+  const rentalPct = Math.max(10, settings.rental_price_percent || 10);
+  const depositPct = Math.max(0, settings.deposit_percent_of_price ?? 100);
+  const dailyRental = Math.round((finalUnit * rentalPct) / 100 * 100) / 100;
+  const autoDeposit = Math.round((finalUnit * depositPct) / 100 * 100) / 100;
 
   async function uploadFiles(): Promise<string[]> {
     if (files.length === 0) return [];
