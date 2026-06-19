@@ -194,6 +194,11 @@ const ProductDetail = () => {
                 {hasDiscount && <span className="text-lg text-muted-foreground line-through">{inr(product.actual_price)}</span>}
                 <span className="font-display text-3xl">{inr(finalUnit)}</span>
                 <span className="text-sm text-muted-foreground">to buy</span>
+                {hasDiscount && (
+                  <span className="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                    You save {inr(Number(product.actual_price) - finalUnit)}
+                  </span>
+                )}
               </>
             )}
             {canRent && (
@@ -209,7 +214,7 @@ const ProductDetail = () => {
             {product.size && <Detail label="Size" value={product.size} />}
             {product.color && <Detail label="Color" value={product.color} />}
             <Detail label="Stock" value={`${product.quantity} available`} />
-            {canRent && <Detail label="Deposit (refundable)" value={inr(product.security_deposit)} />}
+            {canRent && <Detail label="Refundable deposit" value={inr(product.security_deposit)} />}
           </div>
 
           {product.condition_notes && (
