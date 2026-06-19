@@ -511,7 +511,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
               </Label>
               <Input type="text" value={Number(actualPrice) > 0 ? inr(dailyRental) : "—"} readOnly disabled className="mt-1 bg-muted/40" />
               <p className="text-[11px] text-muted-foreground mt-1">
-                Auto-calculated by the platform: {settings.rental_price_percent}% of the actual price. Only the admin can change this rule.
+                Auto = {rentalPct}% of the discounted selling price (platform minimum 10%). Admin-controlled.
               </p>
             </div>
           </div>
