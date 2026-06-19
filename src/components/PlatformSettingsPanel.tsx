@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 type Settings = {
   gst_percent: number; delivery_fee: number; commission_percent: number;
   gateway_fee_percent: number; payout_hold_days: number; rental_price_percent: number;
+  deposit_percent_of_price: number;
 };
 
 export function PlatformSettingsPanel() {
@@ -18,14 +19,19 @@ export function PlatformSettingsPanel() {
   async function load() {
     const { data } = await (supabase as any)
       .from("platform_settings")
-      .select("gst_percent,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days,rental_price_percent")
+      .select("gst_percent,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days,rental_price_percent,deposit_percent_of_price")
       .eq("id", true).maybeSingle();
-    setS(data ?? { gst_percent: 18, delivery_fee: 50, commission_percent: 10, gateway_fee_percent: 0, payout_hold_days: 7, rental_price_percent: 10 });
+    setS(data ?? { gst_percent: 18, delivery_fee: 50, commission_percent: 10, gateway_fee_percent: 0, payout_hold_days: 7, rental_price_percent: 10, deposit_percent_of_price: 100 });
   }
   useEffect(() => { load(); }, []);
 
   async function save() {
     if (!s) return;
+    const rentalPct = Math.max(10, Number(s.rental_price_percent) || 10);
+    if (Number(s.rental_price_percent) < 10) {
+      toast.error("Daily rental percentage cannot be below 10%.");
+      return;
+    }
     setSaving(true);
     const { error } = await (supabase as any).from("platform_settings")
       .update({
@@ -34,11 +40,12 @@ export function PlatformSettingsPanel() {
         commission_percent: Number(s.commission_percent),
         gateway_fee_percent: Number(s.gateway_fee_percent),
         payout_hold_days: Number(s.payout_hold_days),
-        rental_price_percent: Number(s.rental_price_percent),
+        rental_price_percent: rentalPct,
+        deposit_percent_of_price: Math.max(0, Number(s.deposit_percent_of_price) || 0),
       }).eq("id", true);
     setSaving(false);
     if (error) return toast.error(error.message);
-    toast.success("Platform settings saved");
+    toast.success("Platform settings saved. All product rental prices & deposits will recalculate on next save.");
   }
 
   if (!s) {
@@ -82,10 +89,18 @@ export function PlatformSettingsPanel() {
         </div>
         <div>
           <Label>Rental price (% of selling price)</Label>
-          <Input type="number" min="0" max="100" step="0.1" value={s.rental_price_percent}
+          <Input type="number" min="10" max="100" step="0.1" value={s.rental_price_percent}
             onChange={(e) => setS({ ...s, rental_price_percent: Number(e.target.value) })} className="mt-1" />
           <p className="text-[11px] text-muted-foreground mt-1">
-            Daily rental price for every product is auto-calculated as this % of its selling price. Shop owners cannot override it.
+            Daily rental price = this % of the (discounted) selling price. Minimum 10% — cannot go lower. Shop owners cannot override it.
+          </p>
+        </div>
+        <div>
+          <Label>Security deposit (% of selling price)</Label>
+          <Input type="number" min="0" max="500" step="1" value={s.deposit_percent_of_price}
+            onChange={(e) => setS({ ...s, deposit_percent_of_price: Number(e.target.value) })} className="mt-1" />
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Refundable deposit collected on every rental. Keeping this at 100% ensures deposit + rental {'>'} product price, protecting the platform if the item isn't returned.
           </p>
         </div>
       </div>

@@ -5,19 +5,30 @@ export type PlatformSettings = {
   delivery_fee: number;
   commission_percent: number;
   rental_price_percent: number;
+  deposit_percent_of_price: number;
 };
+
+export const MIN_RENTAL_PERCENT = 10;
 
 export const DEFAULT_SETTINGS: PlatformSettings = {
   gst_percent: 18,
   delivery_fee: 50,
   commission_percent: 10,
   rental_price_percent: 10,
+  deposit_percent_of_price: 100,
 };
 
-/** Daily rental price = rental_price_percent of the product's actual (selling) price. */
-export function computeDailyRentalPrice(actualPrice: number, rentalPercent: number): number {
-  const ap = Number(actualPrice) || 0;
-  const pct = Math.max(0, Number(rentalPercent) || 0);
+/** Daily rental price = max(10%, configured%) of the product's discounted selling price. */
+export function computeDailyRentalPrice(effectivePrice: number, rentalPercent: number): number {
+  const ap = Number(effectivePrice) || 0;
+  const pct = Math.max(MIN_RENTAL_PERCENT, Number(rentalPercent) || MIN_RENTAL_PERCENT);
+  return Math.round(((ap * pct) / 100) * 100) / 100;
+}
+
+/** Refundable security deposit derived from the discounted selling price. */
+export function computeSecurityDeposit(effectivePrice: number, depositPercent: number): number {
+  const ap = Number(effectivePrice) || 0;
+  const pct = Math.max(0, Number(depositPercent) || 0);
   return Math.round(((ap * pct) / 100) * 100) / 100;
 }
 

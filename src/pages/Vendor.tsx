@@ -395,7 +395,10 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
 
   const isEdit = !!editing;
   const finalUnit = discountedUnitPrice(Number(actualPrice) || 0, Number(discountPercent) || 0, Number(discountFlat) || 0);
-  const dailyRental = Math.round(((Number(actualPrice) || 0) * (settings.rental_price_percent || 10)) / 100 * 100) / 100;
+  const rentalPct = Math.max(10, settings.rental_price_percent || 10);
+  const depositPct = Math.max(0, settings.deposit_percent_of_price ?? 100);
+  const dailyRental = Math.round((finalUnit * rentalPct) / 100 * 100) / 100;
+  const autoDeposit = Math.round((finalUnit * depositPct) / 100 * 100) / 100;
 
   async function uploadFiles(): Promise<string[]> {
     if (files.length === 0) return [];
@@ -429,10 +432,9 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
         description: description.trim() || null,
         category, purpose,
         actual_price: Number(actualPrice) || 0,
-        // price_per_day is auto-calculated by the platform from actual_price
+        // price_per_day & security_deposit are auto-calculated by the platform
         discount_percent: Math.max(0, Math.min(100, Number(discountPercent) || 0)),
         discount_flat: Math.max(0, Number(discountFlat) || 0),
-        security_deposit: Number(deposit) || 0,
         quantity: Math.max(0, Number(quantity) || 0),
         size: size || null, color: color || null,
         images, available,
@@ -509,7 +511,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
               </Label>
               <Input type="text" value={Number(actualPrice) > 0 ? inr(dailyRental) : "—"} readOnly disabled className="mt-1 bg-muted/40" />
               <p className="text-[11px] text-muted-foreground mt-1">
-                Auto-calculated by the platform: {settings.rental_price_percent}% of the actual price. Only the admin can change this rule.
+                Auto = {rentalPct}% of the discounted selling price (platform minimum 10%). Admin-controlled.
               </p>
             </div>
           </div>
@@ -528,7 +530,16 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
 
 
           <div className="grid grid-cols-3 gap-3">
-            <div><Label>Deposit (₹)</Label><Input type="number" min="0" value={deposit} onChange={(e) => setDeposit(e.target.value)} className="mt-1" /></div>
+            <div>
+              <Label className="flex items-center gap-1">
+                Refundable deposit (₹)
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">auto</span>
+              </Label>
+              <Input type="text" value={Number(actualPrice) > 0 ? inr(autoDeposit) : "—"} readOnly disabled className="mt-1 bg-muted/40" />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                {depositPct}% of selling price. Set by admin to protect against non-returns.
+              </p>
+            </div>
             <div><Label>Size</Label><Input value={size} onChange={(e) => setSize(e.target.value)} className="mt-1" placeholder="S / M / L" /></div>
             <div><Label>Color</Label><Input value={color} onChange={(e) => setColor(e.target.value)} className="mt-1" /></div>
           </div>
