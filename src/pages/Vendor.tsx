@@ -432,10 +432,9 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
         description: description.trim() || null,
         category, purpose,
         actual_price: Number(actualPrice) || 0,
-        // price_per_day is auto-calculated by the platform from actual_price
+        // price_per_day & security_deposit are auto-calculated by the platform
         discount_percent: Math.max(0, Math.min(100, Number(discountPercent) || 0)),
         discount_flat: Math.max(0, Number(discountFlat) || 0),
-        security_deposit: Number(deposit) || 0,
         quantity: Math.max(0, Number(quantity) || 0),
         size: size || null, color: color || null,
         images, available,
