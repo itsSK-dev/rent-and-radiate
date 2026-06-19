@@ -975,6 +975,7 @@ export type Database = {
         Row: {
           commission_percent: number
           delivery_fee: number
+          deposit_percent_of_price: number
           gateway_fee_percent: number
           gst_percent: number
           id: boolean
@@ -985,6 +986,7 @@ export type Database = {
         Insert: {
           commission_percent?: number
           delivery_fee?: number
+          deposit_percent_of_price?: number
           gateway_fee_percent?: number
           gst_percent?: number
           id?: boolean
@@ -995,6 +997,7 @@ export type Database = {
         Update: {
           commission_percent?: number
           delivery_fee?: number
+          deposit_percent_of_price?: number
           gateway_fee_percent?: number
           gst_percent?: number
           id?: boolean
