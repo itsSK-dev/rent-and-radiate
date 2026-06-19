@@ -530,7 +530,16 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
 
 
           <div className="grid grid-cols-3 gap-3">
-            <div><Label>Deposit (₹)</Label><Input type="number" min="0" value={deposit} onChange={(e) => setDeposit(e.target.value)} className="mt-1" /></div>
+            <div>
+              <Label className="flex items-center gap-1">
+                Refundable deposit (₹)
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">auto</span>
+              </Label>
+              <Input type="text" value={Number(actualPrice) > 0 ? inr(autoDeposit) : "—"} readOnly disabled className="mt-1 bg-muted/40" />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                {depositPct}% of selling price. Set by admin to protect against non-returns.
+              </p>
+            </div>
             <div><Label>Size</Label><Input value={size} onChange={(e) => setSize(e.target.value)} className="mt-1" placeholder="S / M / L" /></div>
             <div><Label>Color</Label><Input value={color} onChange={(e) => setColor(e.target.value)} className="mt-1" /></div>
           </div>
