@@ -89,10 +89,18 @@ export function PlatformSettingsPanel() {
         </div>
         <div>
           <Label>Rental price (% of selling price)</Label>
-          <Input type="number" min="0" max="100" step="0.1" value={s.rental_price_percent}
+          <Input type="number" min="10" max="100" step="0.1" value={s.rental_price_percent}
             onChange={(e) => setS({ ...s, rental_price_percent: Number(e.target.value) })} className="mt-1" />
           <p className="text-[11px] text-muted-foreground mt-1">
-            Daily rental price for every product is auto-calculated as this % of its selling price. Shop owners cannot override it.
+            Daily rental price = this % of the (discounted) selling price. Minimum 10% — cannot go lower. Shop owners cannot override it.
+          </p>
+        </div>
+        <div>
+          <Label>Security deposit (% of selling price)</Label>
+          <Input type="number" min="0" max="500" step="1" value={s.deposit_percent_of_price}
+            onChange={(e) => setS({ ...s, deposit_percent_of_price: Number(e.target.value) })} className="mt-1" />
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Refundable deposit collected on every rental. Keeping this at 100% ensures deposit + rental {'>'} product price, protecting the platform if the item isn't returned.
           </p>
         </div>
       </div>
