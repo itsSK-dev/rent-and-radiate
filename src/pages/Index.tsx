@@ -36,7 +36,7 @@ const Index = () => {
       );
 
     (async () => {
-      await seedDemoProductsIfEmpty();
+      // Product catalogue is fully DB-driven via vendor uploads + admin approval.
       const { data } = await supabase
         .from("products")
         .select(
