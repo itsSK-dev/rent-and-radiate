@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
 import { ShopTheLook } from "@/components/ShopTheLook";
 import { supabase } from "@/integrations/supabase/client";
-import { seedDemoProductsIfEmpty } from "@/lib/seedDemo";
+// NOTE: We intentionally do NOT seed demo products from the client.
+// Client-side seeding only works for the user who owns the target store
+// (RLS blocks everyone else), which produced "I see it but others don't"
+// bugs. All product data must come from the moderated vendor upload flow
+// so every visitor sees the same approved rows.
 import {
   ArrowRight,
   MapPin,
