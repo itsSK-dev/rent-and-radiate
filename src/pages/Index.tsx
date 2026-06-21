@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
 import { ShopTheLook } from "@/components/ShopTheLook";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/sonner";
 // NOTE: We intentionally do NOT seed demo products from the client.
 // Client-side seeding only works for the user who owns the target store
 // (RLS blocks everyone else), which produced "I see it but others don't"
@@ -13,7 +14,10 @@ import { supabase } from "@/integrations/supabase/client";
 // so every visitor sees the same approved rows.
 import {
   ArrowRight,
+  Loader2,
   MapPin,
+  Mic,
+  MicOff,
   Search,
   ShoppingBag,
   Sparkles,
