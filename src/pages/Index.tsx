@@ -145,18 +145,32 @@ const Index = () => {
               className="mt-6 flex items-center gap-2 bg-card rounded-full pl-5 pr-2 py-2 shadow-soft border border-border max-w-xl"
               role="search"
             >
-              <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+              <Sparkles className="h-4 w-4 text-rose-deep shrink-0" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search dresses, jewellery, brand, shop, colour…"
+                placeholder='Try "red dress under ₹2000 for rent"…'
                 className="flex-1 bg-transparent outline-none text-sm py-1.5 min-w-0"
-                aria-label="Search products"
+                aria-label="AI-powered search"
+                disabled={aiBusy}
               />
-              <Button type="submit" variant="hero" size="sm" className="rounded-full">
-                Search
+              <button
+                type="button"
+                onClick={toggleVoice}
+                aria-label={listening ? "Stop voice search" : "Start voice search"}
+                className={`shrink-0 h-9 w-9 rounded-full flex items-center justify-center transition-colors ${
+                  listening ? "bg-rose-deep text-background animate-pulse" : "text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </button>
+              <Button type="submit" variant="hero" size="sm" className="rounded-full" disabled={aiBusy || !query.trim()}>
+                {aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
               </Button>
             </form>
+            <p className="text-[11px] text-muted-foreground mt-2 ml-5 flex items-center gap-1">
+              <Sparkles className="h-3 w-3" /> AI understands natural language & voice
+            </p>
           </div>
         </div>
       </section>
