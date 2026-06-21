@@ -28,6 +28,9 @@ const Index = () => {
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [stores, setStores] = useState<{ id: string; name: string; city: string | null; rating: number }[]>([]);
   const [query, setQuery] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recogRef = useRef<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -61,10 +64,63 @@ const Index = () => {
     })();
   }, []);
 
-  const onSearch = (e: React.FormEvent) => {
+  function buildBrowseUrl(filters: { q?: string; category?: string; purpose?: string; sort?: string }) {
+    const params = new URLSearchParams();
+    if (filters.q) params.set("q", filters.q);
+    if (filters.category && filters.category !== "all") params.set("category", filters.category);
+    if (filters.purpose && filters.purpose !== "all") params.set("purpose", filters.purpose);
+    if (filters.sort && filters.sort !== "newest") params.set("sort", filters.sort);
+    const qs = params.toString();
+    return qs ? `/browse?${qs}` : "/browse";
+  }
+
+  const onSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/browse?q=${encodeURIComponent(query)}`);
+    const text = query.trim();
+    if (!text) return;
+    setAiBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-search", { body: { query: text } });
+      if (error || !data || (data as any).error) {
+        navigate(`/browse?q=${encodeURIComponent(text)}`);
+        return;
+      }
+      navigate(buildBrowseUrl(data as any));
+    } catch {
+      navigate(`/browse?q=${encodeURIComponent(text)}`);
+    } finally {
+      setAiBusy(false);
+    }
   };
+
+  function toggleVoice() {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      toast.error("Voice search isn't supported in this browser. Try Chrome.");
+      return;
+    }
+    if (listening) {
+      recogRef.current?.stop();
+      return;
+    }
+    const recog = new SR();
+    recog.lang = "en-IN";
+    recog.interimResults = true;
+    recog.maxAlternatives = 1;
+    recog.onresult = (ev: any) => {
+      const transcript = Array.from(ev.results)
+        .map((r: any) => r[0]?.transcript ?? "")
+        .join(" ")
+        .trim();
+      if (transcript) setQuery(transcript);
+    };
+    recog.onerror = () => setListening(false);
+    recog.onend = () => setListening(false);
+    recogRef.current = recog;
+    setListening(true);
+    recog.start();
+  }
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
