@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
 import { ShopTheLook } from "@/components/ShopTheLook";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/sonner";
 // NOTE: We intentionally do NOT seed demo products from the client.
 // Client-side seeding only works for the user who owns the target store
 // (RLS blocks everyone else), which produced "I see it but others don't"
@@ -13,8 +14,10 @@ import { supabase } from "@/integrations/supabase/client";
 // so every visitor sees the same approved rows.
 import {
   ArrowRight,
+  Loader2,
   MapPin,
-  Search,
+  Mic,
+  MicOff,
   ShoppingBag,
   Sparkles,
   Tag,
@@ -24,6 +27,9 @@ const Index = () => {
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [stores, setStores] = useState<{ id: string; name: string; city: string | null; rating: number }[]>([]);
   const [query, setQuery] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recogRef = useRef<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -57,10 +63,63 @@ const Index = () => {
     })();
   }, []);
 
-  const onSearch = (e: React.FormEvent) => {
+  function buildBrowseUrl(filters: { q?: string; category?: string; purpose?: string; sort?: string }) {
+    const params = new URLSearchParams();
+    if (filters.q) params.set("q", filters.q);
+    if (filters.category && filters.category !== "all") params.set("category", filters.category);
+    if (filters.purpose && filters.purpose !== "all") params.set("purpose", filters.purpose);
+    if (filters.sort && filters.sort !== "newest") params.set("sort", filters.sort);
+    const qs = params.toString();
+    return qs ? `/browse?${qs}` : "/browse";
+  }
+
+  const onSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/browse?q=${encodeURIComponent(query)}`);
+    const text = query.trim();
+    if (!text) return;
+    setAiBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-search", { body: { query: text } });
+      if (error || !data || (data as any).error) {
+        navigate(`/browse?q=${encodeURIComponent(text)}`);
+        return;
+      }
+      navigate(buildBrowseUrl(data as any));
+    } catch {
+      navigate(`/browse?q=${encodeURIComponent(text)}`);
+    } finally {
+      setAiBusy(false);
+    }
   };
+
+  function toggleVoice() {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      toast.error("Voice search isn't supported in this browser. Try Chrome.");
+      return;
+    }
+    if (listening) {
+      recogRef.current?.stop();
+      return;
+    }
+    const recog = new SR();
+    recog.lang = "en-IN";
+    recog.interimResults = true;
+    recog.maxAlternatives = 1;
+    recog.onresult = (ev: any) => {
+      const transcript = Array.from(ev.results)
+        .map((r: any) => r[0]?.transcript ?? "")
+        .join(" ")
+        .trim();
+      if (transcript) setQuery(transcript);
+    };
+    recog.onerror = () => setListening(false);
+    recog.onend = () => setListening(false);
+    recogRef.current = recog;
+    setListening(true);
+    recog.start();
+  }
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -85,18 +144,32 @@ const Index = () => {
               className="mt-6 flex items-center gap-2 bg-card rounded-full pl-5 pr-2 py-2 shadow-soft border border-border max-w-xl"
               role="search"
             >
-              <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+              <Sparkles className="h-4 w-4 text-rose-deep shrink-0" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search dresses, jewellery, brand, shop, colour…"
+                placeholder='Try "red dress under ₹2000 for rent"…'
                 className="flex-1 bg-transparent outline-none text-sm py-1.5 min-w-0"
-                aria-label="Search products"
+                aria-label="AI-powered search"
+                disabled={aiBusy}
               />
-              <Button type="submit" variant="hero" size="sm" className="rounded-full">
-                Search
+              <button
+                type="button"
+                onClick={toggleVoice}
+                aria-label={listening ? "Stop voice search" : "Start voice search"}
+                className={`shrink-0 h-9 w-9 rounded-full flex items-center justify-center transition-colors ${
+                  listening ? "bg-rose-deep text-background animate-pulse" : "text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </button>
+              <Button type="submit" variant="hero" size="sm" className="rounded-full" disabled={aiBusy || !query.trim()}>
+                {aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
               </Button>
             </form>
+            <p className="text-[11px] text-muted-foreground mt-2 ml-5 flex items-center gap-1">
+              <Sparkles className="h-3 w-3" /> AI understands natural language & voice
+            </p>
           </div>
         </div>
       </section>

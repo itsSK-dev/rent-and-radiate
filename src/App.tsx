@@ -23,6 +23,7 @@ import TrackOrder from "./pages/TrackOrder";
 import PaymentResult from "./pages/PaymentResult";
 import MyPayments from "./pages/MyPayments";
 import ScrollToTop from "./components/ScrollToTop";
+import { SupportChat } from "./components/SupportChat";
 import Unsubscribe from "./pages/Unsubscribe";
 import Advertise from "./pages/Advertise";
 import AdvertiseBook from "./pages/AdvertiseBook";
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="/settings/notifications" element={<NotificationSettings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <SupportChat />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
