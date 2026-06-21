@@ -18,7 +18,6 @@ import {
   MapPin,
   Mic,
   MicOff,
-  Search,
   ShoppingBag,
   Sparkles,
   Tag,
