@@ -7,8 +7,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 
 type Sort = "newest" | "price_asc" | "price_desc";
+
+const STOPWORDS = new Set(["a","an","the","and","or","of","with","for","in","on","to","is","this","that","it","at","by","be","as"]);
+function tokenize(s: string): string[] {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(t => t.length > 2 && !STOPWORDS.has(t));
+}
+function similarity(productText: string, queryTokens: string[]): number {
+  if (queryTokens.length === 0) return 0;
+  const pTokens = new Set(tokenize(productText));
+  let hits = 0;
+  for (const t of queryTokens) if (pTokens.has(t)) hits++;
+  return hits / queryTokens.length;
+}
+
 
 const Browse = () => {
   const [params, setParams] = useSearchParams();
@@ -20,6 +34,16 @@ const Browse = () => {
   const sort = (params.get("sort") as Sort) ?? "newest";
   const storeId = params.get("store");
   const purpose = params.get("purpose") ?? "all";
+  const match = params.get("match") ?? "";
+  const matchTokens = useMemo(() => tokenize(match), [match]);
+
+  const scoredProducts = useMemo(() => {
+    if (matchTokens.length === 0) return products.map(p => ({ p, score: 0 }));
+    return products
+      .map(p => ({ p, score: similarity(`${p.title} ${p.category}`, matchTokens) }))
+      .sort((a, b) => b.score - a.score);
+  }, [products, matchTokens]);
+
 
   useEffect(() => {
     document.title = `Browse ${category === "all" ? "all" : category} · Rent & Radiate`;
@@ -76,6 +100,26 @@ const Browse = () => {
           <p className="text-muted-foreground mt-3">Curated pieces from approved boutiques.</p>
         </div>
 
+        {match && (
+          <div className="mb-8 rounded-2xl border border-rose-deep/20 bg-rose-deep/5 p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex-1">
+              <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-1 flex items-center gap-1">
+                <Sparkles className="h-3.5 w-3.5" /> Visual search results
+              </p>
+              <p className="text-sm">
+                Matching against: <span className="italic">"{match}"</span>
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Ranked by similarity to your image — top matches are highlighted with a rose border. Scores reflect overlap between your image's keywords and each product's title and category.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => { const n = new URLSearchParams(params); n.delete("match"); setParams(n); }}>
+              Clear visual search
+            </Button>
+          </div>
+        )}
+
+
         <div className="flex flex-col md:flex-row gap-3 md:items-center mb-10">
           <Input
             placeholder="Search…"
@@ -120,7 +164,9 @@ const Browse = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-            {products.map((p) => <ProductCard key={p.id} p={p} />)}
+            {scoredProducts.map(({ p, score }) => (
+              <ProductCard key={p.id} p={p} matchScore={match ? score : undefined} />
+            ))}
           </div>
         )}
       </section>
