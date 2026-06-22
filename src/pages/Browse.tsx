@@ -7,8 +7,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 
 type Sort = "newest" | "price_asc" | "price_desc";
+
+const STOPWORDS = new Set(["a","an","the","and","or","of","with","for","in","on","to","is","this","that","it","at","by","be","as"]);
+function tokenize(s: string): string[] {
+  return s.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(t => t.length > 2 && !STOPWORDS.has(t));
+}
+function similarity(productText: string, queryTokens: string[]): number {
+  if (queryTokens.length === 0) return 0;
+  const pTokens = new Set(tokenize(productText));
+  let hits = 0;
+  for (const t of queryTokens) if (pTokens.has(t)) hits++;
+  return hits / queryTokens.length;
+}
+
 
 const Browse = () => {
   const [params, setParams] = useSearchParams();
