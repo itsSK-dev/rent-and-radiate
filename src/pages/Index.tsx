@@ -123,6 +123,42 @@ const Index = () => {
     recog.start();
   }
 
+  async function onImagePicked(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Image is too large (max 8 MB).");
+      return;
+    }
+    setImageBusy(true);
+    try {
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result as string);
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(file);
+      });
+      const { data, error } = await supabase.functions.invoke("image-search", { body: { image: dataUrl } });
+      if (error || !data || (data as any).error) {
+        toast.error("Couldn't analyse that image. Try another one.");
+        return;
+      }
+      const d = data as any;
+      if (d.description) toast.success(`Looking for: ${d.description}`);
+      navigate(buildBrowseUrl({ q: d.q, category: d.category, purpose: d.purpose, sort: d.sort }));
+    } catch {
+      toast.error("Image search failed. Please try again.");
+    } finally {
+      setImageBusy(false);
+    }
+  }
+
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
