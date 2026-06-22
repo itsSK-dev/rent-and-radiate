@@ -151,7 +151,6 @@ const Index = () => {
       const d = data as any;
       if (d.description) toast.success(`Looking for: ${d.description}`);
       const params = new URLSearchParams();
-      if (d.q) params.set("q", d.q);
       if (d.category && d.category !== "all") params.set("category", d.category);
       const matchTerms = [d.q, d.description].filter(Boolean).join(" ").trim();
       if (matchTerms) params.set("match", matchTerms);
