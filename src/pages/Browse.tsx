@@ -164,7 +164,9 @@ const Browse = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-            {products.map((p) => <ProductCard key={p.id} p={p} />)}
+            {scoredProducts.map(({ p, score }) => (
+              <ProductCard key={p.id} p={p} matchScore={match ? score : undefined} />
+            ))}
           </div>
         )}
       </section>
