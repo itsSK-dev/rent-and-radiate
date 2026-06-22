@@ -192,6 +192,23 @@ const Index = () => {
                 aria-label="AI-powered search"
                 disabled={aiBusy}
               />
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onImagePicked}
+              />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                aria-label="Search by image"
+                title="Search by image"
+                disabled={imageBusy}
+                className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center transition-colors text-muted-foreground hover:bg-muted disabled:opacity-60"
+              >
+                {imageBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+              </button>
               <button
                 type="button"
                 onClick={toggleVoice}
@@ -207,7 +224,7 @@ const Index = () => {
               </Button>
             </form>
             <p className="text-[11px] text-muted-foreground mt-2 ml-5 flex items-center gap-1">
-              <Sparkles className="h-3 w-3" /> AI understands natural language & voice
+              <Sparkles className="h-3 w-3" /> AI understands text, voice & images
             </p>
           </div>
         </div>
