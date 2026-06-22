@@ -14,6 +14,7 @@ import { toast } from "@/components/ui/sonner";
 // so every visitor sees the same approved rows.
 import {
   ArrowRight,
+  Camera,
   Loader2,
   MapPin,
   Mic,
