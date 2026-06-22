@@ -14,6 +14,7 @@ import { toast } from "@/components/ui/sonner";
 // so every visitor sees the same approved rows.
 import {
   ArrowRight,
+  Camera,
   Loader2,
   MapPin,
   Mic,
@@ -28,8 +29,10 @@ const Index = () => {
   const [stores, setStores] = useState<{ id: string; name: string; city: string | null; rating: number }[]>([]);
   const [query, setQuery] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
   const [listening, setListening] = useState(false);
   const recogRef = useRef<any>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -120,6 +123,42 @@ const Index = () => {
     recog.start();
   }
 
+  async function onImagePicked(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Image is too large (max 8 MB).");
+      return;
+    }
+    setImageBusy(true);
+    try {
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result as string);
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(file);
+      });
+      const { data, error } = await supabase.functions.invoke("image-search", { body: { image: dataUrl } });
+      if (error || !data || (data as any).error) {
+        toast.error("Couldn't analyse that image. Try another one.");
+        return;
+      }
+      const d = data as any;
+      if (d.description) toast.success(`Looking for: ${d.description}`);
+      navigate(buildBrowseUrl({ q: d.q, category: d.category, purpose: d.purpose, sort: d.sort }));
+    } catch {
+      toast.error("Image search failed. Please try again.");
+    } finally {
+      setImageBusy(false);
+    }
+  }
+
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -153,6 +192,23 @@ const Index = () => {
                 aria-label="AI-powered search"
                 disabled={aiBusy}
               />
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onImagePicked}
+              />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                aria-label="Search by image"
+                title="Search by image"
+                disabled={imageBusy}
+                className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center transition-colors text-muted-foreground hover:bg-muted disabled:opacity-60"
+              >
+                {imageBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+              </button>
               <button
                 type="button"
                 onClick={toggleVoice}
@@ -168,7 +224,7 @@ const Index = () => {
               </Button>
             </form>
             <p className="text-[11px] text-muted-foreground mt-2 ml-5 flex items-center gap-1">
-              <Sparkles className="h-3 w-3" /> AI understands natural language & voice
+              <Sparkles className="h-3 w-3" /> AI understands text, voice & images
             </p>
           </div>
         </div>
