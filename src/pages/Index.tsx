@@ -150,7 +150,12 @@ const Index = () => {
       }
       const d = data as any;
       if (d.description) toast.success(`Looking for: ${d.description}`);
-      navigate(buildBrowseUrl({ q: d.q, category: d.category, purpose: d.purpose, sort: d.sort }));
+      const params = new URLSearchParams();
+      if (d.q) params.set("q", d.q);
+      if (d.category && d.category !== "all") params.set("category", d.category);
+      const matchTerms = [d.q, d.description].filter(Boolean).join(" ").trim();
+      if (matchTerms) params.set("match", matchTerms);
+      navigate(`/browse?${params.toString()}`);
     } catch {
       toast.error("Image search failed. Please try again.");
     } finally {
