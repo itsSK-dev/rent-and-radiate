@@ -100,6 +100,26 @@ const Browse = () => {
           <p className="text-muted-foreground mt-3">Curated pieces from approved boutiques.</p>
         </div>
 
+        {match && (
+          <div className="mb-8 rounded-2xl border border-rose-deep/20 bg-rose-deep/5 p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex-1">
+              <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-1 flex items-center gap-1">
+                <Sparkles className="h-3.5 w-3.5" /> Visual search results
+              </p>
+              <p className="text-sm">
+                Matching against: <span className="italic">"{match}"</span>
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Ranked by similarity to your image — top matches are highlighted with a rose border. Scores reflect overlap between your image's keywords and each product's title and category.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => { const n = new URLSearchParams(params); n.delete("match"); setParams(n); }}>
+              Clear visual search
+            </Button>
+          </div>
+        )}
+
+
         <div className="flex flex-col md:flex-row gap-3 md:items-center mb-10">
           <Input
             placeholder="Search…"
