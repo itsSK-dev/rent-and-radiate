@@ -34,6 +34,16 @@ const Browse = () => {
   const sort = (params.get("sort") as Sort) ?? "newest";
   const storeId = params.get("store");
   const purpose = params.get("purpose") ?? "all";
+  const match = params.get("match") ?? "";
+  const matchTokens = useMemo(() => tokenize(match), [match]);
+
+  const scoredProducts = useMemo(() => {
+    if (matchTokens.length === 0) return products.map(p => ({ p, score: 0 }));
+    return products
+      .map(p => ({ p, score: similarity(`${p.title} ${p.category}`, matchTokens) }))
+      .sort((a, b) => b.score - a.score);
+  }, [products, matchTokens]);
+
 
   useEffect(() => {
     document.title = `Browse ${category === "all" ? "all" : category} · Rent & Radiate`;
