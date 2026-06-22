@@ -29,8 +29,10 @@ const Index = () => {
   const [stores, setStores] = useState<{ id: string; name: string; city: string | null; rating: number }[]>([]);
   const [query, setQuery] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
   const [listening, setListening] = useState(false);
   const recogRef = useRef<any>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
