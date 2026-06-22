@@ -19,7 +19,7 @@ export interface ProductCardData {
   store?: { name: string; city: string | null } | null;
 }
 
-export function ProductCard({ p }: { p: ProductCardData }) {
+export function ProductCard({ p, matchScore }: { p: ProductCardData; matchScore?: number }) {
   const img = p.images?.[0] || demoImageMap[p.title] || "";
   const purpose = p.purpose ?? "rent";
   const actual = Number(p.actual_price ?? 0);
@@ -27,10 +27,16 @@ export function ProductCard({ p }: { p: ProductCardData }) {
   const hasDiscount = actual > 0 && finalPrice < actual;
   const discountPct = p.discount_percent ?? 0;
   const outOfStock = (p.quantity ?? 1) <= 0;
+  const score = typeof matchScore === "number" ? Math.round(matchScore * 100) : null;
+  const isTopMatch = score !== null && score >= 70;
 
   return (
     <Link to={`/product/${p.id}`} className="group block animate-fade-up">
-      <div className="aspect-[4/5] overflow-hidden rounded-xl bg-petal shadow-card relative">
+      <div
+        className={`aspect-[4/5] overflow-hidden rounded-xl bg-petal shadow-card relative ${
+          isTopMatch ? "ring-2 ring-rose-deep ring-offset-2 ring-offset-background" : ""
+        }`}
+      >
         {img ? (
           <img src={img} alt={p.title} loading="lazy"
             className="h-full w-full object-cover transition-smooth group-hover:scale-105" />
@@ -42,6 +48,15 @@ export function ProductCard({ p }: { p: ProductCardData }) {
         <span className="absolute top-3 left-3 text-[10px] uppercase tracking-widest bg-background/80 backdrop-blur px-2 py-1 rounded-full">
           {p.category}
         </span>
+        {score !== null && (
+          <Badge
+            className={`absolute bottom-3 left-3 gap-1 ${
+              isTopMatch ? "bg-rose-deep text-white" : "bg-background/85 text-foreground backdrop-blur"
+            }`}
+          >
+            <Sparkles className="h-3 w-3" /> {score}% match
+          </Badge>
+        )}
         {hasDiscount && (
           <Badge className="absolute top-3 right-3 bg-rose-deep text-white">
             {discountPct > 0 ? `${discountPct}% OFF` : `${inr(p.discount_flat ?? 0)} OFF`}
