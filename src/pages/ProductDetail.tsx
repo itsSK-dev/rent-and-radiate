@@ -54,6 +54,8 @@ const ProductDetail = () => {
   const [qty, setQty] = useState(1);
   const [delivery, setDelivery] = useState<"pickup" | "delivery">("pickup");
   const [submitting, setSubmitting] = useState(false);
+  const [protectionPlan, setProtectionPlan] = useState(false);
+  const [bookedDates, setBookedDates] = useState<Date[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -67,6 +69,22 @@ const ProductDetail = () => {
         const purpose = (data as any).purpose ?? "rent";
         if (purpose === "buy") setMode("buy");
       }
+      // Load active rental bookings to disable on calendar
+      const { data: bookings } = await supabase
+        .from("rentals")
+        .select("start_date,end_date,status,kind")
+        .eq("product_id", id!)
+        .neq("kind", "buy")
+        .in("status", ["pending", "accepted", "confirmed", "packing", "ready_for_pickup", "shipped", "delivered"]);
+      const blocked: Date[] = [];
+      (bookings ?? []).forEach((b: any) => {
+        if (!b.start_date || !b.end_date) return;
+        try {
+          eachDayOfInterval({ start: parseISO(b.start_date), end: parseISO(b.end_date) })
+            .forEach((d) => blocked.push(d));
+        } catch {}
+      });
+      setBookedDates(blocked);
     })();
   }, [id]);
 
