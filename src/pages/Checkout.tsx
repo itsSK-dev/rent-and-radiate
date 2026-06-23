@@ -32,6 +32,8 @@ type Rental = {
   kind: "rent" | "buy";
   quantity: number;
   commission_amount: number;
+  protection_plan: boolean;
+  protection_plan_fee: number;
 };
 
 type ProductLite = { title: string; images: string[] };
