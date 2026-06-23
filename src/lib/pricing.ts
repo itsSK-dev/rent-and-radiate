@@ -6,6 +6,12 @@ export type PlatformSettings = {
   commission_percent: number;
   rental_price_percent: number;
   deposit_percent_of_price: number;
+  protection_plan_percent: number;
+  protection_plan_min: number;
+  late_fee_multiplier: number;
+  late_fee_grace_hours: number;
+  rent_to_own_enabled: boolean;
+  rent_to_own_credit_percent: number;
 };
 
 export const MIN_RENTAL_PERCENT = 10;
@@ -16,7 +22,21 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   commission_percent: 10,
   rental_price_percent: 10,
   deposit_percent_of_price: 100,
+  protection_plan_percent: 5,
+  protection_plan_min: 49,
+  late_fee_multiplier: 1.5,
+  late_fee_grace_hours: 2,
+  rent_to_own_enabled: false,
+  rent_to_own_credit_percent: 50,
 };
+
+/** Optional Rental Protection Plan fee = max(min, percent% of rental subtotal). */
+export function protectionPlanFee(subtotal: number, s: Pick<PlatformSettings, "protection_plan_percent" | "protection_plan_min">) {
+  const pct = Math.max(0, Number(s.protection_plan_percent) || 0);
+  const min = Math.max(0, Number(s.protection_plan_min) || 0);
+  const v = Math.max(min, (Number(subtotal) || 0) * pct / 100);
+  return Math.round(v * 100) / 100;
+}
 
 /** Daily rental price = max(10%, configured%) of the product's discounted selling price. */
 export function computeDailyRentalPrice(effectivePrice: number, rentalPercent: number): number {
