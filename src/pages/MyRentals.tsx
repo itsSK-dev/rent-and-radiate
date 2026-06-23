@@ -203,6 +203,13 @@ const MyRentals = () => {
                       </div>
                     )}
 
+                    {(r.protection_plan || Number(r.late_fee_applied) > 0) && (
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {r.protection_plan && <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200" variant="outline">🛡 Protection plan · ₹{Number(r.protection_plan_fee).toLocaleString("en-IN")}</Badge>}
+                        {Number(r.late_fee_applied) > 0 && <Badge className="bg-amber-100 text-amber-700 border-amber-200" variant="outline">⏱ Late fee · ₹{Number(r.late_fee_applied).toLocaleString("en-IN")} ({r.late_fee_hours}h late)</Badge>}
+                      </div>
+                    )}
+
                     <div className="pt-2 flex flex-wrap gap-2">
                       <Link to={`/track/${r.id}`}>
                         <Button variant="outline" size="sm">Track order</Button>
@@ -216,6 +223,22 @@ const MyRentals = () => {
                         </p>
                       )}
                     </div>
+
+                    <RentalAdvancedActions
+                      rental={{
+                        id: r.id,
+                        qr_token: r.qr_token,
+                        kind: r.kind,
+                        status: r.status,
+                        end_date: r.end_date,
+                        start_date: r.start_date,
+                        product_id: r.product_id,
+                        rental_total: r.rental_total,
+                      }}
+                      rentToOwnEnabled={settings.rent_to_own_enabled}
+                      rentToOwnCreditPercent={settings.rent_to_own_credit_percent}
+                    />
+
                     <div className="pt-2 border-t border-border">
                       <RentalStatusTimeline
                         rentalId={r.id}
