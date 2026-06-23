@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -10,28 +11,49 @@ type Settings = {
   gst_percent: number; delivery_fee: number; commission_percent: number;
   gateway_fee_percent: number; payout_hold_days: number; rental_price_percent: number;
   deposit_percent_of_price: number;
+  protection_plan_percent: number; protection_plan_min: number;
+  late_fee_multiplier: number; late_fee_grace_hours: number;
+  reminder_intervals_hours: number[];
+  rent_to_own_enabled: boolean; rent_to_own_credit_percent: number;
 };
 
 export function PlatformSettingsPanel() {
   const [s, setS] = useState<Settings | null>(null);
   const [saving, setSaving] = useState(false);
+  const [remindersText, setRemindersText] = useState("24,6,1");
 
   async function load() {
     const { data } = await (supabase as any)
       .from("platform_settings")
-      .select("gst_percent,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days,rental_price_percent,deposit_percent_of_price")
+      .select("gst_percent,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days,rental_price_percent,deposit_percent_of_price,protection_plan_percent,protection_plan_min,late_fee_multiplier,late_fee_grace_hours,reminder_intervals_hours,rent_to_own_enabled,rent_to_own_credit_percent")
       .eq("id", true).maybeSingle();
-    setS(data ?? { gst_percent: 18, delivery_fee: 50, commission_percent: 10, gateway_fee_percent: 0, payout_hold_days: 7, rental_price_percent: 10, deposit_percent_of_price: 100 });
+    const d = data ?? {};
+    const merged: Settings = {
+      gst_percent: d.gst_percent ?? 18,
+      delivery_fee: d.delivery_fee ?? 50,
+      commission_percent: d.commission_percent ?? 10,
+      gateway_fee_percent: d.gateway_fee_percent ?? 0,
+      payout_hold_days: d.payout_hold_days ?? 7,
+      rental_price_percent: d.rental_price_percent ?? 10,
+      deposit_percent_of_price: d.deposit_percent_of_price ?? 100,
+      protection_plan_percent: d.protection_plan_percent ?? 5,
+      protection_plan_min: d.protection_plan_min ?? 49,
+      late_fee_multiplier: d.late_fee_multiplier ?? 1.5,
+      late_fee_grace_hours: d.late_fee_grace_hours ?? 2,
+      reminder_intervals_hours: d.reminder_intervals_hours ?? [24, 6, 1],
+      rent_to_own_enabled: d.rent_to_own_enabled ?? false,
+      rent_to_own_credit_percent: d.rent_to_own_credit_percent ?? 50,
+    };
+    setS(merged);
+    setRemindersText(merged.reminder_intervals_hours.join(","));
   }
   useEffect(() => { load(); }, []);
 
   async function save() {
     if (!s) return;
-    const rentalPct = Math.max(10, Number(s.rental_price_percent) || 10);
-    if (Number(s.rental_price_percent) < 10) {
-      toast.error("Daily rental percentage cannot be below 10%.");
-      return;
-    }
+    if (Number(s.rental_price_percent) < 10) return toast.error("Daily rental percentage cannot be below 10%.");
+    const intervals = remindersText.split(",").map((x) => parseInt(x.trim(), 10)).filter((n) => Number.isFinite(n) && n > 0);
+    if (!intervals.length) return toast.error("Add at least one reminder interval (hours).");
     setSaving(true);
     const { error } = await (supabase as any).from("platform_settings")
       .update({
@@ -40,74 +62,83 @@ export function PlatformSettingsPanel() {
         commission_percent: Number(s.commission_percent),
         gateway_fee_percent: Number(s.gateway_fee_percent),
         payout_hold_days: Number(s.payout_hold_days),
-        rental_price_percent: rentalPct,
+        rental_price_percent: Math.max(10, Number(s.rental_price_percent) || 10),
         deposit_percent_of_price: Math.max(0, Number(s.deposit_percent_of_price) || 0),
+        protection_plan_percent: Math.max(0, Number(s.protection_plan_percent) || 0),
+        protection_plan_min: Math.max(0, Number(s.protection_plan_min) || 0),
+        late_fee_multiplier: Math.max(1, Number(s.late_fee_multiplier) || 1),
+        late_fee_grace_hours: Math.max(0, Number(s.late_fee_grace_hours) || 0),
+        reminder_intervals_hours: intervals,
+        rent_to_own_enabled: Boolean(s.rent_to_own_enabled),
+        rent_to_own_credit_percent: Math.max(0, Math.min(100, Number(s.rent_to_own_credit_percent) || 0)),
       }).eq("id", true);
     setSaving(false);
     if (error) return toast.error(error.message);
-    toast.success("Platform settings saved. All product rental prices & deposits will recalculate on next save.");
+    toast.success("Platform settings saved.");
   }
 
-  if (!s) {
-    return <div className="text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</div>;
-  }
+  if (!s) return <div className="text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</div>;
 
   return (
-    <div className="rounded-3xl border border-border bg-card p-6 shadow-card max-w-xl space-y-5">
+    <div className="rounded-3xl border border-border bg-card p-6 shadow-card max-w-3xl space-y-5">
       <div>
-        <h2 className="font-display text-2xl">Platform pricing</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Applied to all customer orders. The platform fee (commission) is automatically deducted from each shop owner's payout after the refund hold window.
-        </p>
+        <h2 className="font-display text-2xl">Platform settings</h2>
+        <p className="text-sm text-muted-foreground mt-1">Pricing, protection plan, late fees, reminders and rent-to-own.</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <div>
-          <Label>GST (%)</Label>
-          <Input type="number" min="0" max="100" step="0.01" value={s.gst_percent}
-            onChange={(e) => setS({ ...s, gst_percent: Number(e.target.value) })} className="mt-1" />
-        </div>
-        <div>
-          <Label>Delivery fee (₹)</Label>
-          <Input type="number" min="0" step="0.01" value={s.delivery_fee}
-            onChange={(e) => setS({ ...s, delivery_fee: Number(e.target.value) })} className="mt-1" />
-        </div>
-        <div>
-          <Label>Platform fee (%)</Label>
-          <Input type="number" min="0" max="100" step="0.01" value={s.commission_percent}
-            onChange={(e) => setS({ ...s, commission_percent: Number(e.target.value) })} className="mt-1" />
-        </div>
-        <div>
-          <Label>Gateway fee (%)</Label>
-          <Input type="number" min="0" max="100" step="0.01" value={s.gateway_fee_percent}
-            onChange={(e) => setS({ ...s, gateway_fee_percent: Number(e.target.value) })} className="mt-1" />
-        </div>
-        <div>
-          <Label>Payout hold (days)</Label>
-          <Input type="number" min="0" max="60" step="1" value={s.payout_hold_days}
-            onChange={(e) => setS({ ...s, payout_hold_days: Number(e.target.value) })} className="mt-1" />
-        </div>
+        <div><Label>GST (%)</Label><Input type="number" min="0" max="100" step="0.01" value={s.gst_percent} onChange={(e) => setS({ ...s, gst_percent: Number(e.target.value) })} className="mt-1" /></div>
+        <div><Label>Delivery fee (₹)</Label><Input type="number" min="0" step="0.01" value={s.delivery_fee} onChange={(e) => setS({ ...s, delivery_fee: Number(e.target.value) })} className="mt-1" /></div>
+        <div><Label>Platform fee (%)</Label><Input type="number" min="0" max="100" step="0.01" value={s.commission_percent} onChange={(e) => setS({ ...s, commission_percent: Number(e.target.value) })} className="mt-1" /></div>
+        <div><Label>Gateway fee (%)</Label><Input type="number" min="0" max="100" step="0.01" value={s.gateway_fee_percent} onChange={(e) => setS({ ...s, gateway_fee_percent: Number(e.target.value) })} className="mt-1" /></div>
+        <div><Label>Payout hold (days)</Label><Input type="number" min="0" max="60" step="1" value={s.payout_hold_days} onChange={(e) => setS({ ...s, payout_hold_days: Number(e.target.value) })} className="mt-1" /></div>
         <div>
           <Label>Rental price (% of selling price)</Label>
-          <Input type="number" min="10" max="100" step="0.1" value={s.rental_price_percent}
-            onChange={(e) => setS({ ...s, rental_price_percent: Number(e.target.value) })} className="mt-1" />
-          <p className="text-[11px] text-muted-foreground mt-1">
-            Daily rental price = this % of the (discounted) selling price. Minimum 10% — cannot go lower. Shop owners cannot override it.
-          </p>
+          <Input type="number" min="10" max="100" step="0.1" value={s.rental_price_percent} onChange={(e) => setS({ ...s, rental_price_percent: Number(e.target.value) })} className="mt-1" />
+          <p className="text-[11px] text-muted-foreground mt-1">Minimum 10%.</p>
         </div>
         <div>
-          <Label>Security deposit (% of selling price)</Label>
-          <Input type="number" min="0" max="500" step="1" value={s.deposit_percent_of_price}
-            onChange={(e) => setS({ ...s, deposit_percent_of_price: Number(e.target.value) })} className="mt-1" />
-          <p className="text-[11px] text-muted-foreground mt-1">
-            Refundable deposit collected on every rental. Keeping this at 100% ensures deposit + rental {'>'} product price, protecting the platform if the item isn't returned.
-          </p>
+          <Label>Security deposit (% of price)</Label>
+          <Input type="number" min="0" max="500" step="1" value={s.deposit_percent_of_price} onChange={(e) => setS({ ...s, deposit_percent_of_price: Number(e.target.value) })} className="mt-1" />
         </div>
       </div>
 
-      <Button variant="hero" onClick={save} disabled={saving}>
-        {saving ? "Saving…" : "Save settings"}
-      </Button>
+      <div className="border-t border-border pt-4 space-y-3">
+        <h3 className="font-medium">Rental Protection Plan</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div><Label>Plan rate (% of rental)</Label><Input type="number" min="0" max="50" step="0.1" value={s.protection_plan_percent} onChange={(e) => setS({ ...s, protection_plan_percent: Number(e.target.value) })} className="mt-1" /></div>
+          <div><Label>Plan minimum (₹)</Label><Input type="number" min="0" step="1" value={s.protection_plan_min} onChange={(e) => setS({ ...s, protection_plan_min: Number(e.target.value) })} className="mt-1" /></div>
+        </div>
+      </div>
+
+      <div className="border-t border-border pt-4 space-y-3">
+        <h3 className="font-medium">Late return charges</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div><Label>Late fee multiplier</Label><Input type="number" min="1" step="0.1" value={s.late_fee_multiplier} onChange={(e) => setS({ ...s, late_fee_multiplier: Number(e.target.value) })} className="mt-1" /><p className="text-[11px] text-muted-foreground mt-1">× per-day rate per late day.</p></div>
+          <div><Label>Grace period (hours)</Label><Input type="number" min="0" step="1" value={s.late_fee_grace_hours} onChange={(e) => setS({ ...s, late_fee_grace_hours: Number(e.target.value) })} className="mt-1" /></div>
+        </div>
+      </div>
+
+      <div className="border-t border-border pt-4 space-y-3">
+        <h3 className="font-medium">Return reminders</h3>
+        <div>
+          <Label>Hours before due (comma-separated)</Label>
+          <Input value={remindersText} onChange={(e) => setRemindersText(e.target.value)} placeholder="24,6,1" className="mt-1" />
+          <p className="text-[11px] text-muted-foreground mt-1">Each customer gets a notification at every interval before their rental due time.</p>
+        </div>
+      </div>
+
+      <div className="border-t border-border pt-4 space-y-3">
+        <h3 className="font-medium">Rent-to-Own</h3>
+        <label className="flex items-center gap-3"><Switch checked={s.rent_to_own_enabled} onCheckedChange={(v) => setS({ ...s, rent_to_own_enabled: v })} /><span className="text-sm">Enable rent-to-own conversion platform-wide</span></label>
+        <div className="max-w-xs">
+          <Label>Credit percent</Label>
+          <Input type="number" min="0" max="100" step="1" value={s.rent_to_own_credit_percent} onChange={(e) => setS({ ...s, rent_to_own_credit_percent: Number(e.target.value) })} className="mt-1" />
+          <p className="text-[11px] text-muted-foreground mt-1">% of past rental spend on the same product applied as discount when buying it out.</p>
+        </div>
+      </div>
+
+      <Button variant="hero" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save settings"}</Button>
     </div>
   );
 }
