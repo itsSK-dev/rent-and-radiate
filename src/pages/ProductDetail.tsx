@@ -144,6 +144,10 @@ const ProductDetail = () => {
   async function buyNow() {
     if (!user) { navigate(`/auth?next=/product/${id}`); return; }
     if (mode === "rent" && (!start || !end)) return toast.error("Pick rental dates.");
+    if (mode === "rent" && start && end) {
+      const span = eachDayOfInterval({ start, end });
+      if (span.some(isBlocked)) return toast.error("Some dates are already booked. Pick a free range.");
+    }
     if (qty > (product!.quantity ?? 0)) return toast.error("Not enough stock.");
     setSubmitting(true);
     const payload: any = {
@@ -164,6 +168,7 @@ const ProductDetail = () => {
       commission_amount: totals.commission,
       grand_total: totals.grandTotal,
       delivery_method: delivery,
+      protection_plan: mode === "rent" ? protectionPlan : false,
     };
     const { data: created, error } = await supabase.from("rentals").insert(payload).select("id").single();
     setSubmitting(false);
