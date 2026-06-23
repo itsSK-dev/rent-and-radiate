@@ -32,6 +32,12 @@ type Rental = {
   payment_method: string | null;
   razorpay_payment_id: string | null;
   delivery_method: string;
+  qr_token: string;
+  product_id: string;
+  protection_plan: boolean;
+  protection_plan_fee: number;
+  late_fee_applied: number;
+  late_fee_hours: number;
   product: { title: string; images: string[] } | null;
   store: { name: string; city: string | null } | null;
 };
