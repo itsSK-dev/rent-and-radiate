@@ -439,6 +439,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
         quantity: Math.max(0, Number(quantity) || 0),
         size: size || null, color: color || null,
         images, available,
+        rent_to_own_enabled: rentToOwn && (purpose === "both"),
       };
       const { error } = isEdit
         ? await supabase.from("products").update(payload).eq("id", editing!.id)
