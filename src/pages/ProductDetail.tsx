@@ -379,7 +379,7 @@ function Row({ label, value, bold, muted, className }: { label: string; value: s
   );
 }
 
-function DateField({ label, value, onChange, min }: { label: string; value?: Date; onChange: (d?: Date) => void; min?: Date }) {
+function DateField({ label, value, onChange, min, isBlocked }: { label: string; value?: Date; onChange: (d?: Date) => void; min?: Date; isBlocked?: (d: Date) => boolean }) {
   return (
     <div>
       <Label className="text-sm">{label}</Label>
@@ -392,7 +392,7 @@ function DateField({ label, value, onChange, min }: { label: string; value?: Dat
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar mode="single" selected={value} onSelect={onChange}
-            disabled={(d) => d < new Date(new Date().setHours(0,0,0,0)) || (min ? d < min : false)}
+            disabled={(d) => d < new Date(new Date().setHours(0,0,0,0)) || (min ? d < min : false) || (isBlocked ? isBlocked(d) : false)}
             initialFocus className={cn("p-3 pointer-events-auto")} />
         </PopoverContent>
       </Popover>
