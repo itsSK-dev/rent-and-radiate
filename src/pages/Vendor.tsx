@@ -389,6 +389,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
   const [size, setSize] = useState(editing?.size ?? "");
   const [color, setColor] = useState(editing?.color ?? "");
   const [available, setAvailable] = useState(editing?.available ?? true);
+  const [rentToOwn, setRentToOwn] = useState((editing as any)?.rent_to_own_enabled ?? false);
   const [files, setFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>(editing?.images ?? []);
   const [busy, setBusy] = useState(false);
