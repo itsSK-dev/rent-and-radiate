@@ -325,7 +325,8 @@ const ProductDetail = () => {
               <Row label={`GST (${settings.gst_percent}%)`} value={inr(totals.gst)} muted />
               {delivery === "delivery" && <Row label="Delivery" value={inr(totals.delivery)} muted />}
               {mode === "rent" && line.deposit > 0 && <Row label="Refundable deposit" value={inr(line.deposit)} muted />}
-              <Row label="Total payable" value={inr(totals.grandTotal)} bold />
+              {mode === "rent" && protectionPlan && <Row label="Protection Plan" value={inr(ppFee)} muted />}
+              <Row label="Total payable" value={inr(displayGrandTotal)} bold />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
