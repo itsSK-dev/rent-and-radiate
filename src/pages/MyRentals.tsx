@@ -14,6 +14,8 @@ import { RentalDisputesList } from "@/components/RentalDisputesList";
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
 import { OrderTypeBadge } from "@/components/OrderTypeBadge";
 import { REFUND_STATUS_LABEL, REFUND_STATUS_TONE } from "@/lib/refundTiers";
+import { RentalAdvancedActions } from "@/components/RentalAdvancedActions";
+import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 
 type Rental = {
