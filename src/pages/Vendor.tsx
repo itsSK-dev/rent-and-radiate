@@ -554,6 +554,16 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
             <Switch checked={available} onCheckedChange={setAvailable} />
           </div>
 
+          {purpose === "both" && (
+            <div className="flex items-center justify-between rounded-xl border border-border bg-blossom/30 p-3">
+              <div>
+                <Label className="cursor-pointer">Enable Rent-to-Own</Label>
+                <p className="text-xs text-muted-foreground">Customers who rent this product can apply their rental spend as credit toward buying it.</p>
+              </div>
+              <Switch checked={rentToOwn} onCheckedChange={setRentToOwn} />
+            </div>
+          )}
+
           {existingImages.length > 0 && (
             <div>
               <Label>Existing images</Label>
