@@ -12,12 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { CalendarIcon, MapPin, Shield, Sparkles, ShoppingCart } from "lucide-react";
-import { format, differenceInCalendarDays, addDays } from "date-fns";
+import { CalendarIcon, MapPin, Shield, Sparkles, ShoppingCart, ShieldCheck } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { format, differenceInCalendarDays, addDays, eachDayOfInterval, isSameDay, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { demoImageMap } from "@/lib/seedDemo";
-import { discountedUnitPrice, inr, computeLine, computeOrderTotals } from "@/lib/pricing";
+import { discountedUnitPrice, inr, computeLine, computeOrderTotals, protectionPlanFee } from "@/lib/pricing";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 type Product = {
