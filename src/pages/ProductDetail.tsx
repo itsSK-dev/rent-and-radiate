@@ -350,13 +350,14 @@ const ProductDetail = () => {
   );
 };
 
-function RentDatePickers({ start, end, setStart, setEnd }: {
+function RentDatePickers({ start, end, setStart, setEnd, isBlocked }: {
   start?: Date; end?: Date; setStart: (d?: Date) => void; setEnd: (d?: Date) => void;
+  isBlocked?: (d: Date) => boolean;
 }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <DateField label="Start" value={start} onChange={(d) => { setStart(d); if (d && end && end < d) setEnd(addDays(d, 1)); }} />
-      <DateField label="End" value={end} onChange={setEnd} min={start} />
+      <DateField label="Start" value={start} onChange={(d) => { setStart(d); if (d && end && end < d) setEnd(addDays(d, 1)); }} isBlocked={isBlocked} />
+      <DateField label="End" value={end} onChange={setEnd} min={start} isBlocked={isBlocked} />
     </div>
   );
 }
