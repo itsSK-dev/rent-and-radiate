@@ -14,6 +14,8 @@ import { RentalDisputesList } from "@/components/RentalDisputesList";
 import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
 import { OrderTypeBadge } from "@/components/OrderTypeBadge";
 import { REFUND_STATUS_LABEL, REFUND_STATUS_TONE } from "@/lib/refundTiers";
+import { RentalAdvancedActions } from "@/components/RentalAdvancedActions";
+import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 
 type Rental = {
@@ -30,6 +32,12 @@ type Rental = {
   payment_method: string | null;
   razorpay_payment_id: string | null;
   delivery_method: string;
+  qr_token: string;
+  product_id: string;
+  protection_plan: boolean;
+  protection_plan_fee: number;
+  late_fee_applied: number;
+  late_fee_hours: number;
   product: { title: string; images: string[] } | null;
   store: { name: string; city: string | null } | null;
 };
@@ -64,6 +72,7 @@ type RefundRow = { id: string; rental_id: string; status: string; refund_amount:
 const MyRentals = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { settings } = usePlatformSettings();
   const [rentals, setRentals] = useState<Rental[]>([]);
 
   useEffect(() => { document.title = "My rentals · Rent & Radiate"; }, []);
@@ -78,7 +87,7 @@ const MyRentals = () => {
     (async () => {
       const { data } = await supabase
         .from("rentals")
-        .select("id,kind,start_date,end_date,days,rental_total,deposit,grand_total,status,payment_status,payment_method,razorpay_payment_id,delivery_method,product:products(title,images),store:stores(name,city)")
+        .select("id,kind,start_date,end_date,days,rental_total,deposit,grand_total,status,payment_status,payment_method,razorpay_payment_id,delivery_method,qr_token,product_id,protection_plan,protection_plan_fee,late_fee_applied,late_fee_hours,product:products(title,images),store:stores(name,city)")
         .eq("customer_id", user.id)
         .order("created_at", { ascending: false });
       setRentals((data as any) ?? []);
@@ -194,6 +203,13 @@ const MyRentals = () => {
                       </div>
                     )}
 
+                    {(r.protection_plan || Number(r.late_fee_applied) > 0) && (
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {r.protection_plan && <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200" variant="outline">🛡 Protection plan · ₹{Number(r.protection_plan_fee).toLocaleString("en-IN")}</Badge>}
+                        {Number(r.late_fee_applied) > 0 && <Badge className="bg-amber-100 text-amber-700 border-amber-200" variant="outline">⏱ Late fee · ₹{Number(r.late_fee_applied).toLocaleString("en-IN")} ({r.late_fee_hours}h late)</Badge>}
+                      </div>
+                    )}
+
                     <div className="pt-2 flex flex-wrap gap-2">
                       <Link to={`/track/${r.id}`}>
                         <Button variant="outline" size="sm">Track order</Button>
@@ -207,6 +223,22 @@ const MyRentals = () => {
                         </p>
                       )}
                     </div>
+
+                    <RentalAdvancedActions
+                      rental={{
+                        id: r.id,
+                        qr_token: r.qr_token,
+                        kind: r.kind,
+                        status: r.status,
+                        end_date: r.end_date,
+                        start_date: r.start_date,
+                        product_id: r.product_id,
+                        rental_total: r.rental_total,
+                      }}
+                      rentToOwnEnabled={settings.rent_to_own_enabled}
+                      rentToOwnCreditPercent={settings.rent_to_own_credit_percent}
+                    />
+
                     <div className="pt-2 border-t border-border">
                       <RentalStatusTimeline
                         rentalId={r.id}

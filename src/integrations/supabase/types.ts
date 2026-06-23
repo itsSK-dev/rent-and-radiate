@@ -979,7 +979,14 @@ export type Database = {
           gateway_fee_percent: number
           gst_percent: number
           id: boolean
+          late_fee_grace_hours: number
+          late_fee_multiplier: number
           payout_hold_days: number
+          protection_plan_min: number
+          protection_plan_percent: number
+          reminder_intervals_hours: number[]
+          rent_to_own_credit_percent: number
+          rent_to_own_enabled: boolean
           rental_price_percent: number
           updated_at: string
         }
@@ -990,7 +997,14 @@ export type Database = {
           gateway_fee_percent?: number
           gst_percent?: number
           id?: boolean
+          late_fee_grace_hours?: number
+          late_fee_multiplier?: number
           payout_hold_days?: number
+          protection_plan_min?: number
+          protection_plan_percent?: number
+          reminder_intervals_hours?: number[]
+          rent_to_own_credit_percent?: number
+          rent_to_own_enabled?: boolean
           rental_price_percent?: number
           updated_at?: string
         }
@@ -1001,7 +1015,14 @@ export type Database = {
           gateway_fee_percent?: number
           gst_percent?: number
           id?: boolean
+          late_fee_grace_hours?: number
+          late_fee_multiplier?: number
           payout_hold_days?: number
+          protection_plan_min?: number
+          protection_plan_percent?: number
+          reminder_intervals_hours?: number[]
+          rent_to_own_credit_percent?: number
+          rent_to_own_enabled?: boolean
           rental_price_percent?: number
           updated_at?: string
         }
@@ -1023,6 +1044,7 @@ export type Database = {
           price_per_day: number
           purpose: Database["public"]["Enums"]["product_purpose"]
           quantity: number
+          rent_to_own_enabled: boolean
           security_deposit: number
           size: string | null
           store_id: string
@@ -1044,6 +1066,7 @@ export type Database = {
           price_per_day: number
           purpose?: Database["public"]["Enums"]["product_purpose"]
           quantity?: number
+          rent_to_own_enabled?: boolean
           security_deposit: number
           size?: string | null
           store_id: string
@@ -1065,6 +1088,7 @@ export type Database = {
           price_per_day?: number
           purpose?: Database["public"]["Enums"]["product_purpose"]
           quantity?: number
+          rent_to_own_enabled?: boolean
           security_deposit?: number
           size?: string | null
           store_id?: string
@@ -1248,6 +1272,44 @@ export type Database = {
           },
         ]
       }
+      rental_reminders: {
+        Row: {
+          created_at: string
+          due_at: string
+          hours_before: number
+          id: string
+          rental_id: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          due_at: string
+          hours_before: number
+          id?: string
+          rental_id: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          due_at?: string
+          hours_before?: number
+          id?: string
+          rental_id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rental_reminders_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rental_status_history: {
         Row: {
           changed_by: string | null
@@ -1291,6 +1353,7 @@ export type Database = {
           actual_delivered_at: string | null
           address: string | null
           commission_amount: number
+          converted_to_purchase_rental_id: string | null
           created_at: string
           customer_id: string
           days: number | null
@@ -1306,14 +1369,20 @@ export type Database = {
           gst_amount: number
           id: string
           kind: Database["public"]["Enums"]["order_kind"]
+          late_fee_applied: number
+          late_fee_hours: number
           payment_method: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           product_id: string
+          protection_plan: boolean
+          protection_plan_fee: number
+          qr_token: string
           quantity: number
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
           razorpay_signature: string | null
           refund_amount: number | null
+          rent_to_own_credit: number
           rental_total: number
           return_initiated_at: string | null
           returned_at: string | null
@@ -1328,6 +1397,7 @@ export type Database = {
           actual_delivered_at?: string | null
           address?: string | null
           commission_amount?: number
+          converted_to_purchase_rental_id?: string | null
           created_at?: string
           customer_id: string
           days?: number | null
@@ -1343,14 +1413,20 @@ export type Database = {
           gst_amount?: number
           id?: string
           kind?: Database["public"]["Enums"]["order_kind"]
+          late_fee_applied?: number
+          late_fee_hours?: number
           payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           product_id: string
+          protection_plan?: boolean
+          protection_plan_fee?: number
+          qr_token?: string
           quantity?: number
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
           razorpay_signature?: string | null
           refund_amount?: number | null
+          rent_to_own_credit?: number
           rental_total?: number
           return_initiated_at?: string | null
           returned_at?: string | null
@@ -1365,6 +1441,7 @@ export type Database = {
           actual_delivered_at?: string | null
           address?: string | null
           commission_amount?: number
+          converted_to_purchase_rental_id?: string | null
           created_at?: string
           customer_id?: string
           days?: number | null
@@ -1380,14 +1457,20 @@ export type Database = {
           gst_amount?: number
           id?: string
           kind?: Database["public"]["Enums"]["order_kind"]
+          late_fee_applied?: number
+          late_fee_hours?: number
           payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           product_id?: string
+          protection_plan?: boolean
+          protection_plan_fee?: number
+          qr_token?: string
           quantity?: number
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
           razorpay_signature?: string | null
           refund_amount?: number | null
+          rent_to_own_credit?: number
           rental_total?: number
           return_initiated_at?: string | null
           returned_at?: string | null
@@ -1399,6 +1482,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rentals_converted_to_purchase_rental_id_fkey"
+            columns: ["converted_to_purchase_rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rentals_product_id_fkey"
             columns: ["product_id"]

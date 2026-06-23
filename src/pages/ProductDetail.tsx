@@ -12,12 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { CalendarIcon, MapPin, Shield, Sparkles, ShoppingCart } from "lucide-react";
-import { format, differenceInCalendarDays, addDays } from "date-fns";
+import { CalendarIcon, MapPin, Shield, Sparkles, ShoppingCart, ShieldCheck } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { format, differenceInCalendarDays, addDays, eachDayOfInterval, isSameDay, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { demoImageMap } from "@/lib/seedDemo";
-import { discountedUnitPrice, inr, computeLine, computeOrderTotals } from "@/lib/pricing";
+import { discountedUnitPrice, inr, computeLine, computeOrderTotals, protectionPlanFee } from "@/lib/pricing";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 type Product = {
@@ -53,6 +54,8 @@ const ProductDetail = () => {
   const [qty, setQty] = useState(1);
   const [delivery, setDelivery] = useState<"pickup" | "delivery">("pickup");
   const [submitting, setSubmitting] = useState(false);
+  const [protectionPlan, setProtectionPlan] = useState(false);
+  const [bookedDates, setBookedDates] = useState<Date[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -66,6 +69,22 @@ const ProductDetail = () => {
         const purpose = (data as any).purpose ?? "rent";
         if (purpose === "buy") setMode("buy");
       }
+      // Load active rental bookings to disable on calendar
+      const { data: bookings } = await supabase
+        .from("rentals")
+        .select("start_date,end_date,status,kind")
+        .eq("product_id", id!)
+        .neq("kind", "buy")
+        .in("status", ["pending", "accepted", "confirmed", "packing", "ready_for_pickup", "shipped", "delivered"]);
+      const blocked: Date[] = [];
+      (bookings ?? []).forEach((b: any) => {
+        if (!b.start_date || !b.end_date) return;
+        try {
+          eachDayOfInterval({ start: parseISO(b.start_date), end: parseISO(b.end_date) })
+            .forEach((d) => blocked.push(d));
+        } catch {}
+      });
+      setBookedDates(blocked);
     })();
   }, [id]);
 
@@ -96,9 +115,13 @@ const ProductDetail = () => {
     days,
   });
   const totals = computeOrderTotals([line], settings, { delivery: delivery === "delivery" });
+  const ppFee = mode === "rent" && protectionPlan ? protectionPlanFee(line.subtotal, settings) : 0;
+  const displayGrandTotal = totals.grandTotal + ppFee;
   const finalUnit = discountedUnitPrice(product.actual_price, product.discount_percent, product.discount_flat);
   const hasDiscount = canBuy && Number(product.actual_price) > 0 && finalUnit < Number(product.actual_price);
   const heroImg = product.images?.[activeImage] || product.images?.[0] || demoImageMap[product.title];
+
+  const isBlocked = (d: Date) => bookedDates.some((b) => isSameDay(b, d));
 
   async function addToCart() {
     if (!user) { navigate(`/auth?next=/product/${id}`); return; }
@@ -121,6 +144,10 @@ const ProductDetail = () => {
   async function buyNow() {
     if (!user) { navigate(`/auth?next=/product/${id}`); return; }
     if (mode === "rent" && (!start || !end)) return toast.error("Pick rental dates.");
+    if (mode === "rent" && start && end) {
+      const span = eachDayOfInterval({ start, end });
+      if (span.some(isBlocked)) return toast.error("Some dates are already booked. Pick a free range.");
+    }
     if (qty > (product!.quantity ?? 0)) return toast.error("Not enough stock.");
     setSubmitting(true);
     const payload: any = {
@@ -141,6 +168,7 @@ const ProductDetail = () => {
       commission_amount: totals.commission,
       grand_total: totals.grandTotal,
       delivery_method: delivery,
+      protection_plan: mode === "rent" ? protectionPlan : false,
     };
     const { data: created, error } = await supabase.from("rentals").insert(payload).select("id").single();
     setSubmitting(false);
@@ -233,16 +261,38 @@ const ProductDetail = () => {
                   <TabsTrigger value="buy" className="flex-1">Buy</TabsTrigger>
                 </TabsList>
                 <TabsContent value="rent" className="mt-4 space-y-4">
-                  <RentDatePickers start={start} end={end} setStart={setStart} setEnd={setEnd} />
+                  <RentDatePickers start={start} end={end} setStart={setStart} setEnd={setEnd} isBlocked={isBlocked} />
                 </TabsContent>
                 <TabsContent value="buy" className="mt-4">
                   <p className="text-sm text-muted-foreground">Buy this piece outright at the discounted price below.</p>
                 </TabsContent>
               </Tabs>
             ) : canRent ? (
-              <RentDatePickers start={start} end={end} setStart={setStart} setEnd={setEnd} />
+              <RentDatePickers start={start} end={end} setStart={setStart} setEnd={setEnd} isBlocked={isBlocked} />
             ) : (
               <p className="text-sm text-muted-foreground">This item is for purchase only.</p>
+            )}
+
+            {mode === "rent" && bookedDates.length > 0 && (
+              <p className="text-[11px] text-muted-foreground -mt-2">
+                <CalendarIcon className="inline h-3 w-3 mr-1" />
+                {bookedDates.length} day{bookedDates.length === 1 ? "" : "s"} already booked — unavailable dates are disabled.
+              </p>
+            )}
+
+            {mode === "rent" && (
+              <label className="flex items-start gap-3 rounded-2xl border border-border bg-blossom/30 p-3 cursor-pointer">
+                <Switch checked={protectionPlan} onCheckedChange={setProtectionPlan} className="mt-1" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 text-rose-deep" /> Rental Protection Plan
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Optional. Covers accidental damage up to ₹{Number(line.deposit).toLocaleString("en-IN")}. Adds{" "}
+                    <strong>{inr(protectionPlanFee(line.subtotal, settings))}</strong> to this order.
+                  </p>
+                </div>
+              </label>
             )}
 
             <div className="grid grid-cols-2 gap-3">
@@ -275,7 +325,8 @@ const ProductDetail = () => {
               <Row label={`GST (${settings.gst_percent}%)`} value={inr(totals.gst)} muted />
               {delivery === "delivery" && <Row label="Delivery" value={inr(totals.delivery)} muted />}
               {mode === "rent" && line.deposit > 0 && <Row label="Refundable deposit" value={inr(line.deposit)} muted />}
-              <Row label="Total payable" value={inr(totals.grandTotal)} bold />
+              {mode === "rent" && protectionPlan && <Row label="Protection Plan" value={inr(ppFee)} muted />}
+              <Row label="Total payable" value={inr(displayGrandTotal)} bold />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
@@ -300,13 +351,14 @@ const ProductDetail = () => {
   );
 };
 
-function RentDatePickers({ start, end, setStart, setEnd }: {
+function RentDatePickers({ start, end, setStart, setEnd, isBlocked }: {
   start?: Date; end?: Date; setStart: (d?: Date) => void; setEnd: (d?: Date) => void;
+  isBlocked?: (d: Date) => boolean;
 }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <DateField label="Start" value={start} onChange={(d) => { setStart(d); if (d && end && end < d) setEnd(addDays(d, 1)); }} />
-      <DateField label="End" value={end} onChange={setEnd} min={start} />
+      <DateField label="Start" value={start} onChange={(d) => { setStart(d); if (d && end && end < d) setEnd(addDays(d, 1)); }} isBlocked={isBlocked} />
+      <DateField label="End" value={end} onChange={setEnd} min={start} isBlocked={isBlocked} />
     </div>
   );
 }
@@ -328,7 +380,7 @@ function Row({ label, value, bold, muted, className }: { label: string; value: s
   );
 }
 
-function DateField({ label, value, onChange, min }: { label: string; value?: Date; onChange: (d?: Date) => void; min?: Date }) {
+function DateField({ label, value, onChange, min, isBlocked }: { label: string; value?: Date; onChange: (d?: Date) => void; min?: Date; isBlocked?: (d: Date) => boolean }) {
   return (
     <div>
       <Label className="text-sm">{label}</Label>
@@ -341,7 +393,7 @@ function DateField({ label, value, onChange, min }: { label: string; value?: Dat
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar mode="single" selected={value} onSelect={onChange}
-            disabled={(d) => d < new Date(new Date().setHours(0,0,0,0)) || (min ? d < min : false)}
+            disabled={(d) => d < new Date(new Date().setHours(0,0,0,0)) || (min ? d < min : false) || (isBlocked ? isBlocked(d) : false)}
             initialFocus className={cn("p-3 pointer-events-auto")} />
         </PopoverContent>
       </Popover>

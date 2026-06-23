@@ -32,6 +32,8 @@ type Rental = {
   kind: "rent" | "buy";
   quantity: number;
   commission_amount: number;
+  protection_plan: boolean;
+  protection_plan_fee: number;
 };
 
 type ProductLite = { title: string; images: string[] };
@@ -76,7 +78,7 @@ const Checkout = () => {
     (async () => {
       const [{ data: r, error }, { data: psRows }] = await Promise.all([
         supabase.from("rentals")
-          .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount")
+          .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, protection_plan, protection_plan_fee")
           .eq("id", rentalId!).maybeSingle(),
         (supabase as any).rpc("get_public_payment_settings"),
       ]);
@@ -271,6 +273,7 @@ const Checkout = () => {
             {Number(rental.gst_amount) > 0 && <Row label="GST" value={`₹${Number(rental.gst_amount).toLocaleString("en-IN")}`} muted />}
             {Number(rental.delivery_fee) > 0 && <Row label="Delivery" value={`₹${Number(rental.delivery_fee).toLocaleString("en-IN")}`} muted />}
             {Number(rental.deposit) > 0 && <Row label="Refundable deposit" value={`₹${Number(rental.deposit).toLocaleString("en-IN")}`} muted />}
+            {Number(rental.protection_plan_fee) > 0 && <Row label="Rental Protection Plan" value={`₹${Number(rental.protection_plan_fee).toLocaleString("en-IN")}`} muted />}
             <Row label="Total payable" value={`₹${Number(rental.grand_total).toLocaleString("en-IN")}`} bold />
           </div>
 

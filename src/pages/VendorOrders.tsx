@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { Search, Package, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OrderTypeBadge, RentalDates } from "@/components/OrderTypeBadge";
+import { VendorQRVerify } from "@/components/vendor/VendorQRVerify";
 
 type Row = {
   id: string;
@@ -184,6 +185,9 @@ export default function VendorOrders() {
             Refresh
           </Button>
         </header>
+
+        <VendorQRVerify />
+
 
         {/* Filters */}
         <Card className="p-4 space-y-4">

@@ -1,55 +1,128 @@
-# Order Notification & Fulfillment System
+## Goal
 
-Your app already has the bones: `rentals` (kind = `buy` or `rent`) is the orders table, with `rental_status_history`, customer-side in-app notifications via the `tg_notify_rental_status` trigger, an email queue, and a Vendor page where shop owners see their orders. This plan fills the gaps you listed: shop-owner alerts, richer fulfillment statuses with action buttons, a dedicated order dashboard, status emails to customers, real-time updates, and badges.
+Layer advanced rental management onto the existing rentals system without breaking checkout, payment, refund, or vendor flows.
 
-## 1. Database changes (one migration)
+## What already exists (will be reused, not rebuilt)
 
-- Extend `rental_status` enum with fulfillment stages: `accepted`, `rejected`, `packing`, `ready_for_pickup`, `shipped`. (Keep existing `pending`, `confirmed`, `delivered`, `returned`, `cancelled` — `confirmed` stays as the legacy "accepted".)
-- Update the order-status trigger so that on **new order insert** it also creates an in-app notification for the **shop owner** (uses `stores.owner_id`) with customer name, product, qty, address, payment status.
-- Extend the customer-side notification trigger to handle the new statuses with friendly titles ("Order accepted", "Being packed", "Ready for pickup", "Shipped", "Out for delivery", etc.).
-- After status changes, enqueue a transactional email to the customer (and optionally the shop owner on new orders) via the existing `transactional_emails` queue using the current `status-update` template (extended with the new labels).
-- Add an index on `rentals(store_id, status, created_at desc)` for the dashboard.
+- `rental_images` table with `stage` (`before_delivery`, `after_return`) and an enforcement trigger that blocks `delivered`/`returned` without proof photos.
+- `rental_extension_requests` table + `apply_extension_approval` trigger that updates `end_date` and `days` on approval.
+- `tg_auto_create_refund_on_return` already computes a late fee (per-day rental rate × days late) and feeds it into `deposit_refunds`.
+- `platform_settings` row holds GST, commission, delivery fee, rental %, deposit %.
 
-## 2. Edge function
+The work below fills the gaps and exposes everything in the UI. No existing column or trigger is dropped.
 
-- `notify-new-order` (server-trigger from the existing payment-verify function, or fired from a DB trigger via `pg_net`): enqueues the shop-owner email + customer order-confirmation email. Reuses the email queue, no new secrets.
+## New / changed pieces
 
-## 3. Shop-owner Order Dashboard
+### 1. Platform settings (admin-controlled)
 
-New route `/vendor/orders` (also surfaced as a tab inside `Vendor.tsx`) with:
+Add columns to `platform_settings`:
+- `protection_plan_percent` (default 5 — % of rental subtotal)
+- `protection_plan_min` (default 49 — floor in INR)
+- `late_fee_multiplier` (default 1.5 — multiplies per-day rate for each late day)
+- `late_fee_grace_hours` (default 2)
+- `reminder_intervals_hours` (int[] default `{24,6,1}`)
+- `rent_to_own_enabled` (bool default false — global toggle)
+- `rent_to_own_credit_percent` (default 50 — % of paid rentals applied toward purchase)
 
-- Stat cards: New / In progress / Shipped / Delivered / Cancelled.
-- Filters: status multi-select, kind (buy/rent), date range.
-- Search box: order ID prefix or customer name (server-side `ilike`).
-- Table (desktop) / stacked cards (mobile) showing: order id (short), customer, product + qty, address, payment status, total, placed-at.
-- Action buttons that follow a state machine:
-  - `pending` → **Accept** / **Reject**
-  - `accepted` → **Mark Packing**
-  - `packing` → **Mark Ready for Pickup/Shipping**
-  - `ready_for_pickup` → **Mark Shipped**
-  - `shipped` → **Mark Delivered**
-  - Plus **Cancel** where allowed.
-- Realtime subscription on `rentals` filtered by the vendor's store ids so the list and badges update live.
+Update `PlatformSettingsPanel.tsx` with new fields. Shop owners never see these.
 
-## 4. Customer-side tracking
+### 2. Product-level rent-to-own opt-in
 
-- Extend `RentalStatusTimeline` with the new steps so `MyRentals` and `TrackOrder` show the full fulfillment journey.
-- Subscribe to the customer's own `rentals` rows for live status updates.
+Add `products.rent_to_own_enabled` (bool default false). Shop owner can toggle per product in Vendor page. Only effective when global `rent_to_own_enabled` is true and product `purpose` is `both`.
 
-## 5. Notification badges
+### 3. Rentals table additions
 
-- `NotificationBell` already exists. Add a small **"New orders"** badge in the Navbar (vendor-only) that counts `rentals` where `status = 'pending'` for the owner's stores, live-updated via realtime.
-- Inside the dashboard, each status tab shows a count.
+- `protection_plan` bool, `protection_plan_fee` numeric — captured at checkout.
+- `late_fee_applied` numeric — locked in when return is processed.
+- `late_fee_hours` int — actual hours late at return time.
+- `qr_token` uuid default `gen_random_uuid()`, unique — used for QR verification.
+- `rent_to_own_credit` numeric — running credit earned by completed rentals of this product by this customer.
+- `converted_to_purchase_rental_id` uuid nullable — links a buy-out order back to the rental it was converted from.
 
-## 6. Security & responsiveness
+Update `compute_rental_pricing` trigger:
+- Compute `protection_plan_fee = max(min, subtotal × percent/100)` when `protection_plan = true` and `kind != 'buy'`.
+- Add it to `grand_total`.
+- Customers cannot self-set `late_fee_applied`, `qr_token`, `rent_to_own_credit`, `converted_to_purchase_rental_id` (guard in trigger).
 
-- All RLS stays as-is (vendor sees only their store's rentals; status updates already gated by store ownership). New enum values are covered by existing policies.
-- Dashboard is mobile-first: cards on `<md`, table on `≥md`. Action buttons stack vertically on small screens.
+Update `tg_auto_create_refund_on_return`:
+- Use `late_fee_multiplier` and `late_fee_grace_hours` from settings.
+- Compute `hours_late` = max(0, returned_at − end_date − grace).
+- `late_fee = ceil(hours_late / 24) × per_day × multiplier`.
+- Store in `rentals.late_fee_applied` and pass to `deposit_refunds.late_fee` (existing column).
+
+### 4. Reminder system
+
+New table `rental_reminders`:
+- `rental_id`, `due_at` (timestamptz), `hours_before` int, `sent_at` nullable, `status` (`pending|sent|skipped`).
+
+Trigger on rental insert/update of `end_date`: insert one row per interval from `reminder_intervals_hours`.
+
+New edge function `send-rental-reminders` (scheduled via `pg_cron` every 15 min):
+- Selects `rental_reminders` where `sent_at IS NULL AND due_at <= now() AND status = 'pending'`.
+- Creates a `notification` (existing `notifications` table) for the customer.
+- Marks reminder `sent`.
+
+### 5. Condition photos UI
+
+Already enforced server-side. Add:
+- Vendor → order detail: "Before dispatch" uploader (existing `rental_images` + `product-images` bucket reuse) — make it required before clicking "Mark delivered".
+- Customer → My Rentals: "Before return" uploader, required before clicking "Mark returned".
+- Both surface the full image gallery per stage on the order page so disputes have full evidence.
+
+### 6. Rental availability calendar
+
+New page `/product/:id/calendar` (or inline on ProductDetail):
+- Reads confirmed/active rentals for that product (`status in confirmed|delivered|shipped|packing` and `kind != 'buy'`).
+- Renders month grid with booked dates blocked.
+- Checkout date pickers disable blocked ranges.
+
+Implementation: small `RentalCalendar` component using shadcn `Calendar` with `disabled={blockedDates}`.
+
+### 7. QR verification
+
+- Vendor order detail page renders `<QRCode value={qr_token}/>` (using `qrcode.react`, already a tiny add) for handover.
+- Vendor scans (or pastes) customer QR on pickup → calls edge function `verify-rental-qr` which checks token + flips `status` to `delivered` (after the photo gate).
+- For Phase 1 ship the QR display + a paste-token form on `/vendor/orders/:id`; native camera scan can come later.
+
+### 8. Rent-to-own conversion
+
+Add edge function `convert-rental-to-purchase`:
+- Inputs: `rental_id`.
+- Validates: rental status in (`returned|delivered`), product + platform both have rent-to-own enabled, customer matches caller.
+- Computes credit = sum of completed `rental_total` for this customer×product × `rent_to_own_credit_percent / 100`.
+- Creates a new `rentals` row with `kind='buy'`, `quantity=1`, `discount_amount = credit` (capped at product price), `converted_to_purchase_rental_id = source`, status `pending`, payment `unpaid`.
+- Customer then completes payment via existing Razorpay/COD flow.
+
+Surface a "Buy this for ₹X (₹Y rental credit applied)" button on My Rentals for eligible completed rentals.
+
+### 9. Checkout updates
+
+`Checkout.tsx`:
+- Show optional Rental Protection Plan toggle for rent orders. Live-update displayed totals using a small client mirror of the formula (server is source of truth).
+- Insert with `protection_plan` and (server will compute the fee) — client only sends the flag.
+
+### 10. Cron / scheduled work
+
+After migrations, register cron jobs via insert tool (per knowledge file):
+- `send-rental-reminders` every 15 min.
+- Reuse the existing `process-scheduled-campaigns` cadence as the template.
 
 ## Technical notes
 
-- Files added: `src/pages/VendorOrders.tsx`, `src/components/vendor/OrderActions.tsx`, `src/components/vendor/OrderFilters.tsx`, `src/hooks/useNewOrderCount.ts`, `supabase/functions/notify-new-order/index.ts`.
-- Files changed: `src/App.tsx` (route), `src/components/Navbar.tsx` (vendor badge), `src/pages/Vendor.tsx` (link tab), `src/components/RentalStatusTimeline.tsx` (new steps), `supabase/functions/_shared/transactional-email-templates/status-update.tsx` (labels).
-- DB: one migration adding enum values, replacing the two trigger functions, adding the index. No table renames, no breaking schema changes — existing rentals keep working.
+- All new policies follow the existing pattern: customer reads own rows, store owner reads store rows, admin reads all, edge functions use service role.
+- New tables get explicit GRANTs (`authenticated` + `service_role`; no `anon`).
+- `qrcode.react` is the only new npm dep.
+- No existing column types change. New columns are nullable / have defaults so old code paths keep working.
+- Pricing displayed in components.tsx already reads from `pricing.ts`; extend with `protectionPlanFee(subtotal, settings)` helper so UI and edge functions agree.
 
-Approve and I'll ship it in one pass (migration first, then code).
+## Rollout order (one PR per step, each independently shippable)
+
+1. Migration: platform_settings + rentals + products columns, update triggers, `rental_reminders` table & insert trigger.
+2. Checkout protection-plan toggle.
+3. Vendor + customer photo gates wired into status transitions.
+4. Edge function + cron for reminders.
+5. Availability calendar on ProductDetail + date-picker disabling.
+6. QR display on vendor order page + `verify-rental-qr` edge function.
+7. Rent-to-own toggle in Vendor product form + conversion button + `convert-rental-to-purchase` edge function.
+
+Reply with which steps to ship first (or "all of it") and I'll start with the migration.

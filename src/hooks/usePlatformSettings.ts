@@ -11,7 +11,7 @@ export function usePlatformSettings() {
     (async () => {
       const { data } = await (supabase as any)
         .from("platform_settings")
-        .select("gst_percent,delivery_fee,commission_percent,rental_price_percent,deposit_percent_of_price")
+        .select("gst_percent,delivery_fee,commission_percent,rental_price_percent,deposit_percent_of_price,protection_plan_percent,protection_plan_min,late_fee_multiplier,late_fee_grace_hours,rent_to_own_enabled,rent_to_own_credit_percent")
         .eq("id", true)
         .maybeSingle();
       if (mounted && data) {
@@ -21,6 +21,12 @@ export function usePlatformSettings() {
           commission_percent: Number(data.commission_percent),
           rental_price_percent: Math.max(10, Number(data.rental_price_percent ?? 10)),
           deposit_percent_of_price: Number(data.deposit_percent_of_price ?? 100),
+          protection_plan_percent: Number(data.protection_plan_percent ?? 5),
+          protection_plan_min: Number(data.protection_plan_min ?? 49),
+          late_fee_multiplier: Number(data.late_fee_multiplier ?? 1.5),
+          late_fee_grace_hours: Number(data.late_fee_grace_hours ?? 2),
+          rent_to_own_enabled: Boolean(data.rent_to_own_enabled ?? false),
+          rent_to_own_credit_percent: Number(data.rent_to_own_credit_percent ?? 50),
         });
       }
       if (mounted) setLoading(false);

@@ -389,6 +389,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
   const [size, setSize] = useState(editing?.size ?? "");
   const [color, setColor] = useState(editing?.color ?? "");
   const [available, setAvailable] = useState(editing?.available ?? true);
+  const [rentToOwn, setRentToOwn] = useState((editing as any)?.rent_to_own_enabled ?? false);
   const [files, setFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>(editing?.images ?? []);
   const [busy, setBusy] = useState(false);
@@ -438,6 +439,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
         quantity: Math.max(0, Number(quantity) || 0),
         size: size || null, color: color || null,
         images, available,
+        rent_to_own_enabled: rentToOwn && (purpose === "both"),
       };
       const { error } = isEdit
         ? await supabase.from("products").update(payload).eq("id", editing!.id)
@@ -551,6 +553,16 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
             </div>
             <Switch checked={available} onCheckedChange={setAvailable} />
           </div>
+
+          {purpose === "both" && (
+            <div className="flex items-center justify-between rounded-xl border border-border bg-blossom/30 p-3">
+              <div>
+                <Label className="cursor-pointer">Enable Rent-to-Own</Label>
+                <p className="text-xs text-muted-foreground">Customers who rent this product can apply their rental spend as credit toward buying it.</p>
+              </div>
+              <Switch checked={rentToOwn} onCheckedChange={setRentToOwn} />
+            </div>
+          )}
 
           {existingImages.length > 0 && (
             <div>
