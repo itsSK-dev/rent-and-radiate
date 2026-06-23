@@ -115,9 +115,13 @@ const ProductDetail = () => {
     days,
   });
   const totals = computeOrderTotals([line], settings, { delivery: delivery === "delivery" });
+  const ppFee = mode === "rent" && protectionPlan ? protectionPlanFee(line.subtotal, settings) : 0;
+  const displayGrandTotal = totals.grandTotal + ppFee;
   const finalUnit = discountedUnitPrice(product.actual_price, product.discount_percent, product.discount_flat);
   const hasDiscount = canBuy && Number(product.actual_price) > 0 && finalUnit < Number(product.actual_price);
   const heroImg = product.images?.[activeImage] || product.images?.[0] || demoImageMap[product.title];
+
+  const isBlocked = (d: Date) => bookedDates.some((b) => isSameDay(b, d));
 
   async function addToCart() {
     if (!user) { navigate(`/auth?next=/product/${id}`); return; }
