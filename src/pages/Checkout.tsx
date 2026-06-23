@@ -273,6 +273,7 @@ const Checkout = () => {
             {Number(rental.gst_amount) > 0 && <Row label="GST" value={`₹${Number(rental.gst_amount).toLocaleString("en-IN")}`} muted />}
             {Number(rental.delivery_fee) > 0 && <Row label="Delivery" value={`₹${Number(rental.delivery_fee).toLocaleString("en-IN")}`} muted />}
             {Number(rental.deposit) > 0 && <Row label="Refundable deposit" value={`₹${Number(rental.deposit).toLocaleString("en-IN")}`} muted />}
+            {Number(rental.protection_plan_fee) > 0 && <Row label="Rental Protection Plan" value={`₹${Number(rental.protection_plan_fee).toLocaleString("en-IN")}`} muted />}
             <Row label="Total payable" value={`₹${Number(rental.grand_total).toLocaleString("en-IN")}`} bold />
           </div>
 
