@@ -261,16 +261,38 @@ const ProductDetail = () => {
                   <TabsTrigger value="buy" className="flex-1">Buy</TabsTrigger>
                 </TabsList>
                 <TabsContent value="rent" className="mt-4 space-y-4">
-                  <RentDatePickers start={start} end={end} setStart={setStart} setEnd={setEnd} />
+                  <RentDatePickers start={start} end={end} setStart={setStart} setEnd={setEnd} isBlocked={isBlocked} />
                 </TabsContent>
                 <TabsContent value="buy" className="mt-4">
                   <p className="text-sm text-muted-foreground">Buy this piece outright at the discounted price below.</p>
                 </TabsContent>
               </Tabs>
             ) : canRent ? (
-              <RentDatePickers start={start} end={end} setStart={setStart} setEnd={setEnd} />
+              <RentDatePickers start={start} end={end} setStart={setStart} setEnd={setEnd} isBlocked={isBlocked} />
             ) : (
               <p className="text-sm text-muted-foreground">This item is for purchase only.</p>
+            )}
+
+            {mode === "rent" && bookedDates.length > 0 && (
+              <p className="text-[11px] text-muted-foreground -mt-2">
+                <CalendarIcon className="inline h-3 w-3 mr-1" />
+                {bookedDates.length} day{bookedDates.length === 1 ? "" : "s"} already booked — unavailable dates are disabled.
+              </p>
+            )}
+
+            {mode === "rent" && (
+              <label className="flex items-start gap-3 rounded-2xl border border-border bg-blossom/30 p-3 cursor-pointer">
+                <Switch checked={protectionPlan} onCheckedChange={setProtectionPlan} className="mt-1" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 text-rose-deep" /> Rental Protection Plan
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Optional. Covers accidental damage up to ₹{Number(line.deposit).toLocaleString("en-IN")}. Adds{" "}
+                    <strong>{inr(protectionPlanFee(line.subtotal, settings))}</strong> to this order.
+                  </p>
+                </div>
+              </label>
             )}
 
             <div className="grid grid-cols-2 gap-3">
