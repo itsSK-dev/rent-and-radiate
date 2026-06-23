@@ -72,6 +72,7 @@ type RefundRow = { id: string; rental_id: string; status: string; refund_amount:
 const MyRentals = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { settings } = usePlatformSettings();
   const [rentals, setRentals] = useState<Rental[]>([]);
 
   useEffect(() => { document.title = "My rentals · Rent & Radiate"; }, []);
@@ -86,7 +87,7 @@ const MyRentals = () => {
     (async () => {
       const { data } = await supabase
         .from("rentals")
-        .select("id,kind,start_date,end_date,days,rental_total,deposit,grand_total,status,payment_status,payment_method,razorpay_payment_id,delivery_method,product:products(title,images),store:stores(name,city)")
+        .select("id,kind,start_date,end_date,days,rental_total,deposit,grand_total,status,payment_status,payment_method,razorpay_payment_id,delivery_method,qr_token,product_id,protection_plan,protection_plan_fee,late_fee_applied,late_fee_hours,product:products(title,images),store:stores(name,city)")
         .eq("customer_id", user.id)
         .order("created_at", { ascending: false });
       setRentals((data as any) ?? []);
