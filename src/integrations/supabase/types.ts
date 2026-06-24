@@ -984,10 +984,18 @@ export type Database = {
           payout_hold_days: number
           protection_plan_min: number
           protection_plan_percent: number
+          referral_min_order_amount: number
+          referral_referrer_bonus: number
+          referral_signup_bonus: number
           reminder_intervals_hours: number[]
           rent_to_own_credit_percent: number
           rent_to_own_enabled: boolean
           rental_price_percent: number
+          reward_earn_rate_percent: number
+          reward_max_redeem_percent: number
+          reward_points_per_rupee: number
+          reward_redeem_value: number
+          rewards_enabled: boolean
           updated_at: string
         }
         Insert: {
@@ -1002,10 +1010,18 @@ export type Database = {
           payout_hold_days?: number
           protection_plan_min?: number
           protection_plan_percent?: number
+          referral_min_order_amount?: number
+          referral_referrer_bonus?: number
+          referral_signup_bonus?: number
           reminder_intervals_hours?: number[]
           rent_to_own_credit_percent?: number
           rent_to_own_enabled?: boolean
           rental_price_percent?: number
+          reward_earn_rate_percent?: number
+          reward_max_redeem_percent?: number
+          reward_points_per_rupee?: number
+          reward_redeem_value?: number
+          rewards_enabled?: boolean
           updated_at?: string
         }
         Update: {
@@ -1020,10 +1036,18 @@ export type Database = {
           payout_hold_days?: number
           protection_plan_min?: number
           protection_plan_percent?: number
+          referral_min_order_amount?: number
+          referral_referrer_bonus?: number
+          referral_signup_bonus?: number
           reminder_intervals_hours?: number[]
           rent_to_own_credit_percent?: number
           rent_to_own_enabled?: boolean
           rental_price_percent?: number
+          reward_earn_rate_percent?: number
+          reward_max_redeem_percent?: number
+          reward_points_per_rupee?: number
+          reward_redeem_value?: number
+          rewards_enabled?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -1112,7 +1136,11 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          lifetime_reward_points: number
           phone: string | null
+          referral_code: string | null
+          referred_by: string | null
+          reward_points: number
           trust_score: number
           updated_at: string
         }
@@ -1122,7 +1150,11 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          lifetime_reward_points?: number
           phone?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
+          reward_points?: number
           trust_score?: number
           updated_at?: string
         }
@@ -1132,11 +1164,23 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          lifetime_reward_points?: number
           phone?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
+          reward_points?: number
           trust_score?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ratings: {
         Row: {
@@ -1180,6 +1224,56 @@ export type Database = {
           {
             foreignKeyName: "ratings_rental_id_fkey"
             columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          qualified_at: string | null
+          qualifying_rental_id: string | null
+          referral_code: string
+          referred_user_id: string
+          referrer_bonus_points: number
+          referrer_id: string
+          rewarded_at: string | null
+          signup_bonus_points: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          qualified_at?: string | null
+          qualifying_rental_id?: string | null
+          referral_code: string
+          referred_user_id: string
+          referrer_bonus_points?: number
+          referrer_id: string
+          rewarded_at?: string | null
+          signup_bonus_points?: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          qualified_at?: string | null
+          qualifying_rental_id?: string | null
+          referral_code?: string
+          referred_user_id?: string
+          referrer_bonus_points?: number
+          referrer_id?: string
+          rewarded_at?: string | null
+          signup_bonus_points?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_qualifying_rental_id_fkey"
+            columns: ["qualifying_rental_id"]
             isOneToOne: false
             referencedRelation: "rentals"
             referencedColumns: ["id"]
@@ -1386,6 +1480,9 @@ export type Database = {
           rental_total: number
           return_initiated_at: string | null
           returned_at: string | null
+          reward_discount: number
+          reward_points_earned: number
+          reward_points_used: number
           start_date: string | null
           status: Database["public"]["Enums"]["rental_status"]
           store_id: string
@@ -1430,6 +1527,9 @@ export type Database = {
           rental_total?: number
           return_initiated_at?: string | null
           returned_at?: string | null
+          reward_discount?: number
+          reward_points_earned?: number
+          reward_points_used?: number
           start_date?: string | null
           status?: Database["public"]["Enums"]["rental_status"]
           store_id: string
@@ -1474,6 +1574,9 @@ export type Database = {
           rental_total?: number
           return_initiated_at?: string | null
           returned_at?: string | null
+          reward_discount?: number
+          reward_points_earned?: number
+          reward_points_used?: number
           start_date?: string | null
           status?: Database["public"]["Enums"]["rental_status"]
           store_id?: string
@@ -1597,6 +1700,53 @@ export type Database = {
           to_status?: Database["public"]["Enums"]["return_status"]
         }
         Relationships: []
+      }
+      reward_transactions: {
+        Row: {
+          balance_after: number
+          created_at: string
+          id: string
+          kind: string
+          metadata: Json
+          note: string | null
+          points: number
+          referred_user_id: string | null
+          rental_id: string | null
+          user_id: string
+        }
+        Insert: {
+          balance_after: number
+          created_at?: string
+          id?: string
+          kind: string
+          metadata?: Json
+          note?: string | null
+          points: number
+          referred_user_id?: string | null
+          rental_id?: string | null
+          user_id: string
+        }
+        Update: {
+          balance_after?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          metadata?: Json
+          note?: string | null
+          points?: number
+          referred_user_id?: string | null
+          rental_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_transactions_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stores: {
         Row: {
@@ -1958,6 +2108,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      generate_referral_code: { Args: never; Returns: string }
       get_public_payment_settings: {
         Args: never
         Returns: {
