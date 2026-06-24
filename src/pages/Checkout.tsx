@@ -134,6 +134,28 @@ const Checkout = () => {
     } catch { toast.error("Could not copy"); }
   }
 
+  async function applyPoints(pointsToUse: number) {
+    if (!rental) return;
+    setRedeemBusy(true);
+    const { data, error } = await supabase
+      .from("rentals")
+      .update({ reward_points_used: Math.max(0, Math.floor(pointsToUse)) })
+      .eq("id", rental.id)
+      .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, protection_plan, protection_plan_fee, reward_points_used, reward_discount")
+      .maybeSingle();
+    setRedeemBusy(false);
+    if (error || !data) return toast.error(error?.message ?? "Could not apply points");
+    setRental(data as Rental);
+    setPointsInput(String((data as any).reward_points_used || ""));
+    if ((data as any).reward_points_used > 0) {
+      toast.success(`${(data as any).reward_points_used} points applied — ₹${(data as any).reward_discount} off`);
+    } else if (pointsToUse > 0) {
+      toast.info("Points not applied — check balance or limits");
+    } else {
+      toast.success("Points removed");
+    }
+  }
+
   async function submitPaid() {
     if (!rental || !user || !settings?.upi_id) return;
     setSubmitting(true);
