@@ -43,6 +43,9 @@ export function Navbar() {
               <Button variant="ghost" size="sm" onClick={() => navigate("/my-payments")}>
                 My payments
               </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/rewards")}>
+                Rewards
+              </Button>
               {isVendor ? (
                 <>
                   <Button variant="ghost" size="sm" className="relative" onClick={() => navigate("/vendor/orders")}>
@@ -98,6 +101,7 @@ export function Navbar() {
                 <Link to="/notifications" onClick={() => setOpen(false)} className="py-2">Notifications</Link>
                 <Link to="/my-rentals" onClick={() => setOpen(false)} className="py-2">My orders</Link>
                 <Link to="/my-payments" onClick={() => setOpen(false)} className="py-2">My payments</Link>
+                <Link to="/rewards" onClick={() => setOpen(false)} className="py-2">Rewards</Link>
                 <Link to="/settings/notifications" onClick={() => setOpen(false)} className="py-2">Notification settings</Link>
                 <Link to={isVendor ? "/vendor" : "/become-vendor"} onClick={() => setOpen(false)} className="py-2">
                   {isVendor ? "Vendor dashboard" : "Open a store"}

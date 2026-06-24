@@ -34,6 +34,8 @@ type Rental = {
   commission_amount: number;
   protection_plan: boolean;
   protection_plan_fee: number;
+  reward_points_used: number;
+  reward_discount: number;
 };
 
 type ProductLite = { title: string; images: string[] };
@@ -69,6 +71,12 @@ const Checkout = () => {
   const [reference, setReference] = useState("");
   const [selected, setSelected] = useState<MethodKey | null>(null);
   const [launching, setLaunching] = useState(false);
+  const [pointsBalance, setPointsBalance] = useState(0);
+  const [redeemValue, setRedeemValue] = useState(0.1);
+  const [maxRedeemPct, setMaxRedeemPct] = useState(20);
+  const [rewardsEnabled, setRewardsEnabled] = useState(true);
+  const [pointsInput, setPointsInput] = useState<string>("");
+  const [redeemBusy, setRedeemBusy] = useState(false);
 
   useEffect(() => { document.title = "Checkout · Rent & Radiate"; }, []);
 
@@ -78,7 +86,7 @@ const Checkout = () => {
     (async () => {
       const [{ data: r, error }, { data: psRows }] = await Promise.all([
         supabase.from("rentals")
-          .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, protection_plan, protection_plan_fee")
+          .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, protection_plan, protection_plan_fee, reward_points_used, reward_discount")
           .eq("id", rentalId!).maybeSingle(),
         (supabase as any).rpc("get_public_payment_settings"),
       ]);
@@ -88,6 +96,19 @@ const Checkout = () => {
       setSettings((ps as PaymentSettings) ?? { upi_id: "", payee_name: "Rent & Radiate", qr_image_url: null, instructions: "" });
       const { data: p } = await supabase.from("products").select("title, images").eq("id", (r as Rental).product_id).maybeSingle();
       if (p) setProduct(p as ProductLite);
+
+      const [{ data: prof }, { data: plat }] = await Promise.all([
+        supabase.from("profiles").select("reward_points").eq("id", user.id).maybeSingle(),
+        supabase.from("platform_settings").select("rewards_enabled, reward_redeem_value, reward_max_redeem_percent").eq("id", true).maybeSingle(),
+      ]);
+      setPointsBalance((prof as any)?.reward_points ?? 0);
+      if (plat) {
+        setRewardsEnabled((plat as any).rewards_enabled ?? true);
+        setRedeemValue(Number((plat as any).reward_redeem_value ?? 0.1));
+        setMaxRedeemPct(Number((plat as any).reward_max_redeem_percent ?? 20));
+      }
+      setPointsInput(String((r as Rental).reward_points_used || ""));
+
       setLoading(false);
     })();
   }, [authLoading, user, rentalId, navigate]);
@@ -111,6 +132,28 @@ const Checkout = () => {
       await navigator.clipboard.writeText(settings.upi_id);
       toast.success("UPI ID copied");
     } catch { toast.error("Could not copy"); }
+  }
+
+  async function applyPoints(pointsToUse: number) {
+    if (!rental) return;
+    setRedeemBusy(true);
+    const { data, error } = await supabase
+      .from("rentals")
+      .update({ reward_points_used: Math.max(0, Math.floor(pointsToUse)) })
+      .eq("id", rental.id)
+      .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, protection_plan, protection_plan_fee, reward_points_used, reward_discount")
+      .maybeSingle();
+    setRedeemBusy(false);
+    if (error || !data) return toast.error(error?.message ?? "Could not apply points");
+    setRental(data as Rental);
+    setPointsInput(String((data as any).reward_points_used || ""));
+    if ((data as any).reward_points_used > 0) {
+      toast.success(`${(data as any).reward_points_used} points applied — ₹${(data as any).reward_discount} off`);
+    } else if (pointsToUse > 0) {
+      toast.info("Points not applied — check balance or limits");
+    } else {
+      toast.success("Points removed");
+    }
   }
 
   async function submitPaid() {
@@ -274,8 +317,48 @@ const Checkout = () => {
             {Number(rental.delivery_fee) > 0 && <Row label="Delivery" value={`₹${Number(rental.delivery_fee).toLocaleString("en-IN")}`} muted />}
             {Number(rental.deposit) > 0 && <Row label="Refundable deposit" value={`₹${Number(rental.deposit).toLocaleString("en-IN")}`} muted />}
             {Number(rental.protection_plan_fee) > 0 && <Row label="Rental Protection Plan" value={`₹${Number(rental.protection_plan_fee).toLocaleString("en-IN")}`} muted />}
+            {Number(rental.reward_discount) > 0 && <Row label={`Reward points (${rental.reward_points_used})`} value={`− ₹${Number(rental.reward_discount).toLocaleString("en-IN")}`} />}
             <Row label="Total payable" value={`₹${Number(rental.grand_total).toLocaleString("en-IN")}`} bold />
           </div>
+
+          {rewardsEnabled && !isPaid && !isPending && pointsBalance > 0 && (
+            <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-rose-deep" />
+                <p className="font-medium text-sm">Use reward points</p>
+                <Badge variant="outline" className="ml-auto text-[10px]">Balance: {pointsBalance}</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                1 point = ₹{redeemValue}. Max {maxRedeemPct}% of order (₹{Math.floor((Number(rental.subtotal) * maxRedeemPct) / 100).toLocaleString("en-IN")}).
+              </p>
+              <div className="flex items-center gap-2 mt-3">
+                <Input
+                  type="number"
+                  min={0}
+                  max={pointsBalance}
+                  value={pointsInput}
+                  onChange={(e) => setPointsInput(e.target.value)}
+                  placeholder="Points to redeem"
+                  className="max-w-[180px]"
+                />
+                <Button size="sm" variant="soft" disabled={redeemBusy} onClick={() => applyPoints(Number(pointsInput) || 0)}>
+                  {rental.reward_points_used > 0 ? "Update" : "Apply"}
+                </Button>
+                {rental.reward_points_used > 0 && (
+                  <Button size="sm" variant="ghost" disabled={redeemBusy} onClick={() => applyPoints(0)}>Remove</Button>
+                )}
+                <Button size="sm" variant="ghost" disabled={redeemBusy}
+                  onClick={() => {
+                    const cap = Math.floor((Number(rental.subtotal) * maxRedeemPct) / 100 / redeemValue);
+                    applyPoints(Math.min(pointsBalance, cap));
+                  }}>
+                  Use max
+                </Button>
+              </div>
+            </div>
+          )}
+
+
 
           {isPaid ? (
             <div className="rounded-xl bg-secondary p-4 text-sm flex items-center gap-2">
