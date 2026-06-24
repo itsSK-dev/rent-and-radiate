@@ -44,7 +44,11 @@ const Auth = () => {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = schema.safeParse({ email, password, fullName: mode === "signup" ? fullName : undefined });
+    const parsed = schema.safeParse({
+      email, password,
+      fullName: mode === "signup" ? fullName : undefined,
+      referralCode: mode === "signup" ? referralCode : undefined,
+    });
     if (!parsed.success) return toast.error(parsed.error.issues[0].message);
     setBusy(true);
     if (mode === "signup") {
@@ -52,12 +56,15 @@ const Auth = () => {
         email, password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
-          data: { full_name: fullName },
+          data: {
+            full_name: fullName,
+            ...(referralCode.trim() ? { referral_code: referralCode.trim().toUpperCase() } : {}),
+          },
         },
       });
       setBusy(false);
       if (error) return toast.error(error.message);
-      toast.success("Welcome to Rent & Radiate!");
+      toast.success(referralCode.trim() ? "Welcome! Bonus points credited." : "Welcome to Rent & Radiate!");
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       setBusy(false);
