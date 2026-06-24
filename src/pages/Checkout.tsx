@@ -317,8 +317,48 @@ const Checkout = () => {
             {Number(rental.delivery_fee) > 0 && <Row label="Delivery" value={`₹${Number(rental.delivery_fee).toLocaleString("en-IN")}`} muted />}
             {Number(rental.deposit) > 0 && <Row label="Refundable deposit" value={`₹${Number(rental.deposit).toLocaleString("en-IN")}`} muted />}
             {Number(rental.protection_plan_fee) > 0 && <Row label="Rental Protection Plan" value={`₹${Number(rental.protection_plan_fee).toLocaleString("en-IN")}`} muted />}
+            {Number(rental.reward_discount) > 0 && <Row label={`Reward points (${rental.reward_points_used})`} value={`− ₹${Number(rental.reward_discount).toLocaleString("en-IN")}`} />}
             <Row label="Total payable" value={`₹${Number(rental.grand_total).toLocaleString("en-IN")}`} bold />
           </div>
+
+          {rewardsEnabled && !isPaid && !isPending && pointsBalance > 0 && (
+            <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-rose-deep" />
+                <p className="font-medium text-sm">Use reward points</p>
+                <Badge variant="outline" className="ml-auto text-[10px]">Balance: {pointsBalance}</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                1 point = ₹{redeemValue}. Max {maxRedeemPct}% of order (₹{Math.floor((Number(rental.subtotal) * maxRedeemPct) / 100).toLocaleString("en-IN")}).
+              </p>
+              <div className="flex items-center gap-2 mt-3">
+                <Input
+                  type="number"
+                  min={0}
+                  max={pointsBalance}
+                  value={pointsInput}
+                  onChange={(e) => setPointsInput(e.target.value)}
+                  placeholder="Points to redeem"
+                  className="max-w-[180px]"
+                />
+                <Button size="sm" variant="soft" disabled={redeemBusy} onClick={() => applyPoints(Number(pointsInput) || 0)}>
+                  {rental.reward_points_used > 0 ? "Update" : "Apply"}
+                </Button>
+                {rental.reward_points_used > 0 && (
+                  <Button size="sm" variant="ghost" disabled={redeemBusy} onClick={() => applyPoints(0)}>Remove</Button>
+                )}
+                <Button size="sm" variant="ghost" disabled={redeemBusy}
+                  onClick={() => {
+                    const cap = Math.floor((Number(rental.subtotal) * maxRedeemPct) / 100 / redeemValue);
+                    applyPoints(Math.min(pointsBalance, cap));
+                  }}>
+                  Use max
+                </Button>
+              </div>
+            </div>
+          )}
+
+
 
           {isPaid ? (
             <div className="rounded-xl bg-secondary p-4 text-sm flex items-center gap-2">
