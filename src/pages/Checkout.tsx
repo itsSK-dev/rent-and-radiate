@@ -34,6 +34,8 @@ type Rental = {
   commission_amount: number;
   protection_plan: boolean;
   protection_plan_fee: number;
+  reward_points_used: number;
+  reward_discount: number;
 };
 
 type ProductLite = { title: string; images: string[] };
@@ -78,7 +80,7 @@ const Checkout = () => {
     (async () => {
       const [{ data: r, error }, { data: psRows }] = await Promise.all([
         supabase.from("rentals")
-          .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, protection_plan, protection_plan_fee")
+          .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, protection_plan, protection_plan_fee, reward_points_used, reward_discount")
           .eq("id", rentalId!).maybeSingle(),
         (supabase as any).rpc("get_public_payment_settings"),
       ]);
