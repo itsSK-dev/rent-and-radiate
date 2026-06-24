@@ -16,6 +16,7 @@ const schema = z.object({
   email: z.string().trim().email("Invalid email").max(255),
   password: z.string().min(6, "Password must be at least 6 characters").max(100),
   fullName: z.string().trim().min(1).max(100).optional(),
+  referralCode: z.string().trim().max(32).optional(),
 });
 
 const Auth = () => {
@@ -26,6 +27,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [referralCode, setReferralCode] = useState((params.get("ref") || "").toUpperCase());
   const [role, setRole] = useState<"customer" | "store_owner">("customer");
   const [busy, setBusy] = useState(false);
 
@@ -127,13 +129,23 @@ const Auth = () => {
               <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-2" required />
             </div>
             {mode === "signup" && (
-              <div>
-                <Label className="text-sm">I want to</Label>
-                <RadioGroup value={role} onValueChange={(v) => setRole(v as any)} className="grid grid-cols-2 gap-2 mt-2">
-                  <RoleOpt value="customer" label="Rent items" />
-                  <RoleOpt value="store_owner" label="Open a store" />
-                </RadioGroup>
-              </div>
+              <>
+                <div>
+                  <Label htmlFor="ref" className="text-sm">Referral code <span className="text-muted-foreground">(optional)</span></Label>
+                  <Input id="ref" value={referralCode} onChange={(e) => setReferralCode(e.target.value.toUpperCase().slice(0, 32))}
+                    placeholder="e.g. ABCD1234" className="mt-2 font-mono tracking-widest" />
+                  {referralCode.trim() && (
+                    <p className="text-xs text-primary mt-1">🎁 You'll receive welcome bonus points after signup.</p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-sm">I want to</Label>
+                  <RadioGroup value={role} onValueChange={(v) => setRole(v as any)} className="grid grid-cols-2 gap-2 mt-2">
+                    <RoleOpt value="customer" label="Rent items" />
+                    <RoleOpt value="store_owner" label="Open a store" />
+                  </RadioGroup>
+                </div>
+              </>
             )}
             <Button type="submit" variant="hero" size="lg" className="w-full" disabled={busy}>
               {busy ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
