@@ -71,6 +71,12 @@ const Checkout = () => {
   const [reference, setReference] = useState("");
   const [selected, setSelected] = useState<MethodKey | null>(null);
   const [launching, setLaunching] = useState(false);
+  const [pointsBalance, setPointsBalance] = useState(0);
+  const [redeemValue, setRedeemValue] = useState(0.1);
+  const [maxRedeemPct, setMaxRedeemPct] = useState(20);
+  const [rewardsEnabled, setRewardsEnabled] = useState(true);
+  const [pointsInput, setPointsInput] = useState<string>("");
+  const [redeemBusy, setRedeemBusy] = useState(false);
 
   useEffect(() => { document.title = "Checkout · Rent & Radiate"; }, []);
 
@@ -90,6 +96,19 @@ const Checkout = () => {
       setSettings((ps as PaymentSettings) ?? { upi_id: "", payee_name: "Rent & Radiate", qr_image_url: null, instructions: "" });
       const { data: p } = await supabase.from("products").select("title, images").eq("id", (r as Rental).product_id).maybeSingle();
       if (p) setProduct(p as ProductLite);
+
+      const [{ data: prof }, { data: plat }] = await Promise.all([
+        supabase.from("profiles").select("reward_points").eq("id", user.id).maybeSingle(),
+        supabase.from("platform_settings").select("rewards_enabled, reward_redeem_value, reward_max_redeem_percent").eq("id", true).maybeSingle(),
+      ]);
+      setPointsBalance((prof as any)?.reward_points ?? 0);
+      if (plat) {
+        setRewardsEnabled((plat as any).rewards_enabled ?? true);
+        setRedeemValue(Number((plat as any).reward_redeem_value ?? 0.1));
+        setMaxRedeemPct(Number((plat as any).reward_max_redeem_percent ?? 20));
+      }
+      setPointsInput(String((r as Rental).reward_points_used || ""));
+
       setLoading(false);
     })();
   }, [authLoading, user, rentalId, navigate]);
