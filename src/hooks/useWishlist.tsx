@@ -34,7 +34,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       return;
     }
     const already = ids.has(productId);
-    // Optimistic
     setIds((prev) => {
       const next = new Set(prev);
       if (already) next.delete(productId); else next.add(productId);
@@ -42,11 +41,11 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     });
     if (already) {
       const { error } = await supabase.from("wishlists").delete().eq("user_id", user.id).eq("product_id", productId);
-      if (error) { void refresh(); return toast.error(error.message); }
+      if (error) { void refresh(); toast.error(error.message); return; }
       toast.success(title ? `Removed "${title}" from wishlist` : "Removed from wishlist");
     } else {
       const { error } = await supabase.from("wishlists").insert({ user_id: user.id, product_id: productId });
-      if (error) { void refresh(); return toast.error(error.message); }
+      if (error) { void refresh(); toast.error(error.message); return; }
       toast.success(title ? `Saved "${title}" to wishlist` : "Saved to wishlist");
     }
   }, [user, ids, refresh]);
