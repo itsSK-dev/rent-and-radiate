@@ -1,5 +1,9 @@
 // AI visual search: analyzes an uploaded image and returns Browse filters.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const MAX_IMAGE_B64_BYTES = 2 * 1024 * 1024; // ~2 MB base64 payload cap
+
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
