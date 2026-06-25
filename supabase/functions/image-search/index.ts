@@ -1,5 +1,9 @@
 // AI visual search: analyzes an uploaded image and returns Browse filters.
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const MAX_IMAGE_B64_BYTES = 2 * 1024 * 1024; // ~2 MB base64 payload cap
+
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
@@ -12,6 +16,19 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // Require an authenticated user to prevent anonymous AI cost burn.
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: { user } } = await userClient.auth.getUser();
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Authentication required" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const { image } = await req.json();
     if (typeof image !== "string" || !image.startsWith("data:image/")) {
       return new Response(JSON.stringify({ error: "image (data URL) required" }), {
@@ -19,6 +36,13 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    if (image.length > MAX_IMAGE_B64_BYTES) {
+      return new Response(JSON.stringify({ error: "Image too large (max ~2 MB)" }), {
+        status: 413,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
 
     const system = `You are a fashion visual-search assistant for a rent-or-buy marketplace.
 Available categories: "dress", "jewellery".

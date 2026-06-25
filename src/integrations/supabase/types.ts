@@ -2118,6 +2118,7 @@ export type Database = {
           upi_id: string
         }[]
       }
+      get_rental_qr_token: { Args: { _rental_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -32,3 +32,19 @@ verify_jwt = false
 
 [functions.notify-rental-status]
 verify_jwt = true
+
+[functions.process-scheduled-campaigns]
+verify_jwt = true
+
+[functions.send-rental-reminders]
+verify_jwt = true
+
+[functions.ai-search]
+verify_jwt = true
+
+[functions.image-search]
+verify_jwt = true
+
+[functions.support-chat]
+verify_jwt = true
+
