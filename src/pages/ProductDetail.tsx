@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -43,14 +43,20 @@ type Product = {
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { settings } = usePlatformSettings();
   const [product, setProduct] = useState<Product | null>(null);
   const [activeImage, setActiveImage] = useState(0);
-  const [mode, setMode] = useState<"rent" | "buy">("rent");
-  const [start, setStart] = useState<Date | undefined>();
-  const [end, setEnd] = useState<Date | undefined>();
+  const initialMode = (searchParams.get("mode") === "buy" ? "buy" : "rent") as "rent" | "buy";
+  const parseQsDate = (v: string | null) => {
+    if (!v) return undefined;
+    try { const d = parseISO(v); return isNaN(d.getTime()) ? undefined : d; } catch { return undefined; }
+  };
+  const [mode, setMode] = useState<"rent" | "buy">(initialMode);
+  const [start, setStart] = useState<Date | undefined>(parseQsDate(searchParams.get("start")));
+  const [end, setEnd] = useState<Date | undefined>(parseQsDate(searchParams.get("end")));
   const [qty, setQty] = useState(1);
   const [delivery, setDelivery] = useState<"pickup" | "delivery">("pickup");
   const [submitting, setSubmitting] = useState(false);
