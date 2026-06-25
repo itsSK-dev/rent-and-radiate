@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { WishlistProvider } from "@/hooks/useWishlist";
 import Index from "./pages/Index";
 import Browse from "./pages/Browse";
 import ProductDetail from "./pages/ProductDetail";
@@ -31,6 +32,7 @@ import MyAdvertisements from "./pages/MyAdvertisements";
 import Notifications from "./pages/Notifications";
 import NotificationSettings from "./pages/NotificationSettings";
 import Rewards from "./pages/Rewards";
+import Wishlist from "./pages/Wishlist";
 
 const queryClient = new QueryClient();
 
@@ -41,37 +43,40 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/browse" element={<Browse />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/my-rentals" element={<MyRentals />} />
-            <Route path="/my-payments" element={<MyPayments />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout/:rentalId" element={<Checkout />} />
-            <Route path="/receipt/:rentalId" element={<Receipt />} />
-            <Route path="/payment/success/:rentalId" element={<PaymentResult kind="success" />} />
-            <Route path="/payment/failure/:rentalId" element={<PaymentResult kind="failure" />} />
-            <Route path="/payment/failure" element={<PaymentResult kind="failure" />} />
-            <Route path="/track/:rentalId" element={<TrackOrder />} />
-            <Route path="/become-vendor" element={<BecomeVendor />} />
-            <Route path="/vendor" element={<Vendor />} />
-            <Route path="/vendor/orders" element={<VendorOrders />} />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/admin/email-previews" element={<AdminEmailPreview />} />
-            <Route path="/advertise" element={<Advertise />} />
-            <Route path="/advertise/book" element={<AdvertiseBook />} />
-            <Route path="/my-advertisements" element={<MyAdvertisements />} />
-            <Route path="/unsubscribe" element={<Unsubscribe />} />
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/settings/notifications" element={<NotificationSettings />} />
-            <Route path="/rewards" element={<Rewards />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <SupportChat />
+          <WishlistProvider>
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/browse" element={<Browse />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/my-rentals" element={<MyRentals />} />
+              <Route path="/my-payments" element={<MyPayments />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/checkout/:rentalId" element={<Checkout />} />
+              <Route path="/receipt/:rentalId" element={<Receipt />} />
+              <Route path="/payment/success/:rentalId" element={<PaymentResult kind="success" />} />
+              <Route path="/payment/failure/:rentalId" element={<PaymentResult kind="failure" />} />
+              <Route path="/payment/failure" element={<PaymentResult kind="failure" />} />
+              <Route path="/track/:rentalId" element={<TrackOrder />} />
+              <Route path="/become-vendor" element={<BecomeVendor />} />
+              <Route path="/vendor" element={<Vendor />} />
+              <Route path="/vendor/orders" element={<VendorOrders />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/email-previews" element={<AdminEmailPreview />} />
+              <Route path="/advertise" element={<Advertise />} />
+              <Route path="/advertise/book" element={<AdvertiseBook />} />
+              <Route path="/my-advertisements" element={<MyAdvertisements />} />
+              <Route path="/unsubscribe" element={<Unsubscribe />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/settings/notifications" element={<NotificationSettings />} />
+              <Route path="/rewards" element={<Rewards />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <SupportChat />
+          </WishlistProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
