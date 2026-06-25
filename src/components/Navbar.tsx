@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Flower2, ShoppingBag, ShoppingCart, Store, User as UserIcon, LogOut, Menu, Package } from "lucide-react";
+import { Flower2, ShoppingBag, ShoppingCart, Store, User as UserIcon, LogOut, Menu, Package, Heart } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,9 @@ export function Navbar() {
           {user ? (
             <>
               <NotificationBell />
+              <Button variant="ghost" size="icon" onClick={() => navigate("/wishlist")} aria-label="Wishlist">
+                <Heart className="h-4 w-4" />
+              </Button>
               <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} aria-label="Cart">
                 <ShoppingCart className="h-4 w-4" />
               </Button>
@@ -98,6 +101,7 @@ export function Navbar() {
             {user ? (
               <>
                 <Link to="/cart" onClick={() => setOpen(false)} className="py-2">Cart</Link>
+                <Link to="/wishlist" onClick={() => setOpen(false)} className="py-2">Wishlist</Link>
                 <Link to="/notifications" onClick={() => setOpen(false)} className="py-2">Notifications</Link>
                 <Link to="/my-rentals" onClick={() => setOpen(false)} className="py-2">My orders</Link>
                 <Link to="/my-payments" onClick={() => setOpen(false)} className="py-2">My payments</Link>
