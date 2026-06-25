@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import { demoImageMap } from "@/lib/seedDemo";
 import { Badge } from "@/components/ui/badge";
 import { discountedUnitPrice, inr } from "@/lib/pricing";
+import { WishlistButton } from "@/components/WishlistButton";
 
 export interface ProductCardData {
   id: string;
@@ -62,6 +63,9 @@ export function ProductCard({ p, matchScore }: { p: ProductCardData; matchScore?
             {discountPct > 0 ? `${discountPct}% OFF` : `${inr(p.discount_flat ?? 0)} OFF`}
           </Badge>
         )}
+        <div className={`absolute ${hasDiscount ? "top-12" : "top-3"} right-3 z-10`}>
+          <WishlistButton productId={p.id} title={p.title} size="sm" />
+        </div>
         {outOfStock && (
           <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center">
             <Badge variant="outline">Out of stock</Badge>
