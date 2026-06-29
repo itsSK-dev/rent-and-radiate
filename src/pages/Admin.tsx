@@ -207,6 +207,14 @@ const Admin = () => {
             <AdminSubscriptionsPanel />
           </TabsContent>
 
+          <TabsContent value="protection" className="mt-6">
+            <AdminProtectionPanel />
+          </TabsContent>
+
+          <TabsContent value="fraud" className="mt-6">
+            <AdminFraudPanel />
+          </TabsContent>
+
           <TabsContent value="settings" className="mt-6 space-y-6">
             <PaymentSettingsPanel />
             <PlatformSettingsPanel />
