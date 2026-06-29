@@ -24,6 +24,12 @@ import { RentalDisputesList } from "@/components/RentalDisputesList";
 import { DeliveryStageControl, StoreExtensionRequests, StoreReturnControls, type ReturnRow } from "@/components/DeliveryTracking";
 import { discountedUnitPrice, inr } from "@/lib/pricing";
 import { VendorSettlementsPanel } from "@/components/VendorSettlementsPanel";
+import { VendorAnalyticsPanel } from "@/components/vendor/VendorAnalyticsPanel";
+import { VendorInventoryPanel } from "@/components/vendor/VendorInventoryPanel";
+import { VendorVerificationCard } from "@/components/vendor/VendorVerificationCard";
+import { UpcomingReturnsWidget } from "@/components/vendor/UpcomingReturnsWidget";
+import { VerifiedSellerBadge } from "@/components/VerifiedSellerBadge";
+
 
 type Store = {
   id: string;
@@ -33,7 +39,11 @@ type Store = {
   is_verified: boolean;
   is_active: boolean;
   is_blocked: boolean;
+  logo_url: string | null;
+  address: string | null;
+  rejection_reason: string | null;
 };
+
 type Product = {
   id: string; title: string; description: string | null; category: "dress" | "jewellery";
   price_per_day: number; security_deposit: number; available: boolean; images: string[];
@@ -69,11 +79,12 @@ const Vendor = () => {
     if (!user) return;
     const { data: s } = await supabase
       .from("stores")
-      .select("id,name,city,status,is_verified,is_active,is_blocked")
+      .select("id,name,city,status,is_verified,is_active,is_blocked,logo_url,address,rejection_reason")
       .eq("owner_id", user.id);
-    setStores(s ?? []);
+    setStores((s as any) ?? []);
     const sid = s?.[0]?.id ?? null;
     setStoreId(sid);
+
     if (sid) {
       const { data: p } = await supabase
         .from("products")
