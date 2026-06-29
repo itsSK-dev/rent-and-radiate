@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1019,6 +1020,31 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
               <Stat label="Avg / order" value={inr(stats.orders > 0 ? stats.revenue / stats.orders : 0)} />
               <Stat label="Conversion" value={`${conv.toFixed(1)}%`} sub={`${stats.orders} of ${funnel} touchpoints`} />
               <Stat label="Completion rate" value={`${completionRate.toFixed(0)}%`} sub={`${stats.completed} completed`} />
+            </div>
+
+            <div className="mt-6">
+              <p className="text-sm font-medium mb-2">Conversion breakdown</p>
+              <div className="rounded-xl border border-border p-3 space-y-3">
+                {[
+                  { label: "Orders", value: stats.orders, color: "bg-emerald-500" },
+                  { label: "Cart adds", value: cartAdds, color: "bg-blue-500" },
+                  { label: "Wishlist saves", value: wishlist, color: "bg-amber-500" },
+                ].map((item) => {
+                  const pct = funnel > 0 ? (item.value / funnel) * 100 : 0;
+                  return (
+                    <div key={item.label}>
+                      <div className="flex items-center justify-between text-sm mb-1">
+                        <span className="text-muted-foreground">{item.label}</span>
+                        <span className="font-medium">{item.value} <span className="text-muted-foreground">({pct.toFixed(1)}%)</span></span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+                        <div className={cn("h-full rounded-full", item.color)} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+                <p className="text-xs text-muted-foreground pt-1">Total touchpoints: {funnel}</p>
+              </div>
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-3">
