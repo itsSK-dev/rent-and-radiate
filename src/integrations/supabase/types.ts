@@ -323,6 +323,27 @@ export type Database = {
         }
         Relationships: []
       }
+      category_commissions: {
+        Row: {
+          category: Database["public"]["Enums"]["product_category"]
+          commission_percent: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["product_category"]
+          commission_percent: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["product_category"]
+          commission_percent?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       deposit_refunds: {
         Row: {
           admin_notes: string | null
@@ -1751,6 +1772,63 @@ export type Database = {
           },
         ]
       }
+      shop_subscriptions: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          end_at: string
+          id: string
+          notes: string | null
+          plan_id: string
+          price_paid: number
+          start_at: string
+          status: Database["public"]["Enums"]["shop_subscription_status"]
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          end_at: string
+          id?: string
+          notes?: string | null
+          plan_id: string
+          price_paid?: number
+          start_at?: string
+          status?: Database["public"]["Enums"]["shop_subscription_status"]
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          end_at?: string
+          id?: string
+          notes?: string | null
+          plan_id?: string
+          price_paid?: number
+          start_at?: string
+          status?: Database["public"]["Enums"]["shop_subscription_status"]
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_subscriptions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           address: string | null
@@ -1813,6 +1891,48 @@ export type Database = {
           rating_count?: number
           rejection_reason?: string | null
           status?: Database["public"]["Enums"]["store_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_days: number
+          features: Json
+          id: string
+          is_active: boolean
+          max_products: number | null
+          name: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_days: number
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_products?: number | null
+          name: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_days?: number
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_products?: number | null
+          name?: string
+          price?: number
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
@@ -2115,6 +2235,10 @@ export type Database = {
         Returns: number
       }
       generate_referral_code: { Args: never; Returns: string }
+      get_effective_commission: {
+        Args: { _product_id: string }
+        Returns: number
+      }
       get_public_payment_settings: {
         Args: never
         Returns: {
@@ -2249,6 +2373,7 @@ export type Database = {
         | "paid"
         | "on_hold"
         | "reversed"
+      shop_subscription_status: "active" | "expired" | "cancelled"
       store_status: "pending" | "approved" | "rejected" | "deleted"
     }
     CompositeTypes: {
@@ -2457,6 +2582,7 @@ export const Constants = {
         "completed",
       ],
       settlement_status: ["pending", "eligible", "paid", "on_hold", "reversed"],
+      shop_subscription_status: ["active", "expired", "cancelled"],
       store_status: ["pending", "approved", "rejected", "deleted"],
     },
   },
