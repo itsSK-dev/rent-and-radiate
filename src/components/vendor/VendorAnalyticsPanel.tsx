@@ -524,7 +524,10 @@ function ReportTable({ title, rows, settlements, refunds, kind }: {
         <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" />
         <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" />
         <Button size="sm" variant="outline" onClick={exportCsv} className="ml-auto">
-          <Download className="h-4 w-4" /> Export CSV
+          <Download className="h-4 w-4" /> CSV
+        </Button>
+        <Button size="sm" variant="outline" onClick={exportPdfReport}>
+          <FileText className="h-4 w-4" /> PDF
         </Button>
       </div>
 
