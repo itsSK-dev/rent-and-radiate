@@ -531,28 +531,17 @@ h1{margin:0}.muted{color:#666;font-size:13px}.row{display:flex;justify-content:s
 
 function ProductPerformance({ storeId, rentals }: { storeId: string; rentals: Rental[] }) {
   const [wishCounts, setWishCounts] = useState<Record<string, number>>({});
-  const [ratings, setRatings] = useState<Record<string, { avg: number; count: number }>>({});
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       const productIds = [...new Set(rentals.map((r) => r.product_id))];
       if (productIds.length === 0) return;
-      const [w, rt] = await Promise.all([
-        (supabase as any).from("wishlists").select("product_id").in("product_id", productIds),
-        (supabase as any).from("ratings").select("ratee_product_id,stars").not("ratee_product_id", "is", null),
-      ]);
+      const w = await (supabase as any).from("wishlists").select("product_id").in("product_id", productIds);
       if (cancelled) return;
       const wc: Record<string, number> = {};
       (w.data ?? []).forEach((r: any) => { wc[r.product_id] = (wc[r.product_id] ?? 0) + 1; });
       setWishCounts(wc);
-      const ag: Record<string, { sum: number; count: number }> = {};
-      (rt.data ?? []).forEach((r: any) => {
-        if (!productIds.includes(r.ratee_product_id)) return;
-        const c = ag[r.ratee_product_id] ?? { sum: 0, count: 0 };
-        c.sum += Number(r.stars); c.count += 1; ag[r.ratee_product_id] = c;
-      });
-      setRatings(Object.fromEntries(Object.entries(ag).map(([k, v]) => [k, { avg: v.sum / v.count, count: v.count }])));
     }
     load();
     return () => { cancelled = true; };
@@ -583,26 +572,24 @@ function ProductPerformance({ storeId, rentals }: { storeId: string; rentals: Re
             <th className="p-3">Orders</th>
             <th className="p-3">Units sold</th>
             <th className="p-3">Revenue</th>
+            <th className="p-3">Avg per order</th>
             <th className="p-3">Wishlist saves</th>
-            <th className="p-3">Rating</th>
           </tr>
         </thead>
         <tbody>
-          {perProduct.map((p) => {
-            const r = ratings[p.id];
-            return (
-              <tr key={p.id} className="border-t border-border">
-                <td className="p-3 font-medium">{p.title}</td>
-                <td className="p-3">{p.orders}</td>
-                <td className="p-3">{p.units}</td>
-                <td className="p-3 font-semibold">{inr(p.revenue)}</td>
-                <td className="p-3">{wishCounts[p.id] ?? 0}</td>
-                <td className="p-3">{r ? `${r.avg.toFixed(1)} ★ (${r.count})` : "—"}</td>
-              </tr>
-            );
-          })}
+          {perProduct.map((p) => (
+            <tr key={p.id} className="border-t border-border">
+              <td className="p-3 font-medium">{p.title}</td>
+              <td className="p-3">{p.orders}</td>
+              <td className="p-3">{p.units}</td>
+              <td className="p-3 font-semibold">{inr(p.revenue)}</td>
+              <td className="p-3">{inr(p.orders > 0 ? p.revenue / p.orders : 0)}</td>
+              <td className="p-3">{wishCounts[p.id] ?? 0}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
   );
 }
+
