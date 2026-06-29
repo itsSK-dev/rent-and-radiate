@@ -155,9 +155,13 @@ const Vendor = () => {
 
           </div>
           <div className="flex gap-3 items-center flex-wrap">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/vendor/verification")}>
+              Verification status →
+            </Button>
             <Button variant="soft" size="sm" onClick={() => navigate("/vendor/orders")}>
               Manage orders →
             </Button>
+
             <Stat label="Products" value={products.length.toString()} />
             <Stat label="Bookings" value={rentals.length.toString()} />
             <Stat label="Earnings (net)" value={inr(earnings)} />
