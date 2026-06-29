@@ -195,6 +195,14 @@ const Admin = () => {
 
 
 
+          <TabsContent value="commissions" className="mt-6">
+            <AdminCommissionsPanel />
+          </TabsContent>
+
+          <TabsContent value="subscriptions" className="mt-6">
+            <AdminSubscriptionsPanel />
+          </TabsContent>
+
           <TabsContent value="settings" className="mt-6 space-y-6">
             <PaymentSettingsPanel />
             <PlatformSettingsPanel />
