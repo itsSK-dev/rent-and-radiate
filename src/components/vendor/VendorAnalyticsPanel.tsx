@@ -389,7 +389,7 @@ function ReportTable({ title, rows, settlements, refunds, kind }: {
       });
       download(`rental-earnings-${Date.now()}.csv`, toCsv(headers, data));
     } else {
-      const headers = ["Date", "Order id", "Product", "Qty", "Subtotal", "Discount", "GST", "Net", "Status", "City"];
+      const headers = ["Date", "Order id", "Product", "Qty", "Subtotal", "Discount", "GST", "Net", "Status"];
       const data = filtered.map((r) => {
         const s = settlements.find((x) => x.rental_id === r.id);
         return [
@@ -402,11 +402,11 @@ function ReportTable({ title, rows, settlements, refunds, kind }: {
           Number(r.gst_amount ?? 0).toFixed(2),
           Number(s?.net_payout ?? 0).toFixed(2),
           r.status,
-          r.customer?.city ?? "",
         ];
       });
       download(`sales-${Date.now()}.csv`, toCsv(headers, data));
     }
+
     toast.success("CSV downloaded");
   }
 
