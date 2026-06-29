@@ -669,29 +669,50 @@ h1{margin:0}.muted{color:#666;font-size:13px}.row{display:flex;justify-content:s
 
 function ProductPerformance({ storeId, rentals }: { storeId: string; rentals: Rental[] }) {
   const [wishCounts, setWishCounts] = useState<Record<string, number>>({});
+  const [cartCounts, setCartCounts] = useState<Record<string, number>>({});
+  const [openId, setOpenId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       const productIds = [...new Set(rentals.map((r) => r.product_id))];
       if (productIds.length === 0) return;
-      const w = await (supabase as any).from("wishlists").select("product_id").in("product_id", productIds);
+      const [w, c] = await Promise.all([
+        (supabase as any).from("wishlists").select("product_id").in("product_id", productIds),
+        (supabase as any).from("cart_items").select("product_id, quantity").in("product_id", productIds),
+      ]);
       if (cancelled) return;
       const wc: Record<string, number> = {};
       (w.data ?? []).forEach((r: any) => { wc[r.product_id] = (wc[r.product_id] ?? 0) + 1; });
       setWishCounts(wc);
+      const cc: Record<string, number> = {};
+      (c.data ?? []).forEach((r: any) => { cc[r.product_id] = (cc[r.product_id] ?? 0) + 1; });
+      setCartCounts(cc);
     }
     load();
     return () => { cancelled = true; };
   }, [rentals, storeId]);
 
   const perProduct = useMemo(() => {
-    const map = new Map<string, { id: string; title: string; orders: number; units: number; revenue: number }>();
+    const map = new Map<string, {
+      id: string; title: string; orders: number; units: number; revenue: number;
+      rentOrders: number; buyOrders: number; rentRevenue: number; buyRevenue: number;
+      completed: number; cancelled: number;
+    }>();
     rentals.forEach((r) => {
-      const cur = map.get(r.product_id) ?? { id: r.product_id, title: r.product?.title ?? "—", orders: 0, units: 0, revenue: 0 };
+      const cur = map.get(r.product_id) ?? {
+        id: r.product_id, title: r.product?.title ?? "—",
+        orders: 0, units: 0, revenue: 0,
+        rentOrders: 0, buyOrders: 0, rentRevenue: 0, buyRevenue: 0,
+        completed: 0, cancelled: 0,
+      };
       cur.orders += 1;
       cur.units += r.quantity;
       cur.revenue += Number(r.subtotal || 0);
+      if (r.kind === "rent") { cur.rentOrders += 1; cur.rentRevenue += Number(r.subtotal || 0); }
+      else { cur.buyOrders += 1; cur.buyRevenue += Number(r.subtotal || 0); }
+      if (["completed", "returned", "delivered"].includes(r.status)) cur.completed += 1;
+      if (r.status === "cancelled") cur.cancelled += 1;
       map.set(r.product_id, cur);
     });
     return [...map.values()].sort((a, b) => b.revenue - a.revenue);
@@ -701,33 +722,183 @@ function ProductPerformance({ storeId, rentals }: { storeId: string; rentals: Re
     return <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">No product sales yet.</div>;
   }
 
+  const selected = openId ? perProduct.find((p) => p.id === openId) ?? null : null;
+  const selectedRentals = openId ? rentals.filter((r) => r.product_id === openId) : [];
+
   return (
-    <div className="rounded-2xl border border-border bg-card overflow-x-auto">
-      <table className="w-full text-sm min-w-[720px]">
-        <thead className="bg-secondary/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
-          <tr>
-            <th className="p-3">Product</th>
-            <th className="p-3">Orders</th>
-            <th className="p-3">Units sold</th>
-            <th className="p-3">Revenue</th>
-            <th className="p-3">Avg per order</th>
-            <th className="p-3">Wishlist saves</th>
-          </tr>
-        </thead>
-        <tbody>
-          {perProduct.map((p) => (
-            <tr key={p.id} className="border-t border-border">
-              <td className="p-3 font-medium">{p.title}</td>
-              <td className="p-3">{p.orders}</td>
-              <td className="p-3">{p.units}</td>
-              <td className="p-3 font-semibold">{inr(p.revenue)}</td>
-              <td className="p-3">{inr(p.orders > 0 ? p.revenue / p.orders : 0)}</td>
-              <td className="p-3">{wishCounts[p.id] ?? 0}</td>
+    <>
+      <div className="rounded-2xl border border-border bg-card overflow-x-auto">
+        <table className="w-full text-sm min-w-[860px]">
+          <thead className="bg-secondary/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
+            <tr>
+              <th className="p-3">Product</th>
+              <th className="p-3">Orders</th>
+              <th className="p-3">Units</th>
+              <th className="p-3">Revenue</th>
+              <th className="p-3">Avg / order</th>
+              <th className="p-3">Cart adds</th>
+              <th className="p-3">Wishlist</th>
+              <th className="p-3">Conversion</th>
+              <th className="p-3 text-right">Details</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {perProduct.map((p) => {
+              const carts = cartCounts[p.id] ?? 0;
+              const wishes = wishCounts[p.id] ?? 0;
+              const funnel = p.orders + carts + wishes;
+              const conv = funnel > 0 ? (p.orders / funnel) * 100 : 0;
+              return (
+                <tr key={p.id} className="border-t border-border hover:bg-secondary/30 cursor-pointer" onClick={() => setOpenId(p.id)}>
+                  <td className="p-3 font-medium">{p.title}</td>
+                  <td className="p-3">{p.orders}</td>
+                  <td className="p-3">{p.units}</td>
+                  <td className="p-3 font-semibold">{inr(p.revenue)}</td>
+                  <td className="p-3">{inr(p.orders > 0 ? p.revenue / p.orders : 0)}</td>
+                  <td className="p-3">{carts}</td>
+                  <td className="p-3">{wishes}</td>
+                  <td className="p-3">
+                    <span className={conv >= 30 ? "text-emerald-600 font-medium" : conv >= 10 ? "" : "text-muted-foreground"}>
+                      {conv.toFixed(1)}%
+                    </span>
+                  </td>
+                  <td className="p-3 text-right">
+                    <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setOpenId(p.id); }}>
+                      View →
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <ProductDrillDown
+        open={!!openId}
+        onClose={() => setOpenId(null)}
+        product={selected}
+        rentals={selectedRentals}
+        cartAdds={selected ? (cartCounts[selected.id] ?? 0) : 0}
+        wishlist={selected ? (wishCounts[selected.id] ?? 0) : 0}
+      />
+    </>
+  );
+}
+
+function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist }: {
+  open: boolean;
+  onClose: () => void;
+  product: { id: string; title: string; orders: number; units: number; revenue: number; rentOrders: number; buyOrders: number; rentRevenue: number; buyRevenue: number; completed: number; cancelled: number } | null;
+  rentals: Rental[];
+  cartAdds: number;
+  wishlist: number;
+}) {
+  const trend = useMemo(() => {
+    const map = new Map<string, { date: string; orders: number; revenue: number }>();
+    rentals.forEach((r) => {
+      const k = format(parseISO(r.created_at), "MMM d");
+      const cur = map.get(k) ?? { date: k, orders: 0, revenue: 0 };
+      cur.orders += 1;
+      cur.revenue += Number(r.subtotal || 0);
+      map.set(k, cur);
+    });
+    return [...map.values()];
+  }, [rentals]);
+
+  const funnel = (product?.orders ?? 0) + cartAdds + wishlist;
+  const conv = funnel > 0 ? ((product?.orders ?? 0) / funnel) * 100 : 0;
+  const completionRate = product && product.orders > 0 ? (product.completed / product.orders) * 100 : 0;
+
+  return (
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+        {product && (
+          <>
+            <SheetHeader>
+              <SheetTitle className="text-xl">{product.title}</SheetTitle>
+              <SheetDescription>Performance drill-down</SheetDescription>
+            </SheetHeader>
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <Stat label="Orders" value={String(product.orders)} />
+              <Stat label="Revenue" value={inr(product.revenue)} />
+              <Stat label="Units sold" value={String(product.units)} />
+              <Stat label="Avg / order" value={inr(product.orders > 0 ? product.revenue / product.orders : 0)} />
+              <Stat label="Conversion" value={`${conv.toFixed(1)}%`} sub={`${product.orders} of ${funnel} touchpoints`} />
+              <Stat label="Completion rate" value={`${completionRate.toFixed(0)}%`} sub={`${product.completed} completed`} />
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-border p-3">
+                <p className="text-xs text-muted-foreground">Rentals</p>
+                <p className="text-lg font-semibold">{product.rentOrders}</p>
+                <p className="text-xs text-muted-foreground">{inr(product.rentRevenue)}</p>
+              </div>
+              <div className="rounded-xl border border-border p-3">
+                <p className="text-xs text-muted-foreground">Sales</p>
+                <p className="text-lg font-semibold">{product.buyOrders}</p>
+                <p className="text-xs text-muted-foreground">{inr(product.buyRevenue)}</p>
+              </div>
+              <div className="rounded-xl border border-border p-3">
+                <p className="text-xs text-muted-foreground">Wishlist saves</p>
+                <p className="text-lg font-semibold">{wishlist}</p>
+              </div>
+              <div className="rounded-xl border border-border p-3">
+                <p className="text-xs text-muted-foreground">Cart adds</p>
+                <p className="text-lg font-semibold">{cartAdds}</p>
+              </div>
+            </div>
+
+            {trend.length > 0 && (
+              <div className="mt-6">
+                <p className="text-sm font-medium mb-2">Revenue over time</p>
+                <div className="h-48 rounded-xl border border-border p-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={trend}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                      <XAxis dataKey="date" fontSize={11} />
+                      <YAxis fontSize={11} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6">
+              <p className="text-sm font-medium mb-2">Recent orders</p>
+              <div className="rounded-xl border border-border divide-y divide-border max-h-80 overflow-y-auto">
+                {rentals.slice(0, 25).map((r) => (
+                  <div key={r.id} className="flex items-center justify-between p-3 text-sm">
+                    <div>
+                      <p className="font-medium capitalize">{r.kind} · {r.quantity} unit{r.quantity > 1 ? "s" : ""}</p>
+                      <p className="text-xs text-muted-foreground">{format(parseISO(r.created_at), "PP")}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">{inr(r.subtotal)}</p>
+                      <Badge variant="outline" className="capitalize text-[10px]">{r.status}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-xl border border-border p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-lg font-semibold">{value}</p>
+      {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
     </div>
   );
 }
+
 
