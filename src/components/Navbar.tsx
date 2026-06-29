@@ -94,9 +94,25 @@ export function Navbar() {
           )}
         </div>
 
-        <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">
-          <Menu className="h-5 w-5" />
-        </button>
+        <div className="flex md:hidden items-center gap-0.5">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/browse")} aria-label="Search" className="h-9 w-9">
+            <Search className="h-4 w-4" />
+          </Button>
+          {user && <NotificationBell />}
+          {user && (
+            <Button variant="ghost" size="icon" onClick={() => navigate("/wishlist")} aria-label="Wishlist" className="h-9 w-9">
+              <Heart className="h-4 w-4" />
+            </Button>
+          )}
+          {user && (
+            <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} aria-label="Cart" className="h-9 w-9">
+              <ShoppingCart className="h-4 w-4" />
+            </Button>
+          )}
+          <button className="h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-muted" onClick={() => setOpen(!open)} aria-label="Menu">
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       {open && (
