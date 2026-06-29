@@ -450,6 +450,67 @@ function ReportTable({ title, rows, settlements, refunds, kind }: {
     toast.success("CSV downloaded");
   }
 
+  function exportPdfReport() {
+    if (kind === "rent") {
+      const head = ["Date", "Product", "Period", "Days", "Qty", "Gross", "Fee", "Net", "Refund", "Status"];
+      const body = filtered.map((r) => {
+        const s = settlements.find((x) => x.rental_id === r.id);
+        const rf = refunds.find((x) => x.rental_id === r.id);
+        return [
+          format(parseISO(r.created_at), "yyyy-MM-dd"),
+          r.product?.title ?? "—",
+          r.start_date && r.end_date ? `${r.start_date} → ${r.end_date}` : "—",
+          r.days ?? "",
+          r.quantity,
+          inr(r.subtotal),
+          inr(s?.platform_fee ?? 0),
+          inr(s?.net_payout ?? 0),
+          inr(rf?.refund_amount ?? 0),
+          r.status,
+        ];
+      });
+      const totals: [string, string][] = [
+        ["Total gross", inr(filtered.reduce((a, r) => a + Number(r.subtotal || 0), 0))],
+        ["Total platform fees", inr(filtered.reduce((a, r) => a + Number(settlements.find((x) => x.rental_id === r.id)?.platform_fee ?? 0), 0))],
+        ["Total net payout", inr(filtered.reduce((a, r) => a + Number(settlements.find((x) => x.rental_id === r.id)?.net_payout ?? 0), 0))],
+      ];
+      exportPdf({
+        filename: `rental-earnings-${Date.now()}.pdf`,
+        title: "Rental Earnings Report",
+        subtitle: `${filtered.length} rentals${from || to ? ` · ${from || "…"} → ${to || "…"}` : ""}`,
+        head, body, totals,
+      });
+    } else {
+      const head = ["Date", "Order", "Product", "Qty", "Subtotal", "Discount", "GST", "Net", "Status"];
+      const body = filtered.map((r) => {
+        const s = settlements.find((x) => x.rental_id === r.id);
+        return [
+          format(parseISO(r.created_at), "yyyy-MM-dd"),
+          r.id.slice(0, 8),
+          r.product?.title ?? "—",
+          r.quantity,
+          inr(r.subtotal),
+          inr(r.discount_amount ?? 0),
+          inr(r.gst_amount ?? 0),
+          inr(s?.net_payout ?? 0),
+          r.status,
+        ];
+      });
+      const totals: [string, string][] = [
+        ["Total subtotal", inr(filtered.reduce((a, r) => a + Number(r.subtotal || 0), 0))],
+        ["Total GST", inr(filtered.reduce((a, r) => a + Number(r.gst_amount || 0), 0))],
+        ["Total net payout", inr(filtered.reduce((a, r) => a + Number(settlements.find((x) => x.rental_id === r.id)?.net_payout ?? 0), 0))],
+      ];
+      exportPdf({
+        filename: `sales-${Date.now()}.pdf`,
+        title: "Sales Report",
+        subtitle: `${filtered.length} orders${from || to ? ` · ${from || "…"} → ${to || "…"}` : ""}`,
+        head, body, totals,
+      });
+    }
+    toast.success("PDF downloaded");
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
