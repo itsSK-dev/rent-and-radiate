@@ -13,6 +13,46 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+function exportPdf(opts: {
+  filename: string;
+  title: string;
+  subtitle?: string;
+  head: string[];
+  body: (string | number)[][];
+  totals?: [string, string][];
+}) {
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  doc.setFontSize(16);
+  doc.text(opts.title, 40, 48);
+  if (opts.subtitle) {
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text(opts.subtitle, 40, 64);
+    doc.setTextColor(0);
+  }
+  autoTable(doc, {
+    startY: 80,
+    head: [opts.head],
+    body: opts.body.map((r) => r.map((c) => String(c))),
+    styles: { fontSize: 9, cellPadding: 6 },
+    headStyles: { fillColor: [17, 17, 17] },
+    margin: { left: 40, right: 40 },
+  });
+  if (opts.totals?.length) {
+    const y = (doc as any).lastAutoTable.finalY + 20;
+    doc.setFontSize(11);
+    opts.totals.forEach(([k, v], i) => {
+      doc.text(`${k}: ${v}`, 40, y + i * 16);
+    });
+  }
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text(`Generated ${format(new Date(), "PPpp")}`, 40, doc.internal.pageSize.getHeight() - 24);
+  doc.save(opts.filename);
+}
 
 type Rental = {
   id: string;
@@ -410,6 +450,67 @@ function ReportTable({ title, rows, settlements, refunds, kind }: {
     toast.success("CSV downloaded");
   }
 
+  function exportPdfReport() {
+    if (kind === "rent") {
+      const head = ["Date", "Product", "Period", "Days", "Qty", "Gross", "Fee", "Net", "Refund", "Status"];
+      const body = filtered.map((r) => {
+        const s = settlements.find((x) => x.rental_id === r.id);
+        const rf = refunds.find((x) => x.rental_id === r.id);
+        return [
+          format(parseISO(r.created_at), "yyyy-MM-dd"),
+          r.product?.title ?? "—",
+          r.start_date && r.end_date ? `${r.start_date} → ${r.end_date}` : "—",
+          r.days ?? "",
+          r.quantity,
+          inr(r.subtotal),
+          inr(s?.platform_fee ?? 0),
+          inr(s?.net_payout ?? 0),
+          inr(rf?.refund_amount ?? 0),
+          r.status,
+        ];
+      });
+      const totals: [string, string][] = [
+        ["Total gross", inr(filtered.reduce((a, r) => a + Number(r.subtotal || 0), 0))],
+        ["Total platform fees", inr(filtered.reduce((a, r) => a + Number(settlements.find((x) => x.rental_id === r.id)?.platform_fee ?? 0), 0))],
+        ["Total net payout", inr(filtered.reduce((a, r) => a + Number(settlements.find((x) => x.rental_id === r.id)?.net_payout ?? 0), 0))],
+      ];
+      exportPdf({
+        filename: `rental-earnings-${Date.now()}.pdf`,
+        title: "Rental Earnings Report",
+        subtitle: `${filtered.length} rentals${from || to ? ` · ${from || "…"} → ${to || "…"}` : ""}`,
+        head, body, totals,
+      });
+    } else {
+      const head = ["Date", "Order", "Product", "Qty", "Subtotal", "Discount", "GST", "Net", "Status"];
+      const body = filtered.map((r) => {
+        const s = settlements.find((x) => x.rental_id === r.id);
+        return [
+          format(parseISO(r.created_at), "yyyy-MM-dd"),
+          r.id.slice(0, 8),
+          r.product?.title ?? "—",
+          r.quantity,
+          inr(r.subtotal),
+          inr(r.discount_amount ?? 0),
+          inr(r.gst_amount ?? 0),
+          inr(s?.net_payout ?? 0),
+          r.status,
+        ];
+      });
+      const totals: [string, string][] = [
+        ["Total subtotal", inr(filtered.reduce((a, r) => a + Number(r.subtotal || 0), 0))],
+        ["Total GST", inr(filtered.reduce((a, r) => a + Number(r.gst_amount || 0), 0))],
+        ["Total net payout", inr(filtered.reduce((a, r) => a + Number(settlements.find((x) => x.rental_id === r.id)?.net_payout ?? 0), 0))],
+      ];
+      exportPdf({
+        filename: `sales-${Date.now()}.pdf`,
+        title: "Sales Report",
+        subtitle: `${filtered.length} orders${from || to ? ` · ${from || "…"} → ${to || "…"}` : ""}`,
+        head, body, totals,
+      });
+    }
+    toast.success("PDF downloaded");
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -423,7 +524,10 @@ function ReportTable({ title, rows, settlements, refunds, kind }: {
         <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-40" />
         <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-40" />
         <Button size="sm" variant="outline" onClick={exportCsv} className="ml-auto">
-          <Download className="h-4 w-4" /> Export CSV
+          <Download className="h-4 w-4" /> CSV
+        </Button>
+        <Button size="sm" variant="outline" onClick={exportPdfReport}>
+          <FileText className="h-4 w-4" /> PDF
         </Button>
       </div>
 
@@ -492,6 +596,34 @@ h1{margin:0}.muted{color:#666;font-size:13px}.row{display:flex;justify-content:s
     download(`statement-${m.key}.html`, html, "text/html");
   }
 
+  function downloadStatementCsv(m: typeof months[number]) {
+    const headers = ["Metric", "Value"];
+    const rows: (string | number)[][] = [
+      ["Store", storeName],
+      ["Month", m.label],
+      ["Orders", m.orders],
+      ["Gross sales", Number(m.gross).toFixed(2)],
+      ["Platform fees", Number(m.fees).toFixed(2)],
+      ["Net payout", Number(m.net).toFixed(2)],
+    ];
+    download(`statement-${m.key}.csv`, toCsv(headers, rows));
+  }
+
+  function downloadStatementPdf(m: typeof months[number]) {
+    exportPdf({
+      filename: `statement-${m.key}.pdf`,
+      title: storeName,
+      subtitle: `Monthly earnings statement · ${m.label}`,
+      head: ["Metric", "Value"],
+      body: [
+        ["Orders", String(m.orders)],
+        ["Gross sales", inr(m.gross)],
+        ["Platform fees", `− ${inr(m.fees)}`],
+      ],
+      totals: [["Net payout", inr(m.net)]],
+    });
+  }
+
   if (months.length === 0) {
     return <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">No completed orders yet.</div>;
   }
@@ -516,9 +648,15 @@ h1{margin:0}.muted{color:#666;font-size:13px}.row{display:flex;justify-content:s
               <td className="p-3">{inr(m.gross)}</td>
               <td className="p-3">{inr(m.fees)}</td>
               <td className="p-3 font-semibold">{inr(m.net)}</td>
-              <td className="p-3 text-right">
+              <td className="p-3 text-right space-x-1 whitespace-nowrap">
+                <Button size="sm" variant="ghost" onClick={() => downloadStatementCsv(m)}>
+                  <Download className="h-3.5 w-3.5" /> CSV
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => downloadStatementPdf(m)}>
+                  <FileText className="h-3.5 w-3.5" /> PDF
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => downloadStatement(m)}>
-                  <FileText className="h-3.5 w-3.5" /> Download
+                  <FileText className="h-3.5 w-3.5" /> HTML
                 </Button>
               </td>
             </tr>
