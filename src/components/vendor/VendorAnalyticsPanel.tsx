@@ -982,12 +982,12 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
   );
 }
 
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Stat({ label, value, sub, subTone }: { label: string; value: string; sub?: string; subTone?: string }) {
   return (
     <div className="rounded-xl border border-border p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="text-lg font-semibold">{value}</p>
-      {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+      {sub && <p className={`text-xs mt-0.5 ${subTone ?? "text-muted-foreground"}`}>{sub}</p>}
     </div>
   );
 }
