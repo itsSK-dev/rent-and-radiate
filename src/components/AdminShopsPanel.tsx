@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -376,15 +378,19 @@ function ManageShopDialog({
   const [status, setStatus] = useState<ShopStatus>("pending");
   const [isActive, setIsActive] = useState(true);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
   const [saving, setSaving] = useState(false);
+
 
   useEffect(() => {
     if (shop) {
       setStatus(shop.status);
       setIsActive(shop.is_active);
       setIsBlocked(shop.is_blocked);
+      setRejectionReason((shop as any).rejection_reason ?? "");
     }
   }, [shop]);
+
 
   async function handleSave() {
     if (!shop) return;
@@ -398,10 +404,12 @@ function ManageShopDialog({
         approved: nextVerified,
         is_active: isActive,
         is_blocked: isBlocked,
+        rejection_reason: status === "rejected" ? (rejectionReason.trim() || null) : null,
       } as any)
       .eq("id", shop.id)
       .select("id")
       .maybeSingle();
+
     setSaving(false);
     if (error) {
       toast.error(error.message || "Failed to save changes");
@@ -441,6 +449,19 @@ function ManageShopDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {status === "rejected" && (
+            <div className="space-y-2">
+              <Label>Rejection reason (visible to seller)</Label>
+              <Textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Explain what the seller needs to fix before resubmitting…"
+                rows={3}
+              />
+            </div>
+          )}
+
 
           <div className="flex items-center justify-between rounded-lg border border-border p-3">
             <div>
