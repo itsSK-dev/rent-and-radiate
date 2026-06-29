@@ -13,6 +13,46 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+function exportPdf(opts: {
+  filename: string;
+  title: string;
+  subtitle?: string;
+  head: string[];
+  body: (string | number)[][];
+  totals?: [string, string][];
+}) {
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  doc.setFontSize(16);
+  doc.text(opts.title, 40, 48);
+  if (opts.subtitle) {
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text(opts.subtitle, 40, 64);
+    doc.setTextColor(0);
+  }
+  autoTable(doc, {
+    startY: 80,
+    head: [opts.head],
+    body: opts.body.map((r) => r.map((c) => String(c))),
+    styles: { fontSize: 9, cellPadding: 6 },
+    headStyles: { fillColor: [17, 17, 17] },
+    margin: { left: 40, right: 40 },
+  });
+  if (opts.totals?.length) {
+    const y = (doc as any).lastAutoTable.finalY + 20;
+    doc.setFontSize(11);
+    opts.totals.forEach(([k, v], i) => {
+      doc.text(`${k}: ${v}`, 40, y + i * 16);
+    });
+  }
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text(`Generated ${format(new Date(), "PPpp")}`, 40, doc.internal.pageSize.getHeight() - 24);
+  doc.save(opts.filename);
+}
 
 type Rental = {
   id: string;
