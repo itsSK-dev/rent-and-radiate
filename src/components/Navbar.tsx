@@ -1,8 +1,9 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Flower2, ShoppingBag, ShoppingCart, Store, User as UserIcon, LogOut, Menu, Package, Heart } from "lucide-react";
+import { Flower2, Search, ShoppingBag, ShoppingCart, Store, User as UserIcon, LogOut, Menu, Package, Heart } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
+import { LocationSelector } from "@/components/LocationSelector";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useNewOrderCount } from "@/hooks/useNewOrderCount";
@@ -15,12 +16,17 @@ export function Navbar() {
   const newOrderCount = useNewOrderCount();
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
-      <div className="container flex h-16 items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-2 group">
-          <Flower2 className="h-6 w-6 text-primary group-hover:rotate-12 transition-smooth" strokeWidth={1.5} />
-          <span className="font-display text-2xl tracking-tight">Rent & Radiate</span>
-        </Link>
+    <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
+      <div className="container flex h-16 items-center justify-between gap-3 md:gap-4">
+        <div className="flex items-center gap-3 md:gap-5 min-w-0">
+          <Link to="/" className="flex items-center gap-2 group shrink-0">
+            <Flower2 className="h-6 w-6 text-primary group-hover:rotate-12 transition-smooth" strokeWidth={1.5} />
+            <span className="font-display text-xl md:text-2xl tracking-tight">Rent &amp; Radiate</span>
+          </Link>
+          <div className="hidden sm:block">
+            <LocationSelector />
+          </div>
+        </div>
 
         <nav className="hidden md:flex items-center gap-8 text-sm">
           <NavItem to="/browse?category=dress">Dresses</NavItem>
