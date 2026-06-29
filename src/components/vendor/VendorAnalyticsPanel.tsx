@@ -596,6 +596,34 @@ h1{margin:0}.muted{color:#666;font-size:13px}.row{display:flex;justify-content:s
     download(`statement-${m.key}.html`, html, "text/html");
   }
 
+  function downloadStatementCsv(m: typeof months[number]) {
+    const headers = ["Metric", "Value"];
+    const rows: (string | number)[][] = [
+      ["Store", storeName],
+      ["Month", m.label],
+      ["Orders", m.orders],
+      ["Gross sales", Number(m.gross).toFixed(2)],
+      ["Platform fees", Number(m.fees).toFixed(2)],
+      ["Net payout", Number(m.net).toFixed(2)],
+    ];
+    download(`statement-${m.key}.csv`, toCsv(headers, rows));
+  }
+
+  function downloadStatementPdf(m: typeof months[number]) {
+    exportPdf({
+      filename: `statement-${m.key}.pdf`,
+      title: storeName,
+      subtitle: `Monthly earnings statement · ${m.label}`,
+      head: ["Metric", "Value"],
+      body: [
+        ["Orders", String(m.orders)],
+        ["Gross sales", inr(m.gross)],
+        ["Platform fees", `− ${inr(m.fees)}`],
+      ],
+      totals: [["Net payout", inr(m.net)]],
+    });
+  }
+
   if (months.length === 0) {
     return <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">No completed orders yet.</div>;
   }
