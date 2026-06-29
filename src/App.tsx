@@ -13,6 +13,8 @@ import MyRentals from "./pages/MyRentals";
 import BecomeVendor from "./pages/BecomeVendor";
 import Vendor from "./pages/Vendor";
 import VendorOrders from "./pages/VendorOrders";
+import VendorVerification from "./pages/VendorVerification";
+
 import HowItWorks from "./pages/HowItWorks";
 import Admin from "./pages/Admin";
 import AdminEmailPreview from "./pages/AdminEmailPreview";
@@ -63,6 +65,8 @@ const App = () => (
               <Route path="/become-vendor" element={<BecomeVendor />} />
               <Route path="/vendor" element={<Vendor />} />
               <Route path="/vendor/orders" element={<VendorOrders />} />
+              <Route path="/vendor/verification" element={<VendorVerification />} />
+
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin/email-previews" element={<AdminEmailPreview />} />
