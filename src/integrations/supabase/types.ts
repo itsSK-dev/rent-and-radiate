@@ -608,6 +608,81 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_alerts: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          ip_address: string | null
+          kind: Database["public"]["Enums"]["fraud_alert_kind"]
+          metadata: Json
+          rental_id: string | null
+          resolution_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          severity: Database["public"]["Enums"]["fraud_alert_severity"]
+          status: Database["public"]["Enums"]["fraud_alert_status"]
+          subject_store_id: string | null
+          subject_user_id: string | null
+          title: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          ip_address?: string | null
+          kind: Database["public"]["Enums"]["fraud_alert_kind"]
+          metadata?: Json
+          rental_id?: string | null
+          resolution_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: Database["public"]["Enums"]["fraud_alert_severity"]
+          status?: Database["public"]["Enums"]["fraud_alert_status"]
+          subject_store_id?: string | null
+          subject_user_id?: string | null
+          title: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          ip_address?: string | null
+          kind?: Database["public"]["Enums"]["fraud_alert_kind"]
+          metadata?: Json
+          rental_id?: string | null
+          resolution_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: Database["public"]["Enums"]["fraud_alert_severity"]
+          status?: Database["public"]["Enums"]["fraud_alert_status"]
+          subject_store_id?: string | null
+          subject_user_id?: string | null
+          title?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraud_alerts_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fraud_alerts_subject_store_id_fkey"
+            columns: ["subject_store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       manual_payments: {
         Row: {
           admin_notes: string | null
@@ -1003,8 +1078,18 @@ export type Database = {
           late_fee_grace_hours: number
           late_fee_multiplier: number
           payout_hold_days: number
+          protection_claim_rules: string | null
+          protection_claim_window_days: number
+          protection_max_claim_percent: number
+          protection_min_photos: number
+          protection_non_refundable_after_delivery: boolean
+          protection_plan_enabled: boolean
           protection_plan_min: number
           protection_plan_percent: number
+          protection_refund_on_cancel_percent: number
+          protection_refund_rules: string | null
+          protection_refund_window_days: number
+          protection_requires_photos: boolean
           referral_min_order_amount: number
           referral_referrer_bonus: number
           referral_signup_bonus: number
@@ -1029,8 +1114,18 @@ export type Database = {
           late_fee_grace_hours?: number
           late_fee_multiplier?: number
           payout_hold_days?: number
+          protection_claim_rules?: string | null
+          protection_claim_window_days?: number
+          protection_max_claim_percent?: number
+          protection_min_photos?: number
+          protection_non_refundable_after_delivery?: boolean
+          protection_plan_enabled?: boolean
           protection_plan_min?: number
           protection_plan_percent?: number
+          protection_refund_on_cancel_percent?: number
+          protection_refund_rules?: string | null
+          protection_refund_window_days?: number
+          protection_requires_photos?: boolean
           referral_min_order_amount?: number
           referral_referrer_bonus?: number
           referral_signup_bonus?: number
@@ -1055,8 +1150,18 @@ export type Database = {
           late_fee_grace_hours?: number
           late_fee_multiplier?: number
           payout_hold_days?: number
+          protection_claim_rules?: string | null
+          protection_claim_window_days?: number
+          protection_max_claim_percent?: number
+          protection_min_photos?: number
+          protection_non_refundable_after_delivery?: boolean
+          protection_plan_enabled?: boolean
           protection_plan_min?: number
           protection_plan_percent?: number
+          protection_refund_on_cancel_percent?: number
+          protection_refund_rules?: string | null
+          protection_refund_window_days?: number
+          protection_requires_photos?: boolean
           referral_min_order_amount?: number
           referral_referrer_bonus?: number
           referral_signup_bonus?: number
@@ -1158,13 +1263,16 @@ export type Database = {
           avatar_url: string | null
           blocked: boolean
           created_at: string
+          flagged_at: string | null
           full_name: string | null
           id: string
+          is_suspicious: boolean
           lifetime_reward_points: number
           phone: string | null
           referral_code: string | null
           referred_by: string | null
           reward_points: number
+          suspicious_reason: string | null
           trust_score: number
           updated_at: string
         }
@@ -1172,13 +1280,16 @@ export type Database = {
           avatar_url?: string | null
           blocked?: boolean
           created_at?: string
+          flagged_at?: string | null
           full_name?: string | null
           id: string
+          is_suspicious?: boolean
           lifetime_reward_points?: number
           phone?: string | null
           referral_code?: string | null
           referred_by?: string | null
           reward_points?: number
+          suspicious_reason?: string | null
           trust_score?: number
           updated_at?: string
         }
@@ -1186,13 +1297,16 @@ export type Database = {
           avatar_url?: string | null
           blocked?: boolean
           created_at?: string
+          flagged_at?: string | null
           full_name?: string | null
           id?: string
+          is_suspicious?: boolean
           lifetime_reward_points?: number
           phone?: string | null
           referral_code?: string | null
           referred_by?: string | null
           reward_points?: number
+          suspicious_reason?: string | null
           trust_score?: number
           updated_at?: string
         }
@@ -1836,9 +1950,11 @@ export type Database = {
           city: string | null
           created_at: string
           description: string | null
+          flagged_at: string | null
           id: string
           is_active: boolean
           is_blocked: boolean
+          is_suspicious: boolean
           is_verified: boolean
           lat: number | null
           lng: number | null
@@ -1849,6 +1965,7 @@ export type Database = {
           rating_count: number
           rejection_reason: string | null
           status: Database["public"]["Enums"]["store_status"]
+          suspicious_reason: string | null
           updated_at: string
         }
         Insert: {
@@ -1857,9 +1974,11 @@ export type Database = {
           city?: string | null
           created_at?: string
           description?: string | null
+          flagged_at?: string | null
           id?: string
           is_active?: boolean
           is_blocked?: boolean
+          is_suspicious?: boolean
           is_verified?: boolean
           lat?: number | null
           lng?: number | null
@@ -1870,6 +1989,7 @@ export type Database = {
           rating_count?: number
           rejection_reason?: string | null
           status?: Database["public"]["Enums"]["store_status"]
+          suspicious_reason?: string | null
           updated_at?: string
         }
         Update: {
@@ -1878,9 +1998,11 @@ export type Database = {
           city?: string | null
           created_at?: string
           description?: string | null
+          flagged_at?: string | null
           id?: string
           is_active?: boolean
           is_blocked?: boolean
+          is_suspicious?: boolean
           is_verified?: boolean
           lat?: number | null
           lng?: number | null
@@ -1891,6 +2013,7 @@ export type Database = {
           rating_count?: number
           rejection_reason?: string | null
           status?: Database["public"]["Enums"]["store_status"]
+          suspicious_reason?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -2206,6 +2329,10 @@ export type Database = {
     }
     Functions: {
       _is_service_role: { Args: never; Returns: boolean }
+      admin_flag_subject: {
+        Args: { _flag: boolean; _id: string; _kind: string; _reason?: string }
+        Returns: undefined
+      }
       admin_set_user_role: {
         Args: {
           _grant?: boolean
@@ -2317,6 +2444,16 @@ export type Database = {
       delivery_method: "delivery" | "pickup"
       dispute_status: "open" | "reviewing" | "resolved" | "rejected"
       extension_status: "pending" | "approved" | "rejected"
+      fraud_alert_kind:
+        | "suspicious_login"
+        | "suspicious_payment"
+        | "repeated_failed_payment"
+        | "flagged_user"
+        | "flagged_seller"
+        | "chargeback"
+        | "other"
+      fraud_alert_severity: "low" | "medium" | "high" | "critical"
+      fraud_alert_status: "open" | "reviewing" | "resolved" | "dismissed"
       image_stage: "before_delivery" | "at_delivery" | "after_return"
       manual_payment_status: "pending_verification" | "verified" | "failed"
       notification_type:
@@ -2526,6 +2663,17 @@ export const Constants = {
       delivery_method: ["delivery", "pickup"],
       dispute_status: ["open", "reviewing", "resolved", "rejected"],
       extension_status: ["pending", "approved", "rejected"],
+      fraud_alert_kind: [
+        "suspicious_login",
+        "suspicious_payment",
+        "repeated_failed_payment",
+        "flagged_user",
+        "flagged_seller",
+        "chargeback",
+        "other",
+      ],
+      fraud_alert_severity: ["low", "medium", "high", "critical"],
+      fraud_alert_status: ["open", "reviewing", "resolved", "dismissed"],
       image_stage: ["before_delivery", "at_delivery", "after_return"],
       manual_payment_status: ["pending_verification", "verified", "failed"],
       notification_type: [
