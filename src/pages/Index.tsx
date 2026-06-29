@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
+import { HeroCarousel } from "@/components/HeroCarousel";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
