@@ -169,23 +169,16 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      {/* Hero: smart search */}
+      {/* Premium branding-only hero carousel (no product actions) */}
+      <HeroCarousel />
+
+      {/* Smart search floating bar */}
       <section className="relative">
-        <div className="container pt-10 md:pt-14 pb-6">
+        <div className="container pt-8 md:pt-10 pb-6">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-rose-deep">
-              <Sparkles className="h-3.5 w-3.5" /> Rent it. Buy it. Wear it.
-            </span>
-            <h1 className="font-display text-4xl md:text-6xl leading-[1.05] mt-3">
-              Shop the look —{" "}
-              <em className="text-primary not-italic font-light">your way.</em>
-            </h1>
-            <p className="text-base md:text-lg text-muted-foreground mt-3 max-w-xl">
-              Designer dresses, jewellery and accessories from boutiques near you. Rent for the day or take it home.
-            </p>
             <form
               onSubmit={onSearch}
-              className="mt-6 flex items-center gap-2 bg-card rounded-full pl-5 pr-2 py-2 shadow-soft border border-border max-w-xl"
+              className="flex items-center gap-2 bg-card rounded-full pl-5 pr-2 py-2 shadow-soft border border-border max-w-2xl"
               role="search"
             >
               <Sparkles className="h-4 w-4 text-rose-deep shrink-0" />
