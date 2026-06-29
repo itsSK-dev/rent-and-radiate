@@ -28,6 +28,8 @@ import { AdminAdsPanel } from "@/components/AdminAdsPanel";
 import { AdminNotificationsPanel } from "@/components/AdminNotificationsPanel";
 import { AdminOverviewPanel } from "@/components/admin/AdminOverviewPanel";
 import { AdminAnalyticsPanel } from "@/components/admin/AdminAnalyticsPanel";
+import { AdminCommissionsPanel } from "@/components/admin/AdminCommissionsPanel";
+import { AdminSubscriptionsPanel } from "@/components/admin/AdminSubscriptionsPanel";
 
 type Dispute = {
   id: string;
@@ -126,6 +128,8 @@ const Admin = () => {
             <TabsTrigger value="ads">Ads</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="audit">Audit log</TabsTrigger>
+            <TabsTrigger value="commissions">Commissions</TabsTrigger>
+            <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -190,6 +194,14 @@ const Admin = () => {
           </TabsContent>
 
 
+
+          <TabsContent value="commissions" className="mt-6">
+            <AdminCommissionsPanel />
+          </TabsContent>
+
+          <TabsContent value="subscriptions" className="mt-6">
+            <AdminSubscriptionsPanel />
+          </TabsContent>
 
           <TabsContent value="settings" className="mt-6 space-y-6">
             <PaymentSettingsPanel />
