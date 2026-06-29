@@ -26,6 +26,8 @@ import { AdminDeliveryPanel } from "@/components/AdminDeliveryPanel";
 import { AdminAuditLogPanel } from "@/components/AdminAuditLogPanel";
 import { AdminAdsPanel } from "@/components/AdminAdsPanel";
 import { AdminNotificationsPanel } from "@/components/AdminNotificationsPanel";
+import { AdminOverviewPanel } from "@/components/admin/AdminOverviewPanel";
+import { AdminAnalyticsPanel } from "@/components/admin/AdminAnalyticsPanel";
 
 type Dispute = {
   id: string;
@@ -112,8 +114,10 @@ const Admin = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="disputes">
-          <TabsList>
+        <Tabs defaultValue="overview">
+          <TabsList className="flex-wrap h-auto">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="disputes">Disputes</TabsTrigger>
             <TabsTrigger value="shops">Shops</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
@@ -124,6 +128,14 @@ const Admin = () => {
             <TabsTrigger value="audit">Audit log</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="overview" className="mt-6">
+            <AdminOverviewPanel />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-6">
+            <AdminAnalyticsPanel />
+          </TabsContent>
 
           <TabsContent value="disputes" className="mt-6 space-y-6">
             <div className="flex justify-end">

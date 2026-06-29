@@ -1,115 +1,51 @@
-# Seller Experience Upgrade
+## Goal
+Extend the existing `/admin` page with two new tabs — **Overview** (KPI cards) and **Analytics** (charts & reports) — without touching any existing admin panels (Shops, Refunds, Payments, Ads, Notifications, Audit, Email, Platform Settings).
 
-Build a richer seller workspace on top of the existing Vendor dashboard without breaking any current flow. Everything stays in sync with the existing Admin panels because we reuse the same tables (`stores`, `products`, `rentals`, `vendor_settlements`, `notifications`).
+## Access control
+- Reuse the existing admin guard already in `src/pages/Admin.tsx` (`has_role(auth.uid(),'admin')`). No new routes — both tabs live under `/admin`, so the current guard covers them.
+- All data is read via the standard supabase client; RLS on `rentals`, `products`, `stores`, `profiles`, `deposit_refunds`, `vendor_settlements`, `user_roles` already restricts non-admin reads. No schema or policy changes.
 
-## 1. Seller verification with admin approval
+## New files
+1. `src/components/admin/AdminOverviewPanel.tsx` — KPI grid.
+2. `src/components/admin/AdminAnalyticsPanel.tsx` — charts + ranked tables.
+3. `src/lib/adminStats.ts` — small fetch helpers (counts, sums, time-bucketed series, top-N queries) reused by both panels.
 
-The `stores` table already has `status`, `is_verified`, and an admin approval flow (`AdminShopsPanel`, `sync_store_admin_flags`, `grant_store_owner_on_approval`). We extend it instead of duplicating it.
+## Modified files
+- `src/pages/Admin.tsx` — add two `TabsTrigger`s ("Overview", "Analytics") and matching `TabsContent`. Default tab switches to `overview`. No other panels touched.
 
-- Add a "Verification" card on the Vendor dashboard:
-  - Shows current status (Pending / Approved / Rejected) and a checklist (store name, logo, address, payment settings, at least 1 product).
-  - "Submit for verification" button — flips the store back to `pending` if previously rejected; otherwise just reminds the user it's already submitted.
-  - Read-only "Why was I rejected?" message pulled from `stores.rejection_reason` (add column if missing).
-- Admin side already approves via `AdminShopsPanel` — no change needed. We only add an optional `rejection_reason TEXT` column and surface it in both panels.
+## Overview KPIs (cards)
+Each card = one count/sum query against existing tables:
 
-## 2. Verified Seller badge
+| KPI | Source |
+|---|---|
+| Total users | `profiles` count |
+| Total sellers | distinct `stores.owner_id` where `status='approved'` |
+| Total products | `products` count |
+| Active rentals | `rentals` where `kind!='buy'` and `status` in (`confirmed`,`packing`,`ready_for_pickup`,`shipped`,`delivered`) |
+| Completed rentals | `rentals` where `kind!='buy'` and `status='returned'` |
+| Total orders | `rentals` count (all kinds) |
+| Pending orders | `rentals` where `status='pending'` |
+| Total revenue | sum `rentals.grand_total` where `payment_status in ('paid','partial_refund','refunded')` |
+| Platform commission earned | sum `vendor_settlements.platform_fee` |
+| Pending refunds | `deposit_refunds` where `status='pending_admin'` |
+| Completed refunds | `deposit_refunds` where `status in ('approved','processed')` |
 
-- New `<VerifiedSellerBadge />` component (shield-check icon + "Verified seller" tooltip), shown wherever a store is referenced:
-  - `ProductCard` (small badge near store name)
-  - `ProductDetail` store header
-  - `ShopTheLook` and `Browse` listings
-- Renders only when `stores.is_verified = true` and `status = 'approved'`.
+Use parallel `Promise.all` with `head:true, count:'exact'` for counts.
 
-## 3. Seller analytics dashboard
+## Analytics charts
+Range selector: 7d / 30d / 90d / 12m / All. Bucket = day for ≤90d, week for 12m, month for All.
 
-New tab "Analytics" inside `src/pages/Vendor.tsx` powered by a new `VendorAnalyticsPanel.tsx` that queries `rentals` and `vendor_settlements` filtered by `store_id`.
+- **Revenue trend** — line chart, sum(`grand_total`) per bucket; toggle daily/weekly/monthly/yearly.
+- **Orders over time** — bar chart, count(`rentals`) per bucket, stacked by `kind` (buy vs rent).
+- **Rental trends** — line chart, count of rentals (`kind!='buy'`) created vs returned per bucket.
+- **Refund trends** — line chart, count + sum(`refund_amount`) from `deposit_refunds` per bucket.
+- **Commission earnings** — area chart, sum(`platform_fee`) from `vendor_settlements` per bucket.
+- **Top-selling products** — table top 10 by order count + revenue (group `rentals` by `product_id`, join `products.title`).
+- **Top-performing sellers** — table top 10 by revenue and orders (group `rentals` by `store_id`, join `stores.name`).
 
-KPI cards:
-- Gross sales (30d / 90d / all)
-- Net payout (from `vendor_settlements.net_payout`)
-- Orders count (buy vs rent split)
-- Avg order value
-- Repeat-customer rate
-- Conversion of pending → confirmed
+All charts use the existing `recharts` + `src/components/ui/chart.tsx` wrappers and semantic tokens (`hsl(var(--primary))`, etc.) — no hardcoded colors. CSV export buttons reuse the same lightweight pattern as `VendorAnalyticsPanel.tsx`.
 
-Charts (Recharts, already in project):
-- Earnings over time (line)
-- Orders by status (stacked bar)
-- Buy vs Rent revenue split (donut)
-- Top 5 products by revenue (bar)
-
-## 4. Rental earnings report
-
-Inside Analytics tab, a "Rental earnings" sub-section:
-- Filter by date range and product.
-- Table: product, rental period, days, gross, platform fee, net, deposit refunded, status.
-- CSV export.
-
-## 5. Sales report (buy orders)
-
-Same Analytics tab, "Sales" sub-section:
-- Filter by date range and product.
-- Table: order id, product, qty, price, discount, GST, net, status, customer city.
-- CSV export.
-
-## 6. Inventory management
-
-New "Inventory" tab in Vendor dashboard (`VendorInventoryPanel.tsx`):
-- Lists all products with editable `stock_quantity`, `available` toggle, `low_stock_threshold`.
-- Inline save with optimistic update.
-- Bulk actions: mark unavailable, restock by +N.
-- Add `low_stock_threshold INT DEFAULT 2` to `products` (migration).
-
-## 7. Low-stock alerts
-
-- DB trigger `tg_low_stock_alert` on `products` AFTER UPDATE of `stock_quantity`: if new value <= `low_stock_threshold` and old value > threshold (or `available` flipped off due to 0 stock), insert a notification for the store owner.
-- Inventory panel highlights low-stock rows in amber and shows a count badge on the tab.
-
-## 8. Upcoming return notifications
-
-Already partially handled by `send-rental-reminders` (customer-facing). Add a seller-facing pass:
-- Extend `send-rental-reminders` to also notify the store owner 24h and 2h before `end_date` for active rentals (`status in ('confirmed','delivered')`, `kind='rent'`).
-- New "Upcoming returns" widget on Vendor dashboard listing rentals due in the next 7 days, with customer name, due date, and a quick "Mark returned" action.
-
-## 9. Monthly earnings report
-
-- "Monthly statements" sub-section in Analytics: list of months with gross, fees, net, orders count.
-- Per-month "Download PDF/HTML" button that builds a printable invoice-style statement (reuses the HTML approach already in `VendorSettlementsPanel`).
-- Optional: a scheduled job that creates a notification at the start of each month linking to the previous month's statement.
-
-## 10. Product performance analytics
-
-- Per-product detail (expand row in Inventory or from "Top products" chart): views (if `products.view_count` exists, else skipped), wishlist saves, orders, conversion %, revenue, average rating.
-- Wishlist saves: `select count(*) from wishlists where product_id = ?` grouped.
-
-## Admin sync
-
-All new data lives in tables the admin already reads (`stores`, `products`, `rentals`, `vendor_settlements`, `notifications`). Admin panels keep working unchanged. We will:
-- Add `rejection_reason` and `low_stock_threshold` columns to existing admin views.
-- Surface low-stock products in `AdminShopsPanel` as a small badge per store (count).
-
-## Technical details
-
-Migration (single file):
-```
-ALTER TABLE public.stores ADD COLUMN IF NOT EXISTS rejection_reason text;
-ALTER TABLE public.products ADD COLUMN IF NOT EXISTS low_stock_threshold int NOT NULL DEFAULT 2;
-
-CREATE OR REPLACE FUNCTION public.tg_low_stock_alert() ...   -- inserts notification
-CREATE TRIGGER products_low_stock AFTER UPDATE OF stock_quantity ON public.products ...
-```
-
-New files:
-- `src/components/VerifiedSellerBadge.tsx`
-- `src/components/vendor/VendorAnalyticsPanel.tsx`
-- `src/components/vendor/VendorInventoryPanel.tsx`
-- `src/components/vendor/VendorVerificationCard.tsx`
-- `src/components/vendor/UpcomingReturnsWidget.tsx`
-
-Edited files:
-- `src/pages/Vendor.tsx` — add Analytics, Inventory tabs, mount Verification card and Upcoming returns widget.
-- `src/components/ProductCard.tsx`, `src/pages/ProductDetail.tsx` — render `VerifiedSellerBadge`.
-- `src/components/AdminShopsPanel.tsx` — expose `rejection_reason` editor.
-- `supabase/functions/send-rental-reminders/index.ts` — also notify seller.
-
-Nothing is removed; existing settlements, refund, and order flows are untouched.
+## Out of scope
+- No new tables, RPCs, edge functions, or migrations.
+- No changes to existing admin panels or routes.
+- No new role or permission logic.
