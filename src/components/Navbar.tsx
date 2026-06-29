@@ -118,6 +118,9 @@ export function Navbar() {
       {open && (
         <div className="md:hidden border-t border-border bg-background animate-fade-in">
           <div className="container flex flex-col py-4 gap-2 text-sm">
+            <div className="pb-2 sm:hidden">
+              <LocationSelector />
+            </div>
             <Link to="/browse?category=dress" onClick={() => setOpen(false)} className="py-2">Dresses</Link>
             <Link to="/browse?category=jewellery" onClick={() => setOpen(false)} className="py-2">Jewellery</Link>
             <Link to="/browse" onClick={() => setOpen(false)} className="py-2">All Stores</Link>
