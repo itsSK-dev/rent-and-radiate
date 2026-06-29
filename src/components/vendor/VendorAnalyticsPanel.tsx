@@ -842,16 +842,20 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
   }, [filtered]);
 
   const trend = useMemo(() => {
-    const map = new Map<string, { date: string; orders: number; revenue: number }>();
+    const map = new Map<string, { date: string; sort: number; orders: number; revenue: number }>();
     filtered.forEach((r) => {
-      const k = format(parseISO(r.created_at), "MMM d");
-      const cur = map.get(k) ?? { date: k, orders: 0, revenue: 0 };
+      const d = parseISO(r.created_at);
+      const bucket = granularity === "weekly" ? startOfWeek(d, { weekStartsOn: 1 }) : d;
+      const k = granularity === "weekly"
+        ? `Wk ${format(bucket, "MMM d")}`
+        : format(bucket, "MMM d");
+      const cur = map.get(k) ?? { date: k, sort: bucket.getTime(), orders: 0, revenue: 0 };
       cur.orders += 1;
       cur.revenue += Number(r.subtotal || 0);
       map.set(k, cur);
     });
-    return [...map.values()];
-  }, [filtered]);
+    return [...map.values()].sort((a, b) => a.sort - b.sort);
+  }, [filtered, granularity]);
 
   const funnel = stats.orders + cartAdds + wishlist;
   const conv = funnel > 0 ? (stats.orders / funnel) * 100 : 0;
