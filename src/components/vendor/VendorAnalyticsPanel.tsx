@@ -795,9 +795,53 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
   cartAdds: number;
   wishlist: number;
 }) {
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
+  // Reset filters when switching products
+  useEffect(() => {
+    if (open) { setFrom(""); setTo(""); }
+  }, [product?.id, open]);
+
+  const fromDate = from ? new Date(from) : null;
+  const toDate = to ? new Date(`${to}T23:59:59`) : null;
+
+  const filtered = useMemo(() => rentals.filter((r) => {
+    const d = parseISO(r.created_at);
+    if (fromDate && d < fromDate) return false;
+    if (toDate && d > toDate) return false;
+    return true;
+  }), [rentals, from, to]);
+
+  // Previous period of equal length for comparison
+  const prev = useMemo(() => {
+    if (!fromDate || !toDate) return null;
+    const span = toDate.getTime() - fromDate.getTime();
+    const prevTo = new Date(fromDate.getTime() - 1);
+    const prevFrom = new Date(prevTo.getTime() - span);
+    const list = rentals.filter((r) => {
+      const d = parseISO(r.created_at);
+      return d >= prevFrom && d <= prevTo;
+    });
+    const revenue = list.reduce((s, r) => s + Number(r.subtotal || 0), 0);
+    const rentOrders = list.filter((r) => r.kind === "rent").length;
+    return { orders: list.length, revenue, rentOrders, label: `${format(prevFrom, "PP")} – ${format(prevTo, "PP")}` };
+  }, [rentals, fromDate?.getTime(), toDate?.getTime()]);
+
+  const stats = useMemo(() => {
+    const revenue = filtered.reduce((s, r) => s + Number(r.subtotal || 0), 0);
+    const units = filtered.reduce((s, r) => s + r.quantity, 0);
+    const rentOrders = filtered.filter((r) => r.kind === "rent").length;
+    const buyOrders = filtered.filter((r) => r.kind === "buy").length;
+    const rentRevenue = filtered.filter((r) => r.kind === "rent").reduce((s, r) => s + Number(r.subtotal || 0), 0);
+    const buyRevenue = filtered.filter((r) => r.kind === "buy").reduce((s, r) => s + Number(r.subtotal || 0), 0);
+    const completed = filtered.filter((r) => ["completed", "returned", "delivered"].includes(r.status)).length;
+    return { orders: filtered.length, units, revenue, rentOrders, buyOrders, rentRevenue, buyRevenue, completed };
+  }, [filtered]);
+
   const trend = useMemo(() => {
     const map = new Map<string, { date: string; orders: number; revenue: number }>();
-    rentals.forEach((r) => {
+    filtered.forEach((r) => {
       const k = format(parseISO(r.created_at), "MMM d");
       const cur = map.get(k) ?? { date: k, orders: 0, revenue: 0 };
       cur.orders += 1;
@@ -805,11 +849,29 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
       map.set(k, cur);
     });
     return [...map.values()];
-  }, [rentals]);
+  }, [filtered]);
 
-  const funnel = (product?.orders ?? 0) + cartAdds + wishlist;
-  const conv = funnel > 0 ? ((product?.orders ?? 0) / funnel) * 100 : 0;
-  const completionRate = product && product.orders > 0 ? (product.completed / product.orders) * 100 : 0;
+  const funnel = stats.orders + cartAdds + wishlist;
+  const conv = funnel > 0 ? (stats.orders / funnel) * 100 : 0;
+  const completionRate = stats.orders > 0 ? (stats.completed / stats.orders) * 100 : 0;
+
+  function delta(curr: number, before: number) {
+    if (!prev) return null;
+    if (before === 0) return curr > 0 ? "+100%" : "0%";
+    const pct = ((curr - before) / before) * 100;
+    return `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
+  }
+  function deltaTone(curr: number, before: number) {
+    if (!prev || curr === before) return "text-muted-foreground";
+    return curr >= before ? "text-emerald-600" : "text-rose-600";
+  }
+
+  function applyPreset(days: number) {
+    const t = new Date();
+    const f = subDays(t, days - 1);
+    setFrom(format(f, "yyyy-MM-dd"));
+    setTo(format(t, "yyyy-MM-dd"));
+  }
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
@@ -821,25 +883,46 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
               <SheetDescription>Performance drill-down</SheetDescription>
             </SheetHeader>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <Stat label="Orders" value={String(product.orders)} />
-              <Stat label="Revenue" value={inr(product.revenue)} />
-              <Stat label="Units sold" value={String(product.units)} />
-              <Stat label="Avg / order" value={inr(product.orders > 0 ? product.revenue / product.orders : 0)} />
-              <Stat label="Conversion" value={`${conv.toFixed(1)}%`} sub={`${product.orders} of ${funnel} touchpoints`} />
-              <Stat label="Completion rate" value={`${completionRate.toFixed(0)}%`} sub={`${product.completed} completed`} />
+            <div className="mt-5 rounded-xl border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Date range</p>
+                <div className="flex gap-1 flex-wrap">
+                  <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => applyPreset(7)}>7d</Button>
+                  <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => applyPreset(30)}>30d</Button>
+                  <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => applyPreset(90)}>90d</Button>
+                  <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => { setFrom(""); setTo(""); }}>All</Button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-8 w-auto text-xs" />
+                <span className="text-xs text-muted-foreground">to</span>
+                <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-8 w-auto text-xs" />
+              </div>
+              {prev && (
+                <p className="text-[11px] text-muted-foreground">Comparing vs {prev.label}</p>
+              )}
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <Stat label="Orders" value={String(stats.orders)} sub={prev ? `${delta(stats.orders, prev.orders)} vs prev` : undefined} subTone={deltaTone(stats.orders, prev?.orders ?? 0)} />
+              <Stat label="Revenue" value={inr(stats.revenue)} sub={prev ? `${delta(stats.revenue, prev.revenue)} vs prev` : undefined} subTone={deltaTone(stats.revenue, prev?.revenue ?? 0)} />
+              <Stat label="Units sold" value={String(stats.units)} />
+              <Stat label="Avg / order" value={inr(stats.orders > 0 ? stats.revenue / stats.orders : 0)} />
+              <Stat label="Conversion" value={`${conv.toFixed(1)}%`} sub={`${stats.orders} of ${funnel} touchpoints`} />
+              <Stat label="Completion rate" value={`${completionRate.toFixed(0)}%`} sub={`${stats.completed} completed`} />
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-border p-3">
                 <p className="text-xs text-muted-foreground">Rentals</p>
-                <p className="text-lg font-semibold">{product.rentOrders}</p>
-                <p className="text-xs text-muted-foreground">{inr(product.rentRevenue)}</p>
+                <p className="text-lg font-semibold">{stats.rentOrders}</p>
+                <p className="text-xs text-muted-foreground">{inr(stats.rentRevenue)}</p>
+                {prev && <p className={`text-[11px] ${deltaTone(stats.rentOrders, prev.rentOrders)}`}>{delta(stats.rentOrders, prev.rentOrders)} vs prev</p>}
               </div>
               <div className="rounded-xl border border-border p-3">
                 <p className="text-xs text-muted-foreground">Sales</p>
-                <p className="text-lg font-semibold">{product.buyOrders}</p>
-                <p className="text-xs text-muted-foreground">{inr(product.buyRevenue)}</p>
+                <p className="text-lg font-semibold">{stats.buyOrders}</p>
+                <p className="text-xs text-muted-foreground">{inr(stats.buyRevenue)}</p>
               </div>
               <div className="rounded-xl border border-border p-3">
                 <p className="text-xs text-muted-foreground">Wishlist saves</p>
@@ -851,7 +934,7 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
               </div>
             </div>
 
-            {trend.length > 0 && (
+            {trend.length > 0 ? (
               <div className="mt-6">
                 <p className="text-sm font-medium mb-2">Revenue over time</p>
                 <div className="h-48 rounded-xl border border-border p-2">
@@ -866,12 +949,16 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
                   </ResponsiveContainer>
                 </div>
               </div>
+            ) : (
+              <div className="mt-6 rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                No orders in this period.
+              </div>
             )}
 
             <div className="mt-6">
-              <p className="text-sm font-medium mb-2">Recent orders</p>
+              <p className="text-sm font-medium mb-2">Recent orders ({filtered.length})</p>
               <div className="rounded-xl border border-border divide-y divide-border max-h-80 overflow-y-auto">
-                {rentals.slice(0, 25).map((r) => (
+                {filtered.slice(0, 25).map((r) => (
                   <div key={r.id} className="flex items-center justify-between p-3 text-sm">
                     <div>
                       <p className="font-medium capitalize">{r.kind} · {r.quantity} unit{r.quantity > 1 ? "s" : ""}</p>
@@ -883,6 +970,9 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
                     </div>
                   </div>
                 ))}
+                {filtered.length === 0 && (
+                  <div className="p-6 text-center text-sm text-muted-foreground">No orders match these filters.</div>
+                )}
               </div>
             </div>
           </>
@@ -892,12 +982,12 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
   );
 }
 
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Stat({ label, value, sub, subTone }: { label: string; value: string; sub?: string; subTone?: string }) {
   return (
     <div className="rounded-xl border border-border p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="text-lg font-semibold">{value}</p>
-      {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+      {sub && <p className={`text-xs mt-0.5 ${subTone ?? "text-muted-foreground"}`}>{sub}</p>}
     </div>
   );
 }
