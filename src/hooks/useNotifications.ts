@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -38,20 +38,23 @@ export function useNotifications(limit = 30) {
 
   useEffect(() => { void load(); }, [load]);
 
+  const limitRef = useRef(limit);
+  useEffect(() => { limitRef.current = limit; }, [limit]);
+
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel(`notif-${user.id}`)
+      .channel(`notif-${user.id}-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
         (payload) => {
           const row = payload.new as NotificationRow;
-          setItems((cur) => [row, ...cur].slice(0, limit));
+          setItems((cur) => [row, ...cur].slice(0, limitRef.current));
           toast(row.title, { description: row.body ?? undefined });
         })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
-  }, [user, limit]);
+  }, [user]);
 
   const unreadCount = items.filter((n) => !n.is_read).length;
 
