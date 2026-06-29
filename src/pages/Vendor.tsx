@@ -24,6 +24,12 @@ import { RentalDisputesList } from "@/components/RentalDisputesList";
 import { DeliveryStageControl, StoreExtensionRequests, StoreReturnControls, type ReturnRow } from "@/components/DeliveryTracking";
 import { discountedUnitPrice, inr } from "@/lib/pricing";
 import { VendorSettlementsPanel } from "@/components/VendorSettlementsPanel";
+import { VendorAnalyticsPanel } from "@/components/vendor/VendorAnalyticsPanel";
+import { VendorInventoryPanel } from "@/components/vendor/VendorInventoryPanel";
+import { VendorVerificationCard } from "@/components/vendor/VendorVerificationCard";
+import { UpcomingReturnsWidget } from "@/components/vendor/UpcomingReturnsWidget";
+import { VerifiedSellerBadge } from "@/components/VerifiedSellerBadge";
+
 
 type Store = {
   id: string;
@@ -33,7 +39,11 @@ type Store = {
   is_verified: boolean;
   is_active: boolean;
   is_blocked: boolean;
+  logo_url: string | null;
+  address: string | null;
+  rejection_reason: string | null;
 };
+
 type Product = {
   id: string; title: string; description: string | null; category: "dress" | "jewellery";
   price_per_day: number; security_deposit: number; available: boolean; images: string[];
@@ -69,11 +79,12 @@ const Vendor = () => {
     if (!user) return;
     const { data: s } = await supabase
       .from("stores")
-      .select("id,name,city,status,is_verified,is_active,is_blocked")
+      .select("id,name,city,status,is_verified,is_active,is_blocked,logo_url,address,rejection_reason")
       .eq("owner_id", user.id);
-    setStores(s ?? []);
+    setStores((s as any) ?? []);
     const sid = s?.[0]?.id ?? null;
     setStoreId(sid);
+
     if (sid) {
       const { data: p } = await supabase
         .from("products")
@@ -134,10 +145,14 @@ const Vendor = () => {
         <div className="flex flex-wrap items-end justify-between gap-4 mb-10">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Vendor</p>
-            <h1 className="font-display text-5xl">{store?.name}</h1>
+            <h1 className="font-display text-5xl flex items-center gap-3 flex-wrap">
+              {store?.name}
+              <VerifiedSellerBadge verified={isApproved} size="md" />
+            </h1>
             <p className="text-muted-foreground mt-1 text-sm">
               {isApproved ? "Approved · live" : "Awaiting approval"}{store?.city ? ` · ${store.city}` : ""}
             </p>
+
           </div>
           <div className="flex gap-3 items-center flex-wrap">
             <Button variant="soft" size="sm" onClick={() => navigate("/vendor/orders")}>
@@ -149,24 +164,30 @@ const Vendor = () => {
           </div>
         </div>
 
-        {!isApproved && (
-          <div className="rounded-3xl bg-gradient-blossom p-6 md:p-8 mb-8 shadow-card">
-            <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-1">Pending review</p>
-            <h2 className="font-display text-2xl md:text-3xl mb-2">We're reviewing your store</h2>
-            <p className="text-sm text-muted-foreground max-w-2xl">
-              You can explore the dashboard, but adding products and accepting rentals will unlock the moment an admin
-              approves your boutique. We typically review within 24 hours.
-            </p>
-          </div>
+        {store && !isApproved && (
+          <VendorVerificationCard
+            store={store as any}
+            rejectionReason={store.rejection_reason}
+            productCount={products.length}
+            hasPayment={true}
+            onChanged={refresh}
+          />
+        )}
+
+        {storeId && isApproved && (
+          <UpcomingReturnsWidget storeId={storeId} />
         )}
 
         <Tabs defaultValue="products">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="inventory">Inventory</TabsTrigger>
             <TabsTrigger value="bookings">Orders</TabsTrigger>
             <TabsTrigger value="returns">Returns & extensions</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="payouts">Payouts & fees</TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="products" className="mt-6">
             <div className="flex justify-end mb-4">
@@ -228,7 +249,14 @@ const Vendor = () => {
             )}
           </TabsContent>
 
+          <TabsContent value="inventory" className="mt-6">
+            {storeId ? (
+              <VendorInventoryPanel storeId={storeId} />
+            ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
+          </TabsContent>
+
           <TabsContent value="bookings" className="mt-6">
+
             {rentals.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
                 No orders yet.
@@ -263,11 +291,18 @@ const Vendor = () => {
             ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
           </TabsContent>
 
+          <TabsContent value="analytics" className="mt-6">
+            {storeId ? (
+              <VendorAnalyticsPanel storeId={storeId} storeName={store?.name ?? "Store"} />
+            ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
+          </TabsContent>
+
           <TabsContent value="payouts" className="mt-6">
             {storeId ? (
               <VendorSettlementsPanel storeId={storeId} />
             ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
           </TabsContent>
+
         </Tabs>
       </section>
       <Footer />
