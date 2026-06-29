@@ -798,6 +798,7 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
 }) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [granularity, setGranularity] = useState<"daily" | "weekly">("daily");
 
   // Reset filters when switching products
   useEffect(() => {
