@@ -249,7 +249,14 @@ const Vendor = () => {
             )}
           </TabsContent>
 
+          <TabsContent value="inventory" className="mt-6">
+            {storeId ? (
+              <VendorInventoryPanel storeId={storeId} />
+            ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
+          </TabsContent>
+
           <TabsContent value="bookings" className="mt-6">
+
             {rentals.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
                 No orders yet.
@@ -284,11 +291,18 @@ const Vendor = () => {
             ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
           </TabsContent>
 
+          <TabsContent value="analytics" className="mt-6">
+            {storeId ? (
+              <VendorAnalyticsPanel storeId={storeId} storeName={store?.name ?? "Store"} />
+            ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
+          </TabsContent>
+
           <TabsContent value="payouts" className="mt-6">
             {storeId ? (
               <VendorSettlementsPanel storeId={storeId} />
             ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
           </TabsContent>
+
         </Tabs>
       </section>
       <Footer />
