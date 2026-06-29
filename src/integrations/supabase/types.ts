@@ -1065,6 +1065,7 @@ export type Database = {
           discount_percent: number
           id: string
           images: string[]
+          low_stock_threshold: number
           price_per_day: number
           purpose: Database["public"]["Enums"]["product_purpose"]
           quantity: number
@@ -1087,6 +1088,7 @@ export type Database = {
           discount_percent?: number
           id?: string
           images?: string[]
+          low_stock_threshold?: number
           price_per_day: number
           purpose?: Database["public"]["Enums"]["product_purpose"]
           quantity?: number
@@ -1109,6 +1111,7 @@ export type Database = {
           discount_percent?: number
           id?: string
           images?: string[]
+          low_stock_threshold?: number
           price_per_day?: number
           purpose?: Database["public"]["Enums"]["product_purpose"]
           quantity?: number
@@ -1766,6 +1769,7 @@ export type Database = {
           owner_id: string
           rating: number
           rating_count: number
+          rejection_reason: string | null
           status: Database["public"]["Enums"]["store_status"]
           updated_at: string
         }
@@ -1786,6 +1790,7 @@ export type Database = {
           owner_id: string
           rating?: number
           rating_count?: number
+          rejection_reason?: string | null
           status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
         }
@@ -1806,6 +1811,7 @@ export type Database = {
           owner_id?: string
           rating?: number
           rating_count?: number
+          rejection_reason?: string | null
           status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
         }
