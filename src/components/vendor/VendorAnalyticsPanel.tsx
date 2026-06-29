@@ -1076,16 +1076,31 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
 
             {trend.length > 0 ? (
               <div className="mt-6">
-                <p className="text-sm font-medium mb-2">Revenue over time</p>
-                <div className="h-48 rounded-xl border border-border p-2">
+                <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                  <p className="text-sm font-medium">Orders & revenue trend</p>
+                  <Tabs value={granularity} onValueChange={(v) => setGranularity(v as "daily" | "weekly")}>
+                    <TabsList className="h-8">
+                      <TabsTrigger value="daily" className="text-xs px-3 h-6">Daily</TabsTrigger>
+                      <TabsTrigger value="weekly" className="text-xs px-3 h-6">Weekly</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+                <div className="h-56 rounded-xl border border-border p-2">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trend}>
+                    <ComposedChart data={trend}>
                       <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                       <XAxis dataKey="date" fontSize={11} />
-                      <YAxis fontSize={11} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                    </LineChart>
+                      <YAxis yAxisId="left" fontSize={11} />
+                      <YAxis yAxisId="right" orientation="right" fontSize={11} />
+                      <Tooltip
+                        formatter={(value: any, name: any) =>
+                          name === "Revenue" ? inr(Number(value)) : value
+                        }
+                      />
+                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Bar yAxisId="left" dataKey="orders" name="Orders" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      <Line yAxisId="right" type="monotone" dataKey="revenue" name="Revenue" stroke="hsl(var(--rose-deep, var(--primary)))" strokeWidth={2} dot={false} />
+                    </ComposedChart>
                   </ResponsiveContainer>
                 </div>
               </div>
