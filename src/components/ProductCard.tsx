@@ -4,6 +4,7 @@ import { demoImageMap } from "@/lib/seedDemo";
 import { Badge } from "@/components/ui/badge";
 import { discountedUnitPrice, inr } from "@/lib/pricing";
 import { WishlistButton } from "@/components/WishlistButton";
+import { VerifiedSellerBadge } from "@/components/VerifiedSellerBadge";
 
 export interface ProductCardData {
   id: string;
@@ -17,8 +18,9 @@ export interface ProductCardData {
   discount_flat?: number;
   purpose?: "rent" | "buy" | "both";
   quantity?: number;
-  store?: { name: string; city: string | null } | null;
+  store?: { name: string; city: string | null; is_verified?: boolean | null } | null;
 }
+
 
 export function ProductCard({ p, matchScore }: { p: ProductCardData; matchScore?: number }) {
   const img = p.images?.[0] || demoImageMap[p.title] || "";
@@ -75,10 +77,12 @@ export function ProductCard({ p, matchScore }: { p: ProductCardData; matchScore?
       <div className="pt-3 px-1 space-y-1">
         <h3 className="font-display text-xl leading-tight group-hover:text-primary transition-smooth">{p.title}</h3>
         {p.store && (
-          <p className="text-xs text-muted-foreground">
-            {p.store.name}{p.store.city ? ` · ${p.store.city}` : ""}
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <span className="truncate">{p.store.name}{p.store.city ? ` · ${p.store.city}` : ""}</span>
+            <VerifiedSellerBadge verified={p.store.is_verified} />
           </p>
         )}
+
         <div className="text-sm pt-1 space-y-0.5">
           {(purpose === "buy" || purpose === "both") && actual > 0 && (
             <p>
