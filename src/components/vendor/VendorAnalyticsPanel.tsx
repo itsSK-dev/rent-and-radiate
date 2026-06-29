@@ -648,9 +648,15 @@ h1{margin:0}.muted{color:#666;font-size:13px}.row{display:flex;justify-content:s
               <td className="p-3">{inr(m.gross)}</td>
               <td className="p-3">{inr(m.fees)}</td>
               <td className="p-3 font-semibold">{inr(m.net)}</td>
-              <td className="p-3 text-right">
+              <td className="p-3 text-right space-x-1 whitespace-nowrap">
+                <Button size="sm" variant="ghost" onClick={() => downloadStatementCsv(m)}>
+                  <Download className="h-3.5 w-3.5" /> CSV
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => downloadStatementPdf(m)}>
+                  <FileText className="h-3.5 w-3.5" /> PDF
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => downloadStatement(m)}>
-                  <FileText className="h-3.5 w-3.5" /> Download
+                  <FileText className="h-3.5 w-3.5" /> HTML
                 </Button>
               </td>
             </tr>
