@@ -8,11 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Download, TrendingUp, Loader2, FileText } from "lucide-react";
-import { format, parseISO, startOfMonth, subDays, isAfter } from "date-fns";
+import { format, parseISO, startOfMonth, startOfWeek, subDays, isAfter } from "date-fns";
 import { inr } from "@/lib/pricing";
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
-  BarChart, Bar, PieChart, Pie, Cell, Legend,
+  BarChart, Bar, PieChart, Pie, Cell, Legend, ComposedChart,
 } from "recharts";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
