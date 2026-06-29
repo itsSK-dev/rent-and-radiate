@@ -28,6 +28,8 @@ import { AdminAdsPanel } from "@/components/AdminAdsPanel";
 import { AdminNotificationsPanel } from "@/components/AdminNotificationsPanel";
 import { AdminOverviewPanel } from "@/components/admin/AdminOverviewPanel";
 import { AdminAnalyticsPanel } from "@/components/admin/AdminAnalyticsPanel";
+import { AdminCommissionsPanel } from "@/components/admin/AdminCommissionsPanel";
+import { AdminSubscriptionsPanel } from "@/components/admin/AdminSubscriptionsPanel";
 
 type Dispute = {
   id: string;
