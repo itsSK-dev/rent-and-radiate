@@ -145,10 +145,14 @@ const Vendor = () => {
         <div className="flex flex-wrap items-end justify-between gap-4 mb-10">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Vendor</p>
-            <h1 className="font-display text-5xl">{store?.name}</h1>
+            <h1 className="font-display text-5xl flex items-center gap-3 flex-wrap">
+              {store?.name}
+              <VerifiedSellerBadge verified={isApproved} size="md" />
+            </h1>
             <p className="text-muted-foreground mt-1 text-sm">
               {isApproved ? "Approved · live" : "Awaiting approval"}{store?.city ? ` · ${store.city}` : ""}
             </p>
+
           </div>
           <div className="flex gap-3 items-center flex-wrap">
             <Button variant="soft" size="sm" onClick={() => navigate("/vendor/orders")}>
@@ -160,24 +164,30 @@ const Vendor = () => {
           </div>
         </div>
 
-        {!isApproved && (
-          <div className="rounded-3xl bg-gradient-blossom p-6 md:p-8 mb-8 shadow-card">
-            <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-1">Pending review</p>
-            <h2 className="font-display text-2xl md:text-3xl mb-2">We're reviewing your store</h2>
-            <p className="text-sm text-muted-foreground max-w-2xl">
-              You can explore the dashboard, but adding products and accepting rentals will unlock the moment an admin
-              approves your boutique. We typically review within 24 hours.
-            </p>
-          </div>
+        {store && !isApproved && (
+          <VendorVerificationCard
+            store={store as any}
+            rejectionReason={store.rejection_reason}
+            productCount={products.length}
+            hasPayment={true}
+            onChanged={refresh}
+          />
+        )}
+
+        {storeId && isApproved && (
+          <UpcomingReturnsWidget storeId={storeId} />
         )}
 
         <Tabs defaultValue="products">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="inventory">Inventory</TabsTrigger>
             <TabsTrigger value="bookings">Orders</TabsTrigger>
             <TabsTrigger value="returns">Returns & extensions</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="payouts">Payouts & fees</TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="products" className="mt-6">
             <div className="flex justify-end mb-4">
