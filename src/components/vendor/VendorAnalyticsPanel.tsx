@@ -873,6 +873,102 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
     setTo(format(t, "yyyy-MM-dd"));
   }
 
+  const rangeLabel = from || to
+    ? `${from || "Start"} → ${to || "Today"}`
+    : "All time";
+  const slug = (product?.title ?? "product").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+
+  function exportMetricsCsv() {
+    if (!product) return;
+    const headers = ["Metric", "Current", "Previous"];
+    const rows: (string | number)[][] = [
+      ["Date range", rangeLabel, prev?.label ?? "—"],
+      ["Orders", stats.orders, prev?.orders ?? "—"],
+      ["Revenue", Number(stats.revenue).toFixed(2), prev ? Number(prev.revenue).toFixed(2) : "—"],
+      ["Units sold", stats.units, "—"],
+      ["Avg / order", (stats.orders > 0 ? stats.revenue / stats.orders : 0).toFixed(2), "—"],
+      ["Conversion %", conv.toFixed(2), "—"],
+      ["Completion rate %", completionRate.toFixed(2), "—"],
+      ["Rent orders", stats.rentOrders, prev?.rentOrders ?? "—"],
+      ["Rent revenue", Number(stats.rentRevenue).toFixed(2), "—"],
+      ["Buy orders", stats.buyOrders, "—"],
+      ["Buy revenue", Number(stats.buyRevenue).toFixed(2), "—"],
+      ["Cart adds", cartAdds, "—"],
+      ["Wishlist saves", wishlist, "—"],
+    ];
+    download(`${slug}-metrics-${Date.now()}.csv`, toCsv(headers, rows));
+  }
+
+  function exportOrdersCsv() {
+    if (!product) return;
+    const headers = ["Date", "Kind", "Quantity", "Subtotal", "Status", "Customer"];
+    const rows = filtered.map((r) => [
+      format(parseISO(r.created_at), "yyyy-MM-dd"),
+      r.kind,
+      r.quantity,
+      Number(r.subtotal).toFixed(2),
+      r.status,
+      r.customer?.full_name ?? "—",
+    ]);
+    download(`${slug}-orders-${Date.now()}.csv`, toCsv(headers, rows));
+  }
+
+  function exportPdfReport() {
+    if (!product) return;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    doc.setFontSize(16);
+    doc.text(product.title, 40, 48);
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text(`Performance drill-down · ${rangeLabel}`, 40, 64);
+    doc.setTextColor(0);
+
+    autoTable(doc, {
+      startY: 80,
+      head: [["Metric", "Current", prev ? "Previous" : ""]],
+      body: [
+        ["Orders", String(stats.orders), prev ? String(prev.orders) : ""],
+        ["Revenue", inr(stats.revenue), prev ? inr(prev.revenue) : ""],
+        ["Units sold", String(stats.units), ""],
+        ["Avg / order", inr(stats.orders > 0 ? stats.revenue / stats.orders : 0), ""],
+        ["Conversion", `${conv.toFixed(1)}%`, ""],
+        ["Completion rate", `${completionRate.toFixed(0)}%`, ""],
+        ["Rent orders", String(stats.rentOrders), prev ? String(prev.rentOrders) : ""],
+        ["Rent revenue", inr(stats.rentRevenue), ""],
+        ["Buy orders", String(stats.buyOrders), ""],
+        ["Buy revenue", inr(stats.buyRevenue), ""],
+        ["Cart adds", String(cartAdds), ""],
+        ["Wishlist saves", String(wishlist), ""],
+      ],
+      styles: { fontSize: 9, cellPadding: 6 },
+      headStyles: { fillColor: [17, 17, 17] },
+      margin: { left: 40, right: 40 },
+    });
+
+    const afterMetrics = (doc as any).lastAutoTable.finalY + 20;
+    doc.setFontSize(12);
+    doc.text(`Recent orders (${filtered.length})`, 40, afterMetrics);
+    autoTable(doc, {
+      startY: afterMetrics + 8,
+      head: [["Date", "Kind", "Qty", "Subtotal", "Status", "Customer"]],
+      body: filtered.map((r) => [
+        format(parseISO(r.created_at), "yyyy-MM-dd"),
+        r.kind,
+        String(r.quantity),
+        inr(r.subtotal),
+        r.status,
+        r.customer?.full_name ?? "—",
+      ]),
+      styles: { fontSize: 9, cellPadding: 6 },
+      headStyles: { fillColor: [17, 17, 17] },
+      margin: { left: 40, right: 40 },
+    });
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(`Generated ${format(new Date(), "PPpp")}`, 40, doc.internal.pageSize.getHeight() - 24);
+    doc.save(`${slug}-report-${Date.now()}.pdf`);
+  }
+
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
@@ -882,6 +978,19 @@ function ProductDrillDown({ open, onClose, product, rentals, cartAdds, wishlist 
               <SheetTitle className="text-xl">{product.title}</SheetTitle>
               <SheetDescription>Performance drill-down</SheetDescription>
             </SheetHeader>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={exportMetricsCsv}>
+                <Download className="h-3.5 w-3.5 mr-1" /> Metrics CSV
+              </Button>
+              <Button size="sm" variant="outline" onClick={exportOrdersCsv}>
+                <Download className="h-3.5 w-3.5 mr-1" /> Orders CSV
+              </Button>
+              <Button size="sm" variant="outline" onClick={exportPdfReport}>
+                <FileText className="h-3.5 w-3.5 mr-1" /> PDF report
+              </Button>
+            </div>
+
 
             <div className="mt-5 rounded-xl border border-border p-3 space-y-2">
               <div className="flex items-center justify-between gap-2 flex-wrap">
