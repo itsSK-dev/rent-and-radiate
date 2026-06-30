@@ -27,7 +27,6 @@ import {
   ShoppingBag,
   Sparkles,
   Store as StoreIcon,
-  Tag,
 } from "lucide-react";
 
 const POPULAR_SUGGESTIONS = [
