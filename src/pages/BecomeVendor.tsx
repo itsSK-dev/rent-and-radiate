@@ -76,6 +76,20 @@ const BecomeVendor = () => {
 
     setBusy(true);
 
+    let logo_url: string | null = null;
+    if (logoFile) {
+      const ext = logoFile.name.split(".").pop()?.toLowerCase() || "png";
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("store-logos")
+        .upload(path, logoFile, { cacheControl: "3600", upsert: false, contentType: logoFile.type });
+      if (upErr) {
+        setBusy(false);
+        return toast.error("Logo upload failed: " + upErr.message);
+      }
+      logo_url = supabase.storage.from("store-logos").getPublicUrl(path).data.publicUrl;
+    }
+
     // Submit the store as pending. The store_owner role is granted automatically
     // by the backend only after an admin approves the store — users cannot
     // self-assign the role.
@@ -87,6 +101,7 @@ const BecomeVendor = () => {
         description: parsed.data.description || null,
         city: parsed.data.city || null,
         address: parsed.data.address || null,
+        logo_url,
         approved: false,
       })
       .select("id,name,status,is_verified,is_active,is_blocked")
@@ -98,6 +113,7 @@ const BecomeVendor = () => {
     toast.success("Submitted! We'll review your store within 24 hours.");
     setExistingStore(created ?? null);
   }
+
 
   if (checking || loading) {
     return (
