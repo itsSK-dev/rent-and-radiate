@@ -13,28 +13,13 @@ import {
   readSavedCity,
   setSavedCity,
 } from "@/lib/serviceArea";
+import { INDIA_CITIES_UNIQUE } from "@/lib/indiaCities";
 
-const SUGGESTED_CITIES = [
-  "Purnea",
-  "Katihar",
-  "Araria",
-  "Kishanganj",
-  "Forbesganj",
-  "Saharsa",
-  "Madhepura",
-  "Bhagalpur",
-  "Patna",
-  "Muzaffarpur",
-  "Darbhanga",
-  "Gaya",
-  "Siliguri",
-  "Kolkata",
-  "Delhi",
-  "Mumbai",
-  "Bengaluru",
-  "Hyderabad",
-  "Chennai",
-  "Pune",
+// Cities surfaced before the user types anything (kept short for scannability).
+const PINNED_SUGGESTIONS = [
+  "Purnea", "Katihar", "Araria", "Kishanganj", "Forbesganj",
+  "Saharsa", "Madhepura", "Bhagalpur", "Patna", "Muzaffarpur",
+  "Darbhanga", "Gaya", "Siliguri", "Kolkata", "Delhi",
 ];
 
 /** City picker — free-text search across India, but only Purnea is
@@ -51,15 +36,24 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return SUGGESTED_CITIES;
-    const matches = SUGGESTED_CITIES.filter((c) => c.toLowerCase().includes(q));
-    // Always let the user pick exactly what they typed, even if not in the list.
+    if (!q) return PINNED_SUGGESTIONS;
+    // Prefix matches first, then "contains" matches — feels more responsive.
+    const prefix: string[] = [];
+    const contains: string[] = [];
+    for (const c of INDIA_CITIES_UNIQUE) {
+      const lc = c.toLowerCase();
+      if (lc.startsWith(q)) prefix.push(c);
+      else if (lc.includes(q)) contains.push(c);
+      if (prefix.length + contains.length >= 60) break;
+    }
+    const matches = [...prefix, ...contains].slice(0, 40);
     const typed = query.trim();
     if (typed && !matches.some((c) => c.toLowerCase() === typed.toLowerCase())) {
-      return [typed, ...matches];
+      matches.unshift(typed);
     }
     return matches;
   }, [query]);
+
 
   const select = (c: string) => {
     const clean = c.trim();
