@@ -35,6 +35,12 @@ import Notifications from "./pages/Notifications";
 import NotificationSettings from "./pages/NotificationSettings";
 import Rewards from "./pages/Rewards";
 import Wishlist from "./pages/Wishlist";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Help from "./pages/Help";
+
 
 const queryClient = new QueryClient();
 
