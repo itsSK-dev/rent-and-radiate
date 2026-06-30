@@ -27,6 +27,7 @@ function similarity(productText: string, queryTokens: string[]): number {
 
 
 const Browse = () => {
+  const { city: serviceCity, isServiceable } = useServiceCity();
   const [params, setParams] = useSearchParams();
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,12 +53,18 @@ const Browse = () => {
   }, [category]);
 
   useEffect(() => {
+    if (!isServiceable) {
+      setProducts([]);
+      setLoading(false);
+      return;
+    }
     (async () => {
       setLoading(true);
       let query = supabase
         .from("products")
         .select("id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,status,is_verified,is_active,is_blocked,rating)")
-        .eq("available", true);
+        .eq("available", true)
+        .ilike("stores.city", serviceCity);
       if (category !== "all") query = query.eq("category", category as any);
       if (storeId) query = query.eq("store_id", storeId);
       if (q) query = query.ilike("title", `%${q}%`);
@@ -76,7 +83,7 @@ const Browse = () => {
       setProducts(filtered as any);
       setLoading(false);
     })();
-  }, [category, q, sort, storeId, purpose]);
+  }, [category, q, sort, storeId, purpose, isServiceable, serviceCity]);
 
   function update(key: string, value: string) {
     const next = new URLSearchParams(params);
