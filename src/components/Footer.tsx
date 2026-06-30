@@ -2,28 +2,28 @@ import { Button } from "@/components/ui/button";
 import { Facebook, Flower2, Instagram, Twitter, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const SHOP_LINKS = [
+const SHOP_LINKS: [string, string][] = [
   ["Dresses", "/browse?category=dress"],
   ["Jewellery", "/browse?category=jewellery"],
   ["All Stores", "/browse"],
   ["New Arrivals", "/browse?sort=newest"],
 ];
 
-const SELLER_LINKS = [
+const SELLER_LINKS: [string, string][] = [
   ["Open Your Store", "/become-vendor"],
   ["Seller Dashboard", "/vendor"],
   ["Seller Analytics", "/vendor"],
   ["Payouts & Fees", "/vendor"],
 ];
 
-const SUPPORT_LINKS = [
+const SUPPORT_LINKS: [string, string][] = [
   ["Help Center", "/help"],
   ["Contact Us", "/contact"],
   ["How it Works", "/how-it-works"],
   ["Trust & Safety", "/how-it-works"],
 ];
 
-const LEGAL_LINKS = [
+const LEGAL_LINKS: [string, string][] = [
   ["About Us", "/about"],
   ["Privacy Policy", "/privacy"],
   ["Terms & Conditions", "/terms"],
