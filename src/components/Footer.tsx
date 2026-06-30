@@ -31,11 +31,12 @@ const LEGAL_LINKS: [string, string][] = [
 ];
 
 const SOCIAL_LINKS = [
-  { icon: Instagram, label: "Instagram", href: "https://instagram.com" },
-  { icon: Facebook, label: "Facebook", href: "https://facebook.com" },
-  { icon: Twitter, label: "Twitter", href: "https://twitter.com" },
-  { icon: Youtube, label: "YouTube", href: "https://youtube.com" },
+  { icon: Instagram, label: "Instagram", href: "https://instagram.com/rentandradiate" },
+  { icon: Facebook, label: "Facebook", href: "https://facebook.com/rentandradiate" },
+  { icon: Twitter, label: "X (Twitter)", href: "https://twitter.com/rentandradiate" },
+  { icon: Youtube, label: "YouTube", href: "https://youtube.com/@rentandradiate" },
 ];
+
 
 function FooterColumn({ title, links }: { title: string; links: [string, string][] }) {
   return (
