@@ -26,6 +26,8 @@ const BecomeVendor = () => {
   const [description, setDescription] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [existingStore, setExistingStore] = useState<{ id: string; name: string; status: string; is_verified: boolean; is_active: boolean; is_blocked: boolean } | null>(null);
   const [checking, setChecking] = useState(true);
@@ -33,6 +35,16 @@ const BecomeVendor = () => {
   useEffect(() => {
     document.title = "Open a store · Rent & Radiate";
   }, []);
+
+  function onLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return toast.error("Please choose an image file");
+    if (file.size > 2 * 1024 * 1024) return toast.error("Logo must be under 2MB");
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  }
+
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth?next=/become-vendor");
@@ -64,6 +76,20 @@ const BecomeVendor = () => {
 
     setBusy(true);
 
+    let logo_url: string | null = null;
+    if (logoFile) {
+      const ext = logoFile.name.split(".").pop()?.toLowerCase() || "png";
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("store-logos")
+        .upload(path, logoFile, { cacheControl: "3600", upsert: false, contentType: logoFile.type });
+      if (upErr) {
+        setBusy(false);
+        return toast.error("Logo upload failed: " + upErr.message);
+      }
+      logo_url = supabase.storage.from("store-logos").getPublicUrl(path).data.publicUrl;
+    }
+
     // Submit the store as pending. The store_owner role is granted automatically
     // by the backend only after an admin approves the store — users cannot
     // self-assign the role.
@@ -75,6 +101,7 @@ const BecomeVendor = () => {
         description: parsed.data.description || null,
         city: parsed.data.city || null,
         address: parsed.data.address || null,
+        logo_url,
         approved: false,
       })
       .select("id,name,status,is_verified,is_active,is_blocked")
@@ -86,6 +113,7 @@ const BecomeVendor = () => {
     toast.success("Submitted! We'll review your store within 24 hours.");
     setExistingStore(created ?? null);
   }
+
 
   if (checking || loading) {
     return (
@@ -195,6 +223,21 @@ const BecomeVendor = () => {
               <Input id="a" value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200} className="mt-2" placeholder="Bandra West" />
             </div>
           </div>
+          <div>
+            <Label htmlFor="logo">Shop logo</Label>
+            <div className="mt-2 flex items-center gap-4">
+              <div className="h-16 w-16 rounded-2xl bg-secondary border border-border overflow-hidden flex items-center justify-center text-xs text-muted-foreground shrink-0">
+                {logoPreview ? (
+                  <img src={logoPreview} alt="Logo preview" className="h-full w-full object-cover" />
+                ) : (
+                  "Logo"
+                )}
+              </div>
+              <Input id="logo" type="file" accept="image/*" onChange={onLogoChange} className="cursor-pointer" />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">PNG or JPG, up to 2MB. Optional.</p>
+          </div>
+
           <Button type="submit" variant="hero" size="lg" className="w-full" disabled={busy}>
             {busy ? "Submitting…" : "Submit for review"}
           </Button>
