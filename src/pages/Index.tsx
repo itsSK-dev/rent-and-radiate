@@ -11,6 +11,8 @@ import { WhyChooseSection } from "@/components/WhyChooseSection";
 import { PromoBanners } from "@/components/PromoBanners";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
+import { useServiceCity } from "@/lib/serviceArea";
+import { ServiceUnavailable } from "@/components/ServiceUnavailable";
 // NOTE: We intentionally do NOT seed demo products from the client.
 // Client-side seeding only works for the user who owns the target store
 // (RLS blocks everyone else), which produced "I see it but others don't"
@@ -95,6 +97,7 @@ const POPULAR_SUGGESTIONS = [
 const RECENT_KEY = "rr.recentSearches";
 
 const Index = () => {
+  const { city: serviceCity, isServiceable } = useServiceCity();
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [stores, setStores] = useState<NearbyShop[]>([]);
   const [shopsOpen] = useState<boolean>(() => isShopOpenNow());
@@ -120,13 +123,20 @@ const Index = () => {
       );
 
     (async () => {
+      // Skip catalog fetches entirely when the user is outside the service area.
+      if (!isServiceable) {
+        setProducts([]);
+        setStores([]);
+        return;
+      }
       // Product catalogue is fully DB-driven via vendor uploads + admin approval.
       const { data } = await supabase
         .from("products")
         .select(
-          "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores(name,city,is_verified,rating)",
+          "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,is_verified,rating)",
         )
         .eq("available", true)
+        .ilike("stores.city", serviceCity)
         .limit(6);
       setProducts((data as any) ?? []);
       const { data: s } = await supabase
@@ -136,6 +146,7 @@ const Index = () => {
         .eq("is_verified", true)
         .eq("is_active", true)
         .eq("is_blocked", false)
+        .ilike("city", serviceCity)
         .limit(8);
       const rawStores = (s ?? []) as Array<{
         id: string;
@@ -201,7 +212,7 @@ const Index = () => {
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
-  }, []);
+  }, [isServiceable, serviceCity]);
 
   function pushRecent(text: string) {
     try {
@@ -560,64 +571,71 @@ const Index = () => {
 
 
 
-      {/* Interactive Shop the Look */}
-      <section className="container pb-16 md:pb-24">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Interactive showcase</p>
-            <h2 className="font-display text-3xl md:text-5xl">The fitting room</h2>
-          </div>
-          <Link to="/browse" className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1">
-            See everything <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-        <ShopTheLook />
-      </section>
-
-      {/* Featured products */}
-      {products.length > 0 && (
-        <section className="container pb-16">
-          <div className="flex items-end justify-between mb-8">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">In bloom this week</p>
-              <h2 className="font-display text-3xl md:text-5xl">Featured pieces</h2>
+      {!isServiceable ? (
+        <ServiceUnavailable city={serviceCity} source="home" />
+      ) : (
+        <>
+          {/* Interactive Shop the Look */}
+          <section className="container pb-16 md:pb-24">
+            <div className="flex items-end justify-between mb-6">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Interactive showcase</p>
+                <h2 className="font-display text-3xl md:text-5xl">The fitting room</h2>
+              </div>
+              <Link to="/browse" className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1">
+                See everything <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
-            <Link to="/browse" className="text-sm text-primary hover:underline flex items-center gap-1">
-              See all <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
-            {products.map((p) => (
-              <ProductCard key={p.id} p={p} />
-            ))}
-          </div>
-        </section>
+            <ShopTheLook />
+          </section>
+
+          {/* Featured products */}
+          {products.length > 0 && (
+            <section className="container pb-16">
+              <div className="flex items-end justify-between mb-8">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">In bloom this week</p>
+                  <h2 className="font-display text-3xl md:text-5xl">Featured pieces</h2>
+                </div>
+                <Link to="/browse" className="text-sm text-primary hover:underline flex items-center gap-1">
+                  See all <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
+                {products.map((p) => (
+                  <ProductCard key={p.id} p={p} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Nearby Verified Shops */}
+          {stores.length > 0 && (
+            <section className="container pb-16 md:pb-24">
+              <div className="flex items-end justify-between mb-6 md:mb-8">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
+                    <BadgeCheck className="h-3.5 w-3.5" /> Verified boutiques
+                  </p>
+                  <h2 className="font-display text-3xl md:text-5xl">Nearby Verified Shops</h2>
+                </div>
+                <Link
+                  to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
+                  className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1"
+                >
+                  See all <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                {stores.map((s) => (
+                  <NearbyShopCard key={s.id} shop={s} open={shopsOpen} />
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
 
-      {/* Nearby Verified Shops */}
-      {stores.length > 0 && (
-        <section className="container pb-16 md:pb-24">
-          <div className="flex items-end justify-between mb-6 md:mb-8">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
-                <BadgeCheck className="h-3.5 w-3.5" /> Verified boutiques
-              </p>
-              <h2 className="font-display text-3xl md:text-5xl">Nearby Verified Shops</h2>
-            </div>
-            <Link
-              to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
-              className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1"
-            >
-              See all <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-            {stores.map((s) => (
-              <NearbyShopCard key={s.id} shop={s} open={shopsOpen} />
-            ))}
-          </div>
-        </section>
-      )}
 
 
       {/* Why choose Rent & Radiate */}
