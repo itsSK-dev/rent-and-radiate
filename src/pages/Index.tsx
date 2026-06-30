@@ -619,6 +619,11 @@ const Index = () => {
       )}
 
 
+      {/* Why choose Rent & Radiate */}
+      <WhyChooseSection />
+
+      {/* Promotional banners */}
+      <PromoBanners />
 
       <Footer />
     </div>
