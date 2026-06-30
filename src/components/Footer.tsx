@@ -31,11 +31,12 @@ const LEGAL_LINKS: [string, string][] = [
 ];
 
 const SOCIAL_LINKS = [
-  { icon: Instagram, label: "Instagram", href: "https://instagram.com" },
-  { icon: Facebook, label: "Facebook", href: "https://facebook.com" },
-  { icon: Twitter, label: "Twitter", href: "https://twitter.com" },
-  { icon: Youtube, label: "YouTube", href: "https://youtube.com" },
+  { icon: Instagram, label: "Instagram", href: "https://instagram.com/rentandradiate" },
+  { icon: Facebook, label: "Facebook", href: "https://facebook.com/rentandradiate" },
+  { icon: Twitter, label: "X (Twitter)", href: "https://twitter.com/rentandradiate" },
+  { icon: Youtube, label: "YouTube", href: "https://youtube.com/@rentandradiate" },
 ];
+
 
 function FooterColumn({ title, links }: { title: string; links: [string, string][] }) {
   return (
@@ -79,7 +80,7 @@ export function Footer() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={social.label}
+                    aria-label={`Rent & Radiate on ${social.label}`}
                     className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-card border border-border text-muted-foreground hover:text-primary hover:border-primary/40 hover:-translate-y-0.5 transition-smooth"
                   >
                     <Icon className="h-4 w-4" />
