@@ -645,6 +645,9 @@ const Index = () => {
       {/* Promotional banners */}
       <PromoBanners />
 
+      {/* Refer & share app */}
+      <ShareAppSection />
+
       {/* Become a seller */}
       <BecomeSellerSection />
 
