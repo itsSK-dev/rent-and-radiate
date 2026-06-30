@@ -123,24 +123,55 @@ const Index = () => {
     return qs ? `/browse?${qs}` : "/browse";
   }
 
-  const onSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const text = query.trim();
-    if (!text) return;
+  const runSearch = async (text: string) => {
+    const q = text.trim();
+    if (!q) return;
+    setFocused(false);
+    pushRecent(q);
     setAiBusy(true);
     try {
-      const { data, error } = await supabase.functions.invoke("ai-search", { body: { query: text } });
+      const { data, error } = await supabase.functions.invoke("ai-search", { body: { query: q } });
       if (error || !data || (data as any).error) {
-        navigate(`/browse?q=${encodeURIComponent(text)}`);
+        navigate(`/browse?q=${encodeURIComponent(q)}`);
         return;
       }
       navigate(buildBrowseUrl(data as any));
     } catch {
-      navigate(`/browse?q=${encodeURIComponent(text)}`);
+      navigate(`/browse?q=${encodeURIComponent(q)}`);
     } finally {
       setAiBusy(false);
     }
   };
+
+  const onSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    runSearch(query);
+  };
+
+  function useNearby() {
+    if (!navigator.geolocation) {
+      if (nearbyCity) {
+        toast.success(`Showing shops near ${nearbyCity}`);
+        navigate(`/browse?city=${encodeURIComponent(nearbyCity)}`);
+      } else {
+        toast.error("Geolocation isn't supported. Pick a city from the top-left location chip.");
+      }
+      return;
+    }
+    toast.message("Finding shops near you…");
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        const target = nearbyCity ?? "";
+        navigate(target ? `/browse?city=${encodeURIComponent(target)}` : "/browse");
+      },
+      () => {
+        if (nearbyCity) navigate(`/browse?city=${encodeURIComponent(nearbyCity)}`);
+        else toast.error("Couldn't detect location. Pick a city from the top-left chip.");
+      },
+      { timeout: 6000 },
+    );
+  }
+
 
   function toggleVoice() {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
