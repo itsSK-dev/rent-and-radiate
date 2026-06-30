@@ -123,13 +123,20 @@ const Index = () => {
       );
 
     (async () => {
+      // Skip catalog fetches entirely when the user is outside the service area.
+      if (!isServiceable) {
+        setProducts([]);
+        setStores([]);
+        return;
+      }
       // Product catalogue is fully DB-driven via vendor uploads + admin approval.
       const { data } = await supabase
         .from("products")
         .select(
-          "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores(name,city,is_verified,rating)",
+          "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,is_verified,rating)",
         )
         .eq("available", true)
+        .ilike("stores.city", serviceCity)
         .limit(6);
       setProducts((data as any) ?? []);
       const { data: s } = await supabase
@@ -139,6 +146,7 @@ const Index = () => {
         .eq("is_verified", true)
         .eq("is_active", true)
         .eq("is_blocked", false)
+        .ilike("city", serviceCity)
         .limit(8);
       const rawStores = (s ?? []) as Array<{
         id: string;
@@ -204,7 +212,7 @@ const Index = () => {
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
-  }, []);
+  }, [isServiceable, serviceCity]);
 
   function pushRecent(text: string) {
     try {
