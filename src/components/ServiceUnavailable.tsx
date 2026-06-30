@@ -46,7 +46,7 @@ export function ServiceUnavailable({ city, source = "browse" }: { city: string; 
     }
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("location_interest").insert({
+      const { error } = await (supabase as any).from("location_interest").insert({
         user_id: user?.id ?? null,
         city: parsed.data.city,
         email: parsed.data.email || user?.email || null,
