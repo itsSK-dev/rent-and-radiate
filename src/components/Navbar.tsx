@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Flower2, Search, ShoppingBag, ShoppingCart, Store, User as UserIcon, LogOut, Menu, Package, Heart } from "lucide-react";
+import { Flower2, Search, ShoppingBag, ShoppingCart, Store, User as UserIcon, LogOut, Menu, Package, Heart, Bell } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { LocationSelector } from "@/components/LocationSelector";
 import { useState } from "react";
@@ -40,16 +40,19 @@ export function Navbar() {
           <Button variant="ghost" size="icon" onClick={() => navigate("/browse")} aria-label="Search">
             <Search className="h-4 w-4" />
           </Button>
+          {user ? <NotificationBell /> : (
+            <Button variant="ghost" size="icon" onClick={() => navigate("/auth")} aria-label="Notifications">
+              <Bell className="h-4 w-4" />
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" onClick={() => navigate(user ? "/wishlist" : "/auth")} aria-label="Wishlist">
+            <Heart className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => navigate(user ? "/cart" : "/auth")} aria-label="Cart">
+            <ShoppingCart className="h-4 w-4" />
+          </Button>
           {user ? (
             <>
-              <NotificationBell />
-
-              <Button variant="ghost" size="icon" onClick={() => navigate("/wishlist")} aria-label="Wishlist">
-                <Heart className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} aria-label="Cart">
-                <ShoppingCart className="h-4 w-4" />
-              </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate("/my-rentals")}>
                 <ShoppingBag className="h-4 w-4 mr-2" /> My orders
               </Button>
@@ -98,17 +101,17 @@ export function Navbar() {
           <Button variant="ghost" size="icon" onClick={() => navigate("/browse")} aria-label="Search" className="h-9 w-9">
             <Search className="h-4 w-4" />
           </Button>
-          {user && <NotificationBell />}
-          {user && (
-            <Button variant="ghost" size="icon" onClick={() => navigate("/wishlist")} aria-label="Wishlist" className="h-9 w-9">
-              <Heart className="h-4 w-4" />
+          {user ? <NotificationBell /> : (
+            <Button variant="ghost" size="icon" onClick={() => navigate("/auth")} aria-label="Notifications" className="h-9 w-9">
+              <Bell className="h-4 w-4" />
             </Button>
           )}
-          {user && (
-            <Button variant="ghost" size="icon" onClick={() => navigate("/cart")} aria-label="Cart" className="h-9 w-9">
-              <ShoppingCart className="h-4 w-4" />
-            </Button>
-          )}
+          <Button variant="ghost" size="icon" onClick={() => navigate(user ? "/wishlist" : "/auth")} aria-label="Wishlist" className="h-9 w-9">
+            <Heart className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => navigate(user ? "/cart" : "/auth")} aria-label="Cart" className="h-9 w-9">
+            <ShoppingCart className="h-4 w-4" />
+          </Button>
           <button className="h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-muted" onClick={() => setOpen(!open)} aria-label="Menu">
             <Menu className="h-5 w-5" />
           </button>
