@@ -35,6 +35,12 @@ import Notifications from "./pages/Notifications";
 import NotificationSettings from "./pages/NotificationSettings";
 import Rewards from "./pages/Rewards";
 import Wishlist from "./pages/Wishlist";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Help from "./pages/Help";
+
 
 const queryClient = new QueryClient();
 
@@ -77,7 +83,12 @@ const App = () => (
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/settings/notifications" element={<NotificationSettings />} />
               <Route path="/rewards" element={<Rewards />} />
-              <Route path="*" element={<NotFound />} />
+             <Route path="/about" element={<About />} />
+             <Route path="/contact" element={<Contact />} />
+             <Route path="/privacy" element={<Privacy />} />
+             <Route path="/terms" element={<Terms />} />
+             <Route path="/help" element={<Help />} />
+             <Route path="*" element={<NotFound />} />
             </Routes>
             <SupportChat />
           </WishlistProvider>
