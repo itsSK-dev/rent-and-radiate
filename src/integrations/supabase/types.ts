@@ -1126,6 +1126,7 @@ export type Database = {
           referral_min_order_amount: number
           referral_referrer_bonus: number
           referral_signup_bonus: number
+          referrals_enabled: boolean
           reminder_intervals_hours: number[]
           rent_to_own_credit_percent: number
           rent_to_own_enabled: boolean
@@ -1162,6 +1163,7 @@ export type Database = {
           referral_min_order_amount?: number
           referral_referrer_bonus?: number
           referral_signup_bonus?: number
+          referrals_enabled?: boolean
           reminder_intervals_hours?: number[]
           rent_to_own_credit_percent?: number
           rent_to_own_enabled?: boolean
@@ -1198,6 +1200,7 @@ export type Database = {
           referral_min_order_amount?: number
           referral_referrer_bonus?: number
           referral_signup_bonus?: number
+          referrals_enabled?: boolean
           reminder_intervals_hours?: number[]
           rent_to_own_credit_percent?: number
           rent_to_own_enabled?: boolean

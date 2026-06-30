@@ -15,6 +15,8 @@ type Settings = {
   late_fee_multiplier: number; late_fee_grace_hours: number;
   reminder_intervals_hours: number[];
   rent_to_own_enabled: boolean; rent_to_own_credit_percent: number;
+  referrals_enabled: boolean;
+  referral_signup_bonus: number; referral_referrer_bonus: number; referral_min_order_amount: number;
 };
 
 export function PlatformSettingsPanel() {
@@ -25,7 +27,7 @@ export function PlatformSettingsPanel() {
   async function load() {
     const { data } = await (supabase as any)
       .from("platform_settings")
-      .select("gst_percent,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days,rental_price_percent,deposit_percent_of_price,protection_plan_percent,protection_plan_min,late_fee_multiplier,late_fee_grace_hours,reminder_intervals_hours,rent_to_own_enabled,rent_to_own_credit_percent")
+      .select("gst_percent,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days,rental_price_percent,deposit_percent_of_price,protection_plan_percent,protection_plan_min,late_fee_multiplier,late_fee_grace_hours,reminder_intervals_hours,rent_to_own_enabled,rent_to_own_credit_percent,referrals_enabled,referral_signup_bonus,referral_referrer_bonus,referral_min_order_amount")
       .eq("id", true).maybeSingle();
     const d = data ?? {};
     const merged: Settings = {
@@ -43,6 +45,10 @@ export function PlatformSettingsPanel() {
       reminder_intervals_hours: d.reminder_intervals_hours ?? [24, 6, 1],
       rent_to_own_enabled: d.rent_to_own_enabled ?? false,
       rent_to_own_credit_percent: d.rent_to_own_credit_percent ?? 50,
+      referrals_enabled: d.referrals_enabled ?? true,
+      referral_signup_bonus: d.referral_signup_bonus ?? 100,
+      referral_referrer_bonus: d.referral_referrer_bonus ?? 200,
+      referral_min_order_amount: d.referral_min_order_amount ?? 500,
     };
     setS(merged);
     setRemindersText(merged.reminder_intervals_hours.join(","));
@@ -71,6 +77,10 @@ export function PlatformSettingsPanel() {
         reminder_intervals_hours: intervals,
         rent_to_own_enabled: Boolean(s.rent_to_own_enabled),
         rent_to_own_credit_percent: Math.max(0, Math.min(100, Number(s.rent_to_own_credit_percent) || 0)),
+        referrals_enabled: Boolean(s.referrals_enabled),
+        referral_signup_bonus: Math.max(0, Math.floor(Number(s.referral_signup_bonus) || 0)),
+        referral_referrer_bonus: Math.max(0, Math.floor(Number(s.referral_referrer_bonus) || 0)),
+        referral_min_order_amount: Math.max(0, Number(s.referral_min_order_amount) || 0),
       }).eq("id", true);
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -135,6 +145,20 @@ export function PlatformSettingsPanel() {
           <Label>Credit percent</Label>
           <Input type="number" min="0" max="100" step="1" value={s.rent_to_own_credit_percent} onChange={(e) => setS({ ...s, rent_to_own_credit_percent: Number(e.target.value) })} className="mt-1" />
           <p className="text-[11px] text-muted-foreground mt-1">% of past rental spend on the same product applied as discount when buying it out.</p>
+        </div>
+      </div>
+
+      <div className="border-t border-border pt-4 space-y-3">
+        <h3 className="font-medium">Referral rewards</h3>
+        <label className="flex items-center gap-3">
+          <Switch checked={s.referrals_enabled} onCheckedChange={(v) => setS({ ...s, referrals_enabled: v })} />
+          <span className="text-sm">Enable the referral program (signup bonus + referrer bonus)</span>
+        </label>
+        <p className="text-[11px] text-muted-foreground">When off, no new referral bonuses are credited. Existing balances and referral codes are preserved.</p>
+        <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 ${s.referrals_enabled ? "" : "opacity-50 pointer-events-none"}`}>
+          <div><Label>Signup bonus (points)</Label><Input type="number" min="0" step="1" value={s.referral_signup_bonus} onChange={(e) => setS({ ...s, referral_signup_bonus: Number(e.target.value) })} className="mt-1" /></div>
+          <div><Label>Referrer bonus (points)</Label><Input type="number" min="0" step="1" value={s.referral_referrer_bonus} onChange={(e) => setS({ ...s, referral_referrer_bonus: Number(e.target.value) })} className="mt-1" /></div>
+          <div><Label>Min qualifying order (₹)</Label><Input type="number" min="0" step="1" value={s.referral_min_order_amount} onChange={(e) => setS({ ...s, referral_min_order_amount: Number(e.target.value) })} className="mt-1" /></div>
         </div>
       </div>
 
