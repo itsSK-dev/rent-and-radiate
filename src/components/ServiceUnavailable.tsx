@@ -73,12 +73,12 @@ export function ServiceUnavailable({ city, source = "browse" }: { city: string; 
           <MapPin className="h-3.5 w-3.5" /> {city}
         </p>
         <h1 className="font-display text-3xl md:text-4xl mb-3">
-          🚀 We're not available in your city yet
+          🚀 We're currently serving only {SERVICE_CITY_LABEL}
         </h1>
         <p className="text-muted-foreground md:text-lg mb-6">
-          We are currently serving <span className="font-medium text-foreground">{SERVICE_CITY_LABEL}</span>,
-          and will reach your city soon. Stay tuned!
+          We'll reach <span className="font-medium text-foreground">{city}</span> soon. Stay tuned!
         </p>
+
 
         {done ? (
           <div className="rounded-2xl border border-emerald-300/60 bg-emerald-50 text-emerald-800 p-4 flex items-center justify-center gap-2">
