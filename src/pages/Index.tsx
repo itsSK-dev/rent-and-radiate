@@ -128,13 +128,60 @@ const Index = () => {
       setProducts((data as any) ?? []);
       const { data: s } = await supabase
         .from("stores")
-        .select("id,name,city,rating")
+        .select("id,name,city,rating,rating_count,logo_url,lat,lng")
         .eq("status", "approved")
         .eq("is_verified", true)
         .eq("is_active", true)
         .eq("is_blocked", false)
-        .limit(6);
-      setStores(s ?? []);
+        .limit(8);
+      const rawStores = (s ?? []) as Array<{
+        id: string;
+        name: string;
+        city: string | null;
+        rating: number;
+        rating_count: number;
+        logo_url: string | null;
+        lat: number | null;
+        lng: number | null;
+      }>;
+
+      // Per-shop available product counts (small N, parallel and cheap).
+      const counts = await Promise.all(
+        rawStores.map(async (st) => {
+          const { count } = await supabase
+            .from("products")
+            .select("id", { count: "exact", head: true })
+            .eq("store_id", st.id)
+            .eq("available", true);
+          return count ?? 0;
+        }),
+      );
+
+      // Optional distance, only if the user already shared geolocation in this session.
+      const userPos: { lat: number; lng: number } | null = await new Promise((resolve) => {
+        if (!navigator.geolocation) return resolve(null);
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          () => resolve(null),
+          { timeout: 1500, maximumAge: 5 * 60 * 1000 },
+        );
+      });
+
+      const enriched: NearbyShop[] = rawStores.map((st, i) => ({
+        ...st,
+        product_count: counts[i],
+        distance_km:
+          userPos && st.lat != null && st.lng != null
+            ? haversineKm(userPos, { lat: st.lat, lng: st.lng })
+            : null,
+      }));
+      enriched.sort((a, b) => {
+        if (a.distance_km != null && b.distance_km != null) return a.distance_km - b.distance_km;
+        if (a.distance_km != null) return -1;
+        if (b.distance_km != null) return 1;
+        return b.rating - a.rating;
+      });
+      setStores(enriched);
     })();
 
     try {
