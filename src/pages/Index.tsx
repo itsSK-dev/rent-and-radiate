@@ -15,19 +15,69 @@ import { toast } from "@/components/ui/sonner";
 // so every visitor sees the same approved rows.
 import {
   ArrowRight,
+  BadgeCheck,
+  BookOpen,
   Camera,
+  Dumbbell,
   Flame,
+  Gem,
   Gift,
   LayoutGrid,
   Loader2,
   MapPin,
   Mic,
   MicOff,
+  Package,
   Search,
+  Shirt,
   ShoppingBag,
+  Smartphone,
+  Sofa,
   Sparkles,
+  Star,
   Store as StoreIcon,
+  UtensilsCrossed,
 } from "lucide-react";
+
+type NearbyShop = {
+  id: string;
+  name: string;
+  city: string | null;
+  rating: number;
+  rating_count: number;
+  logo_url: string | null;
+  lat: number | null;
+  lng: number | null;
+  product_count: number;
+  distance_km: number | null;
+};
+
+const CATEGORY_CIRCLES = [
+  { label: "Fashion", slug: "fashion", icon: Shirt, gradient: "from-rose-400 via-pink-500 to-fuchsia-500" },
+  { label: "Jewellery", slug: "jewellery", icon: Gem, gradient: "from-amber-300 via-yellow-500 to-orange-500" },
+  { label: "Electronics", slug: "electronics", icon: Smartphone, gradient: "from-sky-400 via-blue-500 to-indigo-600" },
+  { label: "Home & Kitchen", slug: "home-kitchen", icon: UtensilsCrossed, gradient: "from-emerald-400 via-teal-500 to-cyan-600" },
+  { label: "Furniture", slug: "furniture", icon: Sofa, gradient: "from-amber-500 via-orange-500 to-rose-500" },
+  { label: "Sports", slug: "sports", icon: Dumbbell, gradient: "from-lime-400 via-green-500 to-emerald-600" },
+  { label: "Books", slug: "books", icon: BookOpen, gradient: "from-violet-400 via-purple-500 to-fuchsia-600" },
+  { label: "Others", slug: "others", icon: Package, gradient: "from-slate-400 via-slate-500 to-slate-700" },
+];
+
+function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+
+// Shops on the marketplace are open 10:00 – 21:00 IST by convention (no per-shop hours stored).
+function isShopOpenNow() {
+  const now = new Date();
+  const istHour = (now.getUTCHours() + 5 + Math.floor((now.getUTCMinutes() + 30) / 60)) % 24;
+  return istHour >= 10 && istHour < 21;
+}
 
 const POPULAR_SUGGESTIONS = [
   "Red dress under ₹2000 for rent",
@@ -43,7 +93,8 @@ const RECENT_KEY = "rr.recentSearches";
 
 const Index = () => {
   const [products, setProducts] = useState<ProductCardData[]>([]);
-  const [stores, setStores] = useState<{ id: string; name: string; city: string | null; rating: number }[]>([]);
+  const [stores, setStores] = useState<NearbyShop[]>([]);
+  const [shopsOpen] = useState<boolean>(() => isShopOpenNow());
   const [query, setQuery] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [imageBusy, setImageBusy] = useState(false);
@@ -77,13 +128,60 @@ const Index = () => {
       setProducts((data as any) ?? []);
       const { data: s } = await supabase
         .from("stores")
-        .select("id,name,city,rating")
+        .select("id,name,city,rating,rating_count,logo_url,lat,lng")
         .eq("status", "approved")
         .eq("is_verified", true)
         .eq("is_active", true)
         .eq("is_blocked", false)
-        .limit(6);
-      setStores(s ?? []);
+        .limit(8);
+      const rawStores = (s ?? []) as Array<{
+        id: string;
+        name: string;
+        city: string | null;
+        rating: number;
+        rating_count: number;
+        logo_url: string | null;
+        lat: number | null;
+        lng: number | null;
+      }>;
+
+      // Per-shop available product counts (small N, parallel and cheap).
+      const counts = await Promise.all(
+        rawStores.map(async (st) => {
+          const { count } = await supabase
+            .from("products")
+            .select("id", { count: "exact", head: true })
+            .eq("store_id", st.id)
+            .eq("available", true);
+          return count ?? 0;
+        }),
+      );
+
+      // Optional distance, only if the user already shared geolocation in this session.
+      const userPos: { lat: number; lng: number } | null = await new Promise((resolve) => {
+        if (!navigator.geolocation) return resolve(null);
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          () => resolve(null),
+          { timeout: 1500, maximumAge: 5 * 60 * 1000 },
+        );
+      });
+
+      const enriched: NearbyShop[] = rawStores.map((st, i) => ({
+        ...st,
+        product_count: counts[i],
+        distance_km:
+          userPos && st.lat != null && st.lng != null
+            ? haversineKm(userPos, { lat: st.lat, lng: st.lng })
+            : null,
+      }));
+      enriched.sort((a, b) => {
+        if (a.distance_km != null && b.distance_km != null) return a.distance_km - b.distance_km;
+        if (a.distance_km != null) return -1;
+        if (b.distance_km != null) return 1;
+        return b.rating - a.rating;
+      });
+      setStores(enriched);
     })();
 
     try {
@@ -417,6 +515,47 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Shop by category — premium circular icons */}
+      <section className="container pb-12 md:pb-16">
+        <div className="flex items-end justify-between mb-6 md:mb-8">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Shop by category</p>
+            <h2 className="font-display text-3xl md:text-5xl">Browse categories</h2>
+          </div>
+          <Link to="/browse" className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1">
+            View all <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-4 md:gap-6">
+          {CATEGORY_CIRCLES.map((c) => {
+            const Icon = c.icon;
+            return (
+              <Link
+                key={c.slug}
+                to={`/browse?category=${encodeURIComponent(c.slug)}`}
+                className="group flex flex-col items-center gap-2.5 text-center"
+              >
+                <span className="relative inline-flex items-center justify-center">
+                  <span
+                    className={`absolute inset-0 rounded-full bg-gradient-to-br ${c.gradient} opacity-30 blur-xl group-hover:opacity-60 transition-opacity duration-500`}
+                  />
+                  <span
+                    className={`relative inline-flex items-center justify-center h-16 w-16 md:h-20 md:w-20 rounded-full bg-gradient-to-br ${c.gradient} text-white shadow-[0_12px_30px_-10px_rgba(0,0,0,0.35)] ring-1 ring-white/30 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300`}
+                  >
+                    <Icon className="h-7 w-7 md:h-9 md:w-9" />
+                  </span>
+                </span>
+                <span className="text-xs md:text-sm font-medium text-foreground group-hover:text-rose-deep transition-colors">
+                  {c.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+
+
 
       {/* Interactive Shop the Look */}
       <section className="container pb-16 md:pb-24">
@@ -452,30 +591,32 @@ const Index = () => {
         </section>
       )}
 
-      {/* Stores */}
+      {/* Nearby Verified Shops */}
       {stores.length > 0 && (
         <section className="container pb-16 md:pb-24">
-          <div className="mb-8">
-            <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Boutiques you'll love</p>
-            <h2 className="font-display text-3xl md:text-5xl">Stores near you</h2>
+          <div className="flex items-end justify-between mb-6 md:mb-8">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
+                <BadgeCheck className="h-3.5 w-3.5" /> Verified boutiques
+              </p>
+              <h2 className="font-display text-3xl md:text-5xl">Nearby Verified Shops</h2>
+            </div>
+            <Link
+              to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
+              className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1"
+            >
+              See all <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
             {stores.map((s) => (
-              <Link
-                key={s.id}
-                to={`/browse?store=${s.id}`}
-                className="group p-6 rounded-2xl bg-card border border-border hover:shadow-petal transition-smooth"
-              >
-                <h3 className="font-display text-2xl group-hover:text-primary transition-smooth">{s.name}</h3>
-                <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                  <MapPin className="h-3.5 w-3.5" /> {s.city ?? "—"}
-                </p>
-                <p className="text-xs mt-3 text-gold">★ {Number(s.rating).toFixed(1)}</p>
-              </Link>
+              <NearbyShopCard key={s.id} shop={s} open={shopsOpen} />
             ))}
           </div>
         </section>
       )}
+
+
 
       <Footer />
     </div>
@@ -512,5 +653,95 @@ function QuickActionCard({
     </Link>
   );
 }
+
+function NearbyShopCard({ shop, open }: { shop: NearbyShop; open: boolean }) {
+  const initials = shop.name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  const distanceLabel =
+    shop.distance_km != null
+      ? shop.distance_km < 1
+        ? `${Math.round(shop.distance_km * 1000)} m away`
+        : `${shop.distance_km.toFixed(1)} km away`
+      : shop.city
+        ? shop.city
+        : "Distance unavailable";
+
+  return (
+    <div className="group relative flex flex-col rounded-3xl bg-card border border-border overflow-hidden shadow-soft hover:shadow-[0_22px_50px_-22px_hsl(var(--rose-deep)/0.45)] hover:-translate-y-1 transition-all duration-300">
+      {/* Shop image / logo */}
+      <div className="relative h-40 bg-gradient-to-br from-blossom via-card to-muted overflow-hidden">
+        {shop.logo_url ? (
+          <img
+            src={shop.logo_url}
+            alt={`${shop.name} storefront`}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="font-display text-5xl text-rose-deep/70">{initials || <StoreIcon className="h-10 w-10" />}</span>
+          </div>
+        )}
+        {/* Open / closed pill */}
+        <span
+          className={`absolute top-3 left-3 inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full backdrop-blur ${
+            open
+              ? "bg-emerald-500/90 text-white"
+              : "bg-slate-700/85 text-white"
+          }`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${open ? "bg-white animate-pulse" : "bg-white/70"}`} />
+          {open ? "Open now" : "Closed"}
+        </span>
+        {/* Verified badge */}
+        <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-card/95 text-rose-deep border border-rose-deep/20 shadow-sm">
+          <BadgeCheck className="h-3.5 w-3.5" />
+          Verified
+        </span>
+      </div>
+
+      {/* Body */}
+      <div className="p-5 flex flex-col gap-3 flex-1">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="font-display text-xl leading-tight group-hover:text-rose-deep transition-colors">
+            {shop.name}
+          </h3>
+          <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+            <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+            {Number(shop.rating ?? 0).toFixed(1)}
+            {shop.rating_count > 0 && (
+              <span className="text-amber-600/70 font-normal">({shop.rating_count})</span>
+            )}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5 text-rose-deep" />
+            {distanceLabel}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Package className="h-3.5 w-3.5 text-rose-deep" />
+            {shop.product_count} {shop.product_count === 1 ? "product" : "products"}
+          </span>
+        </div>
+
+        <Link
+          to={`/browse?store=${shop.id}`}
+          className="mt-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-deep to-pink-500 text-white text-sm font-medium py-2.5 shadow-md hover:shadow-lg hover:opacity-95 active:opacity-90 transition-all"
+        >
+          View Shop
+          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 
 export default Index;
