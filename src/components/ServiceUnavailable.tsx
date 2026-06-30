@@ -109,8 +109,9 @@ export function ServiceUnavailable({ city, source = "browse" }: { city: string; 
               aria-label="Phone"
             />
             <Button type="submit" variant="hero" disabled={submitting} className="shrink-0">
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Notify Me"}
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Notify Me When You Launch Here"}
             </Button>
+
           </form>
         )}
 
