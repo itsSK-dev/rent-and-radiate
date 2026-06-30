@@ -16,14 +16,31 @@ import { toast } from "@/components/ui/sonner";
 import {
   ArrowRight,
   Camera,
+  Flame,
+  Gift,
+  LayoutGrid,
   Loader2,
   MapPin,
   Mic,
   MicOff,
+  Search,
   ShoppingBag,
   Sparkles,
+  Store as StoreIcon,
   Tag,
 } from "lucide-react";
+
+const POPULAR_SUGGESTIONS = [
+  "Red dress under ₹2000 for rent",
+  "Gold jewellery for wedding",
+  "Designer lehenga",
+  "Smartphones on rent",
+  "Office chair near me",
+  "Camera lens rental",
+  "Party wear gowns",
+  "Bridal collection",
+];
+const RECENT_KEY = "rr.recentSearches";
 
 const Index = () => {
   const [products, setProducts] = useState<ProductCardData[]>([]);
