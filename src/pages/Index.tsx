@@ -591,30 +591,32 @@ const Index = () => {
         </section>
       )}
 
-      {/* Stores */}
+      {/* Nearby Verified Shops */}
       {stores.length > 0 && (
         <section className="container pb-16 md:pb-24">
-          <div className="mb-8">
-            <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Boutiques you'll love</p>
-            <h2 className="font-display text-3xl md:text-5xl">Stores near you</h2>
+          <div className="flex items-end justify-between mb-6 md:mb-8">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
+                <BadgeCheck className="h-3.5 w-3.5" /> Verified boutiques
+              </p>
+              <h2 className="font-display text-3xl md:text-5xl">Nearby Verified Shops</h2>
+            </div>
+            <Link
+              to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
+              className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1"
+            >
+              See all <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
             {stores.map((s) => (
-              <Link
-                key={s.id}
-                to={`/browse?store=${s.id}`}
-                className="group p-6 rounded-2xl bg-card border border-border hover:shadow-petal transition-smooth"
-              >
-                <h3 className="font-display text-2xl group-hover:text-primary transition-smooth">{s.name}</h3>
-                <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                  <MapPin className="h-3.5 w-3.5" /> {s.city ?? "—"}
-                </p>
-                <p className="text-xs mt-3 text-gold">★ {Number(s.rating).toFixed(1)}</p>
-              </Link>
+              <NearbyShopCard key={s.id} shop={s} open={shopsOpen} />
             ))}
           </div>
         </section>
       )}
+
+
 
       <Footer />
     </div>
