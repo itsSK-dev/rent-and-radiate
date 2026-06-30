@@ -515,6 +515,47 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Shop by category — premium circular icons */}
+      <section className="container pb-12 md:pb-16">
+        <div className="flex items-end justify-between mb-6 md:mb-8">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Shop by category</p>
+            <h2 className="font-display text-3xl md:text-5xl">Browse categories</h2>
+          </div>
+          <Link to="/browse" className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1">
+            View all <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-4 md:gap-6">
+          {CATEGORY_CIRCLES.map((c) => {
+            const Icon = c.icon;
+            return (
+              <Link
+                key={c.slug}
+                to={`/browse?category=${encodeURIComponent(c.slug)}`}
+                className="group flex flex-col items-center gap-2.5 text-center"
+              >
+                <span className="relative inline-flex items-center justify-center">
+                  <span
+                    className={`absolute inset-0 rounded-full bg-gradient-to-br ${c.gradient} opacity-30 blur-xl group-hover:opacity-60 transition-opacity duration-500`}
+                  />
+                  <span
+                    className={`relative inline-flex items-center justify-center h-16 w-16 md:h-20 md:w-20 rounded-full bg-gradient-to-br ${c.gradient} text-white shadow-[0_12px_30px_-10px_rgba(0,0,0,0.35)] ring-1 ring-white/30 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300`}
+                  >
+                    <Icon className="h-7 w-7 md:h-9 md:w-9" />
+                  </span>
+                </span>
+                <span className="text-xs md:text-sm font-medium text-foreground group-hover:text-rose-deep transition-colors">
+                  {c.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+
+
 
       {/* Interactive Shop the Look */}
       <section className="container pb-16 md:pb-24">
