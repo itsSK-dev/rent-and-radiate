@@ -26,6 +26,8 @@ const BecomeVendor = () => {
   const [description, setDescription] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [existingStore, setExistingStore] = useState<{ id: string; name: string; status: string; is_verified: boolean; is_active: boolean; is_blocked: boolean } | null>(null);
   const [checking, setChecking] = useState(true);
@@ -33,6 +35,16 @@ const BecomeVendor = () => {
   useEffect(() => {
     document.title = "Open a store · Rent & Radiate";
   }, []);
+
+  function onLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return toast.error("Please choose an image file");
+    if (file.size > 2 * 1024 * 1024) return toast.error("Logo must be under 2MB");
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  }
+
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth?next=/become-vendor");
