@@ -6,6 +6,8 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
 import { ShopTheLook } from "@/components/ShopTheLook";
+import { WhyChooseSection } from "@/components/WhyChooseSection";
+import { PromoBanners } from "@/components/PromoBanners";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 // NOTE: We intentionally do NOT seed demo products from the client.
@@ -617,6 +619,11 @@ const Index = () => {
       )}
 
 
+      {/* Why choose Rent & Radiate */}
+      <WhyChooseSection />
+
+      {/* Promotional banners */}
+      <PromoBanners />
 
       <Footer />
     </div>
