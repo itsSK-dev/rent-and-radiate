@@ -513,6 +513,5 @@ function QuickActionCard({
     </Link>
   );
 }
-}
 
 export default Index;
