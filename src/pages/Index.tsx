@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { Footer } from "@/components/Footer";
+import { BecomeSellerSection } from "@/components/BecomeSellerSection";
 import { Button } from "@/components/ui/button";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
 import { ShopTheLook } from "@/components/ShopTheLook";
@@ -624,6 +625,9 @@ const Index = () => {
 
       {/* Promotional banners */}
       <PromoBanners />
+
+      {/* Become a seller */}
+      <BecomeSellerSection />
 
       <Footer />
     </div>
