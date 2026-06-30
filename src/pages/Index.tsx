@@ -571,64 +571,71 @@ const Index = () => {
 
 
 
-      {/* Interactive Shop the Look */}
-      <section className="container pb-16 md:pb-24">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Interactive showcase</p>
-            <h2 className="font-display text-3xl md:text-5xl">The fitting room</h2>
-          </div>
-          <Link to="/browse" className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1">
-            See everything <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-        <ShopTheLook />
-      </section>
-
-      {/* Featured products */}
-      {products.length > 0 && (
-        <section className="container pb-16">
-          <div className="flex items-end justify-between mb-8">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">In bloom this week</p>
-              <h2 className="font-display text-3xl md:text-5xl">Featured pieces</h2>
+      {!isServiceable ? (
+        <ServiceUnavailable city={serviceCity} source="home" />
+      ) : (
+        <>
+          {/* Interactive Shop the Look */}
+          <section className="container pb-16 md:pb-24">
+            <div className="flex items-end justify-between mb-6">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Interactive showcase</p>
+                <h2 className="font-display text-3xl md:text-5xl">The fitting room</h2>
+              </div>
+              <Link to="/browse" className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1">
+                See everything <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
-            <Link to="/browse" className="text-sm text-primary hover:underline flex items-center gap-1">
-              See all <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
-            {products.map((p) => (
-              <ProductCard key={p.id} p={p} />
-            ))}
-          </div>
-        </section>
+            <ShopTheLook />
+          </section>
+
+          {/* Featured products */}
+          {products.length > 0 && (
+            <section className="container pb-16">
+              <div className="flex items-end justify-between mb-8">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">In bloom this week</p>
+                  <h2 className="font-display text-3xl md:text-5xl">Featured pieces</h2>
+                </div>
+                <Link to="/browse" className="text-sm text-primary hover:underline flex items-center gap-1">
+                  See all <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
+                {products.map((p) => (
+                  <ProductCard key={p.id} p={p} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Nearby Verified Shops */}
+          {stores.length > 0 && (
+            <section className="container pb-16 md:pb-24">
+              <div className="flex items-end justify-between mb-6 md:mb-8">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
+                    <BadgeCheck className="h-3.5 w-3.5" /> Verified boutiques
+                  </p>
+                  <h2 className="font-display text-3xl md:text-5xl">Nearby Verified Shops</h2>
+                </div>
+                <Link
+                  to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
+                  className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1"
+                >
+                  See all <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                {stores.map((s) => (
+                  <NearbyShopCard key={s.id} shop={s} open={shopsOpen} />
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
 
-      {/* Nearby Verified Shops */}
-      {stores.length > 0 && (
-        <section className="container pb-16 md:pb-24">
-          <div className="flex items-end justify-between mb-6 md:mb-8">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
-                <BadgeCheck className="h-3.5 w-3.5" /> Verified boutiques
-              </p>
-              <h2 className="font-display text-3xl md:text-5xl">Nearby Verified Shops</h2>
-            </div>
-            <Link
-              to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
-              className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1"
-            >
-              See all <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-            {stores.map((s) => (
-              <NearbyShopCard key={s.id} shop={s} open={shopsOpen} />
-            ))}
-          </div>
-        </section>
-      )}
 
 
       {/* Why choose Rent & Radiate */}
