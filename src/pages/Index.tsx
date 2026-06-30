@@ -483,41 +483,36 @@ const Index = () => {
   );
 };
 
-function PrimaryActionCard({
+function QuickActionCard({
   to,
-  eyebrow,
-  title,
-  subtitle,
-  tone,
+  label,
   icon,
+  gradient,
 }: {
   to: string;
-  eyebrow: string;
-  title: string;
-  subtitle: string;
-  tone: string;
+  label: string;
   icon: React.ReactNode;
+  gradient: string;
 }) {
   return (
     <Link
       to={to}
-      className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${tone} p-7 md:p-10 min-h-[180px] md:min-h-[220px] flex flex-col justify-between shadow-card hover:shadow-petal hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300`}
+      className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-card border border-border p-4 md:p-5 flex flex-col items-center justify-center gap-3 text-center shadow-soft hover:shadow-[0_18px_40px_-18px_hsl(var(--rose-deep)/0.45)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300"
     >
-      <div className="absolute -right-10 -top-10 w-44 h-44 rounded-full bg-background/30 blur-2xl group-hover:scale-125 transition-transform duration-700" />
-      <div className="relative">
-        <div className="inline-flex items-center justify-center h-11 w-11 rounded-2xl bg-background/80 text-rose-deep mb-3 group-hover:rotate-[-6deg] transition-transform">
-          {icon}
-        </div>
-        <p className="text-[11px] uppercase tracking-[0.2em] text-rose-deep/80">{eyebrow}</p>
-        <h3 className="font-display text-3xl md:text-4xl text-rose-deep mt-1">{title}</h3>
-        <p className="text-sm text-rose-deep/80 mt-2 max-w-xs">{subtitle}</p>
-      </div>
-      <div className="relative flex items-center gap-2 text-rose-deep font-medium text-sm mt-4">
-        <Tag className="h-4 w-4" /> Explore catalogue
-        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-smooth" />
-      </div>
+      <span
+        className={`absolute inset-x-0 -top-12 h-24 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-500`}
+      />
+      <span
+        className={`relative inline-flex items-center justify-center h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-md group-hover:scale-110 group-hover:rotate-[-4deg] transition-transform duration-300`}
+      >
+        {icon}
+      </span>
+      <span className="relative text-xs md:text-sm font-medium text-foreground group-hover:text-rose-deep transition-colors">
+        {label}
+      </span>
     </Link>
   );
+}
 }
 
 export default Index;
