@@ -34,6 +34,7 @@ import MyAdvertisements from "./pages/MyAdvertisements";
 import Notifications from "./pages/Notifications";
 import NotificationSettings from "./pages/NotificationSettings";
 import Rewards from "./pages/Rewards";
+import Refer from "./pages/Refer";
 import Wishlist from "./pages/Wishlist";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -83,6 +84,7 @@ const App = () => (
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/settings/notifications" element={<NotificationSettings />} />
               <Route path="/rewards" element={<Rewards />} />
+              <Route path="/refer" element={<Refer />} />
              <Route path="/about" element={<About />} />
              <Route path="/contact" element={<Contact />} />
              <Route path="/privacy" element={<Privacy />} />

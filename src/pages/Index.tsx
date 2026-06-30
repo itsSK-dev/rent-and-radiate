@@ -9,6 +9,7 @@ import { ProductCard, type ProductCardData } from "@/components/ProductCard";
 import { ShopTheLook } from "@/components/ShopTheLook";
 import { WhyChooseSection } from "@/components/WhyChooseSection";
 import { PromoBanners } from "@/components/PromoBanners";
+import { ShareAppSection } from "@/components/ShareAppSection";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { useServiceCity } from "@/lib/serviceArea";
@@ -643,6 +644,9 @@ const Index = () => {
 
       {/* Promotional banners */}
       <PromoBanners />
+
+      {/* Refer & share app */}
+      <ShareAppSection />
 
       {/* Become a seller */}
       <BecomeSellerSection />

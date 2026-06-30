@@ -138,6 +138,7 @@ export function Navbar() {
                 <Link to="/my-rentals" onClick={() => setOpen(false)} className="py-2">My orders</Link>
                 <Link to="/my-payments" onClick={() => setOpen(false)} className="py-2">My payments</Link>
                 <Link to="/rewards" onClick={() => setOpen(false)} className="py-2">Rewards</Link>
+                <Link to="/refer" onClick={() => setOpen(false)} className="py-2">Refer a friend</Link>
                 <Link to="/settings/notifications" onClick={() => setOpen(false)} className="py-2">Notification settings</Link>
                 <Link to={isVendor ? "/vendor" : "/become-vendor"} onClick={() => setOpen(false)} className="py-2">
                   {isVendor ? "Vendor dashboard" : "Open a store"}
