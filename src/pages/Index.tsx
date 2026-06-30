@@ -654,4 +654,94 @@ function QuickActionCard({
   );
 }
 
+function NearbyShopCard({ shop, open }: { shop: NearbyShop; open: boolean }) {
+  const initials = shop.name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  const distanceLabel =
+    shop.distance_km != null
+      ? shop.distance_km < 1
+        ? `${Math.round(shop.distance_km * 1000)} m away`
+        : `${shop.distance_km.toFixed(1)} km away`
+      : shop.city
+        ? shop.city
+        : "Distance unavailable";
+
+  return (
+    <div className="group relative flex flex-col rounded-3xl bg-card border border-border overflow-hidden shadow-soft hover:shadow-[0_22px_50px_-22px_hsl(var(--rose-deep)/0.45)] hover:-translate-y-1 transition-all duration-300">
+      {/* Shop image / logo */}
+      <div className="relative h-40 bg-gradient-to-br from-blossom via-card to-muted overflow-hidden">
+        {shop.logo_url ? (
+          <img
+            src={shop.logo_url}
+            alt={`${shop.name} storefront`}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="font-display text-5xl text-rose-deep/70">{initials || <StoreIcon className="h-10 w-10" />}</span>
+          </div>
+        )}
+        {/* Open / closed pill */}
+        <span
+          className={`absolute top-3 left-3 inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full backdrop-blur ${
+            open
+              ? "bg-emerald-500/90 text-white"
+              : "bg-slate-700/85 text-white"
+          }`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${open ? "bg-white animate-pulse" : "bg-white/70"}`} />
+          {open ? "Open now" : "Closed"}
+        </span>
+        {/* Verified badge */}
+        <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-card/95 text-rose-deep border border-rose-deep/20 shadow-sm">
+          <BadgeCheck className="h-3.5 w-3.5" />
+          Verified
+        </span>
+      </div>
+
+      {/* Body */}
+      <div className="p-5 flex flex-col gap-3 flex-1">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="font-display text-xl leading-tight group-hover:text-rose-deep transition-colors">
+            {shop.name}
+          </h3>
+          <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+            <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+            {Number(shop.rating ?? 0).toFixed(1)}
+            {shop.rating_count > 0 && (
+              <span className="text-amber-600/70 font-normal">({shop.rating_count})</span>
+            )}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5 text-rose-deep" />
+            {distanceLabel}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Package className="h-3.5 w-3.5 text-rose-deep" />
+            {shop.product_count} {shop.product_count === 1 ? "product" : "products"}
+          </span>
+        </div>
+
+        <Link
+          to={`/browse?store=${shop.id}`}
+          className="mt-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-deep to-pink-500 text-white text-sm font-medium py-2.5 shadow-md hover:shadow-lg hover:opacity-95 active:opacity-90 transition-all"
+        >
+          View Shop
+          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+
 export default Index;
