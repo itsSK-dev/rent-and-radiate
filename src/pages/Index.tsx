@@ -16,14 +16,30 @@ import { toast } from "@/components/ui/sonner";
 import {
   ArrowRight,
   Camera,
+  Flame,
+  Gift,
+  LayoutGrid,
   Loader2,
   MapPin,
   Mic,
   MicOff,
+  Search,
   ShoppingBag,
   Sparkles,
-  Tag,
+  Store as StoreIcon,
 } from "lucide-react";
+
+const POPULAR_SUGGESTIONS = [
+  "Red dress under ₹2000 for rent",
+  "Gold jewellery for wedding",
+  "Designer lehenga",
+  "Smartphones on rent",
+  "Office chair near me",
+  "Camera lens rental",
+  "Party wear gowns",
+  "Bridal collection",
+];
+const RECENT_KEY = "rr.recentSearches";
 
 const Index = () => {
   const [products, setProducts] = useState<ProductCardData[]>([]);
@@ -32,8 +48,12 @@ const Index = () => {
   const [aiBusy, setAiBusy] = useState(false);
   const [imageBusy, setImageBusy] = useState(false);
   const [listening, setListening] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [recent, setRecent] = useState<string[]>([]);
+  const [nearbyCity, setNearbyCity] = useState<string | null>(null);
   const recogRef = useRef<any>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const searchWrapRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -65,7 +85,32 @@ const Index = () => {
         .limit(6);
       setStores(s ?? []);
     })();
+
+    try {
+      const r = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+      if (Array.isArray(r)) setRecent(r.slice(0, 5));
+      const city = localStorage.getItem("rr.location");
+      if (city) setNearbyCity(city);
+    } catch {
+      /* ignore */
+    }
+
+    function onDocClick(ev: MouseEvent) {
+      if (!searchWrapRef.current?.contains(ev.target as Node)) setFocused(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
+
+  function pushRecent(text: string) {
+    try {
+      const next = [text, ...recent.filter((r) => r.toLowerCase() !== text.toLowerCase())].slice(0, 5);
+      setRecent(next);
+      localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+  }
 
   function buildBrowseUrl(filters: { q?: string; category?: string; purpose?: string; sort?: string }) {
     const params = new URLSearchParams();
@@ -77,24 +122,55 @@ const Index = () => {
     return qs ? `/browse?${qs}` : "/browse";
   }
 
-  const onSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const text = query.trim();
-    if (!text) return;
+  const runSearch = async (text: string) => {
+    const q = text.trim();
+    if (!q) return;
+    setFocused(false);
+    pushRecent(q);
     setAiBusy(true);
     try {
-      const { data, error } = await supabase.functions.invoke("ai-search", { body: { query: text } });
+      const { data, error } = await supabase.functions.invoke("ai-search", { body: { query: q } });
       if (error || !data || (data as any).error) {
-        navigate(`/browse?q=${encodeURIComponent(text)}`);
+        navigate(`/browse?q=${encodeURIComponent(q)}`);
         return;
       }
       navigate(buildBrowseUrl(data as any));
     } catch {
-      navigate(`/browse?q=${encodeURIComponent(text)}`);
+      navigate(`/browse?q=${encodeURIComponent(q)}`);
     } finally {
       setAiBusy(false);
     }
   };
+
+  const onSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    runSearch(query);
+  };
+
+  function useNearby() {
+    if (!navigator.geolocation) {
+      if (nearbyCity) {
+        toast.success(`Showing shops near ${nearbyCity}`);
+        navigate(`/browse?city=${encodeURIComponent(nearbyCity)}`);
+      } else {
+        toast.error("Geolocation isn't supported. Pick a city from the top-left location chip.");
+      }
+      return;
+    }
+    toast.message("Finding shops near you…");
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        const target = nearbyCity ?? "";
+        navigate(target ? `/browse?city=${encodeURIComponent(target)}` : "/browse");
+      },
+      () => {
+        if (nearbyCity) navigate(`/browse?city=${encodeURIComponent(nearbyCity)}`);
+        else toast.error("Couldn't detect location. Pick a city from the top-left chip.");
+      },
+      { timeout: 6000 },
+    );
+  }
+
 
   function toggleVoice() {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -172,38 +248,45 @@ const Index = () => {
       {/* Premium branding-only hero carousel (no product actions) */}
       <HeroCarousel />
 
-      {/* Smart search floating bar */}
+      {/* Smart floating search bar */}
       <section className="relative">
-        <div className="container pt-8 md:pt-10 pb-6">
-          <div className="max-w-3xl">
+        <div className="container pt-8 md:pt-10 pb-4">
+          <div ref={searchWrapRef} className="relative max-w-3xl mx-auto md:mx-0">
             <form
               onSubmit={onSearch}
-              className="flex items-center gap-2 bg-card rounded-full pl-5 pr-2 py-2 shadow-soft border border-border max-w-2xl"
+              className={`group flex items-center gap-1.5 md:gap-2 bg-card/95 backdrop-blur rounded-full pl-4 md:pl-5 pr-1.5 md:pr-2 py-1.5 md:py-2 border border-border shadow-petal transition-all duration-300 ${
+                focused ? "ring-2 ring-rose-deep/30 shadow-[0_18px_45px_-20px_hsl(var(--rose-deep)/0.45)]" : ""
+              }`}
               role="search"
             >
               <Sparkles className="h-4 w-4 text-rose-deep shrink-0" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder='Try "red dress under ₹2000 for rent"…'
-                className="flex-1 bg-transparent outline-none text-sm py-1.5 min-w-0"
-                aria-label="AI-powered search"
+                onFocus={() => setFocused(true)}
+                placeholder="Search dresses, jewellery, electronics, furniture near you..."
+                className="flex-1 bg-transparent outline-none text-sm py-1.5 min-w-0 placeholder:text-muted-foreground/80"
+                aria-label="Smart product search"
                 disabled={aiBusy}
               />
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={onImagePicked}
-              />
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onImagePicked} />
+              <button
+                type="button"
+                onClick={useNearby}
+                aria-label="Find nearby shops"
+                title={nearbyCity ? `Nearby: ${nearbyCity}` : "Find nearby shops"}
+                className="hidden sm:flex shrink-0 h-9 px-3 rounded-full items-center gap-1.5 text-xs font-medium text-rose-deep bg-blossom/60 hover:bg-blossom transition-colors"
+              >
+                <MapPin className="h-3.5 w-3.5" />
+                <span className="truncate max-w-[80px]">{nearbyCity ?? "Nearby"}</span>
+              </button>
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 aria-label="Search by image"
                 title="Search by image"
                 disabled={imageBusy}
-                className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center transition-colors text-muted-foreground hover:bg-muted disabled:opacity-60"
+                className="shrink-0 h-9 w-9 rounded-full flex items-center justify-center transition-colors text-muted-foreground hover:bg-muted hover:text-rose-deep disabled:opacity-60"
               >
                 {imageBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
               </button>
@@ -211,16 +294,80 @@ const Index = () => {
                 type="button"
                 onClick={toggleVoice}
                 aria-label={listening ? "Stop voice search" : "Start voice search"}
+                title="Voice search"
                 className={`shrink-0 h-9 w-9 rounded-full flex items-center justify-center transition-colors ${
-                  listening ? "bg-rose-deep text-background animate-pulse" : "text-muted-foreground hover:bg-muted"
+                  listening ? "bg-rose-deep text-background animate-pulse" : "text-muted-foreground hover:bg-muted hover:text-rose-deep"
                 }`}
               >
                 {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
               </button>
-              <Button type="submit" variant="hero" size="sm" className="rounded-full" disabled={aiBusy || !query.trim()}>
-                {aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
+              <Button
+                type="submit"
+                variant="hero"
+                size="sm"
+                className="rounded-full shrink-0 h-9 px-3 md:px-5"
+                disabled={aiBusy}
+              >
+                {aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4 md:hidden" />}
+                <span className="hidden md:inline">{aiBusy ? "Searching" : "Search"}</span>
               </Button>
             </form>
+
+            {/* Suggestions dropdown */}
+            {focused && (
+              <div className="absolute left-0 right-0 mt-2 bg-card border border-border rounded-2xl shadow-petal overflow-hidden z-30 animate-fade-in">
+                {recent.length > 0 && (
+                  <div className="p-3 border-b border-border/60">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Recent</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {recent.map((r) => (
+                        <button
+                          key={r}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setQuery(r);
+                            runSearch(r);
+                          }}
+                          className="text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-blossom hover:text-rose-deep transition-colors"
+                        >
+                          {r}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="p-3">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground mb-2">
+                    {query.trim() ? "Suggestions" : "Popular searches"}
+                  </p>
+                  <ul className="flex flex-col">
+                    {(query.trim()
+                      ? POPULAR_SUGGESTIONS.filter((s) => s.toLowerCase().includes(query.trim().toLowerCase()))
+                      : POPULAR_SUGGESTIONS
+                    )
+                      .slice(0, 6)
+                      .map((s) => (
+                        <li key={s}>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setQuery(s);
+                              runSearch(s);
+                            }}
+                            className="w-full text-left text-sm px-2 py-2 rounded-lg hover:bg-blossom/60 flex items-center gap-2 transition-colors"
+                          >
+                            <Search className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="truncate">{s}</span>
+                          </button>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
             <p className="text-[11px] text-muted-foreground mt-2 ml-5 flex items-center gap-1">
               <Sparkles className="h-3 w-3" /> AI understands text, voice & images
             </p>
@@ -228,27 +375,48 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Two primary action cards */}
-      <section className="container pt-4 pb-10 md:pb-14">
-        <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-          <PrimaryActionCard
+      {/* Quick action cards */}
+      <section className="container pt-2 pb-10 md:pb-14">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+          <QuickActionCard
             to="/browse?purpose=rent"
-            eyebrow="Wear it for a day"
-            title="Rent Products"
-            subtitle="Designer pieces on rotation — pay rental + refundable deposit."
-            tone="from-blossom to-primary-soft"
-            icon={<Sparkles className="h-6 w-6" />}
+            label="Rent Products"
+            icon={<Sparkles className="h-5 w-5" />}
+            gradient="from-rose-400 to-pink-500"
           />
-          <PrimaryActionCard
+          <QuickActionCard
             to="/browse?purpose=buy"
-            eyebrow="Make it yours"
-            title="Buy Products"
-            subtitle="Brand-new fashion ready to ship from local boutiques."
-            tone="from-petal to-blossom"
-            icon={<ShoppingBag className="h-6 w-6" />}
+            label="Buy Products"
+            icon={<ShoppingBag className="h-5 w-5" />}
+            gradient="from-amber-400 to-orange-500"
+          />
+          <QuickActionCard
+            to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
+            label="Nearby Shops"
+            icon={<StoreIcon className="h-5 w-5" />}
+            gradient="from-emerald-400 to-teal-500"
+          />
+          <QuickActionCard
+            to="/browse?sort=popular"
+            label="Trending"
+            icon={<Flame className="h-5 w-5" />}
+            gradient="from-fuchsia-500 to-purple-600"
+          />
+          <QuickActionCard
+            to="/browse?sort=discount"
+            label="Offers"
+            icon={<Gift className="h-5 w-5" />}
+            gradient="from-red-400 to-rose-600"
+          />
+          <QuickActionCard
+            to="/browse"
+            label="Categories"
+            icon={<LayoutGrid className="h-5 w-5" />}
+            gradient="from-sky-400 to-indigo-500"
           />
         </div>
       </section>
+
 
       {/* Interactive Shop the Look */}
       <section className="container pb-16 md:pb-24">
@@ -314,39 +482,33 @@ const Index = () => {
   );
 };
 
-function PrimaryActionCard({
+function QuickActionCard({
   to,
-  eyebrow,
-  title,
-  subtitle,
-  tone,
+  label,
   icon,
+  gradient,
 }: {
   to: string;
-  eyebrow: string;
-  title: string;
-  subtitle: string;
-  tone: string;
+  label: string;
   icon: React.ReactNode;
+  gradient: string;
 }) {
   return (
     <Link
       to={to}
-      className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${tone} p-7 md:p-10 min-h-[180px] md:min-h-[220px] flex flex-col justify-between shadow-card hover:shadow-petal hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300`}
+      className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-card border border-border p-4 md:p-5 flex flex-col items-center justify-center gap-3 text-center shadow-soft hover:shadow-[0_18px_40px_-18px_hsl(var(--rose-deep)/0.45)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300"
     >
-      <div className="absolute -right-10 -top-10 w-44 h-44 rounded-full bg-background/30 blur-2xl group-hover:scale-125 transition-transform duration-700" />
-      <div className="relative">
-        <div className="inline-flex items-center justify-center h-11 w-11 rounded-2xl bg-background/80 text-rose-deep mb-3 group-hover:rotate-[-6deg] transition-transform">
-          {icon}
-        </div>
-        <p className="text-[11px] uppercase tracking-[0.2em] text-rose-deep/80">{eyebrow}</p>
-        <h3 className="font-display text-3xl md:text-4xl text-rose-deep mt-1">{title}</h3>
-        <p className="text-sm text-rose-deep/80 mt-2 max-w-xs">{subtitle}</p>
-      </div>
-      <div className="relative flex items-center gap-2 text-rose-deep font-medium text-sm mt-4">
-        <Tag className="h-4 w-4" /> Explore catalogue
-        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-smooth" />
-      </div>
+      <span
+        className={`absolute inset-x-0 -top-12 h-24 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-500`}
+      />
+      <span
+        className={`relative inline-flex items-center justify-center h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-md group-hover:scale-110 group-hover:rotate-[-4deg] transition-transform duration-300`}
+      >
+        {icon}
+      </span>
+      <span className="relative text-xs md:text-sm font-medium text-foreground group-hover:text-rose-deep transition-colors">
+        {label}
+      </span>
     </Link>
   );
 }
