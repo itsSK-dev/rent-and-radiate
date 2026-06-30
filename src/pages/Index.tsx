@@ -86,7 +86,32 @@ const Index = () => {
         .limit(6);
       setStores(s ?? []);
     })();
+
+    try {
+      const r = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
+      if (Array.isArray(r)) setRecent(r.slice(0, 5));
+      const city = localStorage.getItem("rr.location");
+      if (city) setNearbyCity(city);
+    } catch {
+      /* ignore */
+    }
+
+    function onDocClick(ev: MouseEvent) {
+      if (!searchWrapRef.current?.contains(ev.target as Node)) setFocused(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
+
+  function pushRecent(text: string) {
+    try {
+      const next = [text, ...recent.filter((r) => r.toLowerCase() !== text.toLowerCase())].slice(0, 5);
+      setRecent(next);
+      localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+  }
 
   function buildBrowseUrl(filters: { q?: string; category?: string; purpose?: string; sort?: string }) {
     const params = new URLSearchParams();
