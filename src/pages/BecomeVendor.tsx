@@ -223,6 +223,21 @@ const BecomeVendor = () => {
               <Input id="a" value={address} onChange={(e) => setAddress(e.target.value)} maxLength={200} className="mt-2" placeholder="Bandra West" />
             </div>
           </div>
+          <div>
+            <Label htmlFor="logo">Shop logo</Label>
+            <div className="mt-2 flex items-center gap-4">
+              <div className="h-16 w-16 rounded-2xl bg-secondary border border-border overflow-hidden flex items-center justify-center text-xs text-muted-foreground shrink-0">
+                {logoPreview ? (
+                  <img src={logoPreview} alt="Logo preview" className="h-full w-full object-cover" />
+                ) : (
+                  "Logo"
+                )}
+              </div>
+              <Input id="logo" type="file" accept="image/*" onChange={onLogoChange} className="cursor-pointer" />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">PNG or JPG, up to 2MB. Optional.</p>
+          </div>
+
           <Button type="submit" variant="hero" size="lg" className="w-full" disabled={busy}>
             {busy ? "Submitting…" : "Submit for review"}
           </Button>
