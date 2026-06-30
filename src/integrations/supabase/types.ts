@@ -683,6 +683,39 @@ export type Database = {
           },
         ]
       }
+      location_interest: {
+        Row: {
+          city: string
+          created_at: string
+          email: string | null
+          id: string
+          phone: string | null
+          region: string | null
+          source: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          phone?: string | null
+          region?: string | null
+          source?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          phone?: string | null
+          region?: string | null
+          source?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       manual_payments: {
         Row: {
           admin_notes: string | null
