@@ -77,6 +77,10 @@ export function PlatformSettingsPanel() {
         reminder_intervals_hours: intervals,
         rent_to_own_enabled: Boolean(s.rent_to_own_enabled),
         rent_to_own_credit_percent: Math.max(0, Math.min(100, Number(s.rent_to_own_credit_percent) || 0)),
+        referrals_enabled: Boolean(s.referrals_enabled),
+        referral_signup_bonus: Math.max(0, Math.floor(Number(s.referral_signup_bonus) || 0)),
+        referral_referrer_bonus: Math.max(0, Math.floor(Number(s.referral_referrer_bonus) || 0)),
+        referral_min_order_amount: Math.max(0, Number(s.referral_min_order_amount) || 0),
       }).eq("id", true);
     setSaving(false);
     if (error) return toast.error(error.message);
