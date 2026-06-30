@@ -15,19 +15,69 @@ import { toast } from "@/components/ui/sonner";
 // so every visitor sees the same approved rows.
 import {
   ArrowRight,
+  BadgeCheck,
+  BookOpen,
   Camera,
+  Dumbbell,
   Flame,
+  Gem,
   Gift,
   LayoutGrid,
   Loader2,
   MapPin,
   Mic,
   MicOff,
+  Package,
   Search,
+  Shirt,
   ShoppingBag,
+  Smartphone,
+  Sofa,
   Sparkles,
+  Star,
   Store as StoreIcon,
+  UtensilsCrossed,
 } from "lucide-react";
+
+type NearbyShop = {
+  id: string;
+  name: string;
+  city: string | null;
+  rating: number;
+  rating_count: number;
+  logo_url: string | null;
+  lat: number | null;
+  lng: number | null;
+  product_count: number;
+  distance_km: number | null;
+};
+
+const CATEGORY_CIRCLES = [
+  { label: "Fashion", slug: "fashion", icon: Shirt, gradient: "from-rose-400 via-pink-500 to-fuchsia-500" },
+  { label: "Jewellery", slug: "jewellery", icon: Gem, gradient: "from-amber-300 via-yellow-500 to-orange-500" },
+  { label: "Electronics", slug: "electronics", icon: Smartphone, gradient: "from-sky-400 via-blue-500 to-indigo-600" },
+  { label: "Home & Kitchen", slug: "home-kitchen", icon: UtensilsCrossed, gradient: "from-emerald-400 via-teal-500 to-cyan-600" },
+  { label: "Furniture", slug: "furniture", icon: Sofa, gradient: "from-amber-500 via-orange-500 to-rose-500" },
+  { label: "Sports", slug: "sports", icon: Dumbbell, gradient: "from-lime-400 via-green-500 to-emerald-600" },
+  { label: "Books", slug: "books", icon: BookOpen, gradient: "from-violet-400 via-purple-500 to-fuchsia-600" },
+  { label: "Others", slug: "others", icon: Package, gradient: "from-slate-400 via-slate-500 to-slate-700" },
+];
+
+function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+
+// Shops on the marketplace are open 10:00 – 21:00 IST by convention (no per-shop hours stored).
+function isShopOpenNow() {
+  const now = new Date();
+  const istHour = (now.getUTCHours() + 5 + Math.floor((now.getUTCMinutes() + 30) / 60)) % 24;
+  return istHour >= 10 && istHour < 21;
+}
 
 const POPULAR_SUGGESTIONS = [
   "Red dress under ₹2000 for rent",
