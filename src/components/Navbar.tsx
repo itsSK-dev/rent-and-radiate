@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Flower2, Search, ShoppingBag, ShoppingCart, Store, User as UserIcon, LogOut, Menu, Package, Heart } from "lucide-react";
+import { Flower2, Search, ShoppingBag, ShoppingCart, Store, User as UserIcon, LogOut, Menu, Package, Heart, Bell } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { LocationSelector } from "@/components/LocationSelector";
 import { useState } from "react";
