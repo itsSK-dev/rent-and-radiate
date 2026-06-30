@@ -93,7 +93,8 @@ const RECENT_KEY = "rr.recentSearches";
 
 const Index = () => {
   const [products, setProducts] = useState<ProductCardData[]>([]);
-  const [stores, setStores] = useState<{ id: string; name: string; city: string | null; rating: number }[]>([]);
+  const [stores, setStores] = useState<NearbyShop[]>([]);
+  const [shopsOpen] = useState<boolean>(() => isShopOpenNow());
   const [query, setQuery] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [imageBusy, setImageBusy] = useState(false);
