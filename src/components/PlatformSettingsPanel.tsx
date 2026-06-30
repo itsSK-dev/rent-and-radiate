@@ -148,6 +148,20 @@ export function PlatformSettingsPanel() {
         </div>
       </div>
 
+      <div className="border-t border-border pt-4 space-y-3">
+        <h3 className="font-medium">Referral rewards</h3>
+        <label className="flex items-center gap-3">
+          <Switch checked={s.referrals_enabled} onCheckedChange={(v) => setS({ ...s, referrals_enabled: v })} />
+          <span className="text-sm">Enable the referral program (signup bonus + referrer bonus)</span>
+        </label>
+        <p className="text-[11px] text-muted-foreground">When off, no new referral bonuses are credited. Existing balances and referral codes are preserved.</p>
+        <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 ${s.referrals_enabled ? "" : "opacity-50 pointer-events-none"}`}>
+          <div><Label>Signup bonus (points)</Label><Input type="number" min="0" step="1" value={s.referral_signup_bonus} onChange={(e) => setS({ ...s, referral_signup_bonus: Number(e.target.value) })} className="mt-1" /></div>
+          <div><Label>Referrer bonus (points)</Label><Input type="number" min="0" step="1" value={s.referral_referrer_bonus} onChange={(e) => setS({ ...s, referral_referrer_bonus: Number(e.target.value) })} className="mt-1" /></div>
+          <div><Label>Min qualifying order (₹)</Label><Input type="number" min="0" step="1" value={s.referral_min_order_amount} onChange={(e) => setS({ ...s, referral_min_order_amount: Number(e.target.value) })} className="mt-1" /></div>
+        </div>
+      </div>
+
       <Button variant="hero" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save settings"}</Button>
     </div>
   );
