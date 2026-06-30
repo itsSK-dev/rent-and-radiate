@@ -121,7 +121,7 @@ const Index = () => {
       const { data } = await supabase
         .from("products")
         .select(
-          "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores(name,city,is_verified)",
+          "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores(name,city,is_verified,rating)",
         )
         .eq("available", true)
         .limit(6);
