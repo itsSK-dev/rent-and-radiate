@@ -36,6 +36,13 @@
     --rose-deep: 340 60% 38%;
     --gold: 36 70% 58%;
 
+    --success: 150 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --info: 200 80% 55%;
+    --info-foreground: 0 0% 100%;
+    --warning: 35 90% 55%;
+    --warning-foreground: 0 0% 100%;
+
     --destructive: 0 70% 52%;
     --destructive-foreground: 0 0% 100%;
 
