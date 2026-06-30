@@ -15,6 +15,8 @@ type Settings = {
   late_fee_multiplier: number; late_fee_grace_hours: number;
   reminder_intervals_hours: number[];
   rent_to_own_enabled: boolean; rent_to_own_credit_percent: number;
+  referrals_enabled: boolean;
+  referral_signup_bonus: number; referral_referrer_bonus: number; referral_min_order_amount: number;
 };
 
 export function PlatformSettingsPanel() {
