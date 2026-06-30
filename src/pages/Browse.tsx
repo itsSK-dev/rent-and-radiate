@@ -99,12 +99,24 @@ const Browse = () => {
     return "Everything in bloom";
   }, [category, purpose]);
 
+  if (!isServiceable) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <ServiceUnavailable city={serviceCity} source="browse" />
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <section className="container py-12">
         <div className="mb-10 max-w-2xl">
-          <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Marketplace</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">
+            Marketplace · {serviceCity}
+          </p>
           <h1 className="font-display text-5xl md:text-6xl">{heading}</h1>
           <p className="text-muted-foreground mt-3">Curated pieces from approved boutiques.</p>
         </div>
