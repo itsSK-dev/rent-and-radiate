@@ -34,6 +34,7 @@ import MyAdvertisements from "./pages/MyAdvertisements";
 import Notifications from "./pages/Notifications";
 import NotificationSettings from "./pages/NotificationSettings";
 import Rewards from "./pages/Rewards";
+import Refer from "./pages/Refer";
 import Wishlist from "./pages/Wishlist";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
