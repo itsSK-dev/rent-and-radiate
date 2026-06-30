@@ -49,8 +49,12 @@ const Index = () => {
   const [aiBusy, setAiBusy] = useState(false);
   const [imageBusy, setImageBusy] = useState(false);
   const [listening, setListening] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [recent, setRecent] = useState<string[]>([]);
+  const [nearbyCity, setNearbyCity] = useState<string | null>(null);
   const recogRef = useRef<any>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const searchWrapRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
