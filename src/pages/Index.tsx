@@ -11,6 +11,8 @@ import { WhyChooseSection } from "@/components/WhyChooseSection";
 import { PromoBanners } from "@/components/PromoBanners";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
+import { useServiceCity } from "@/lib/serviceArea";
+import { ServiceUnavailable } from "@/components/ServiceUnavailable";
 // NOTE: We intentionally do NOT seed demo products from the client.
 // Client-side seeding only works for the user who owns the target store
 // (RLS blocks everyone else), which produced "I see it but others don't"
