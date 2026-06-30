@@ -80,7 +80,7 @@ export function Footer() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={social.label}
+                    aria-label={`Rent & Radiate on ${social.label}`}
                     className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-card border border-border text-muted-foreground hover:text-primary hover:border-primary/40 hover:-translate-y-0.5 transition-smooth"
                   >
                     <Icon className="h-4 w-4" />
