@@ -8,8 +8,11 @@ import {
   Container,
   Head,
   Heading,
+  Hr,
   Html,
+  Link,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -24,19 +27,35 @@ export const MagicLinkEmail = ({
 }: MagicLinkEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Your login link for {siteName}</Preview>
+    <Preview>Your sign-in link for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Your login link</Heading>
-        <Text style={text}>
-          Click the button below to log in to {siteName}. This link will expire
-          shortly.
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Log In
-        </Button>
+        <Section style={brandHeader}>
+          <Text style={brandMark}>Rent &amp; Radiate</Text>
+          <Text style={brandTag}>Rent it. Wear it. Radiate.</Text>
+        </Section>
+        <Section style={card}>
+          <Heading style={h1}>Your sign-in link</Heading>
+          <Text style={text}>
+            Tap the button below to sign in to {siteName}. This link expires
+            shortly, so use it soon.
+          </Text>
+          <Section style={{ textAlign: 'center' as const, margin: '28px 0' }}>
+            <Button style={button} href={confirmationUrl}>
+              Sign in
+            </Button>
+          </Section>
+          <Text style={textMuted}>
+            Or paste this link into your browser:
+            <br />
+            <Link href={confirmationUrl} style={linkSmall}>
+              {confirmationUrl}
+            </Link>
+          </Text>
+        </Section>
+        <Hr style={hr} />
         <Text style={footer}>
-          If you didn't request this link, you can safely ignore this email.
+          Didn't request this link? You can safely ignore this email.
         </Text>
       </Container>
     </Body>
@@ -45,26 +64,59 @@ export const MagicLinkEmail = ({
 
 export default MagicLinkEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = {
+  backgroundColor: '#ffffff',
+  fontFamily: "'Karla', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+  color: '#2e1a23',
+}
+const container = { padding: '24px 24px 40px', maxWidth: '560px' }
+const brandHeader = { textAlign: 'center' as const, padding: '8px 0 24px' }
+const brandMark = {
+  fontFamily: "'Cormorant Garamond', Georgia, serif",
+  fontSize: '28px',
+  fontWeight: 600 as const,
+  letterSpacing: '0.5px',
+  color: '#d94677',
+  margin: 0,
+}
+const brandTag = {
+  fontSize: '12px',
+  letterSpacing: '2px',
+  textTransform: 'uppercase' as const,
+  color: '#7a6970',
+  margin: '4px 0 0',
+}
+const card = {
+  background: 'linear-gradient(180deg, #fff7fa 0%, #ffffff 100%)',
+  border: '1px solid #f6dde6',
+  borderRadius: '12px',
+  padding: '32px 28px',
+}
 const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+  fontFamily: "'Cormorant Garamond', Georgia, serif",
+  fontSize: '26px',
+  fontWeight: 600 as const,
+  color: '#2e1a23',
+  margin: '0 0 16px',
 }
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
+const text = { fontSize: '15px', color: '#3d2730', lineHeight: '1.6', margin: '0 0 16px' }
+const textMuted = {
+  fontSize: '12px',
+  color: '#7a6970',
   lineHeight: '1.5',
-  margin: '0 0 25px',
+  margin: '16px 0 0',
+  wordBreak: 'break-all' as const,
 }
+const linkSmall = { color: '#d94677', textDecoration: 'underline', fontSize: '12px' }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: '#d94677',
   color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
+  fontSize: '15px',
+  fontWeight: 600 as const,
+  borderRadius: '12px',
+  padding: '13px 28px',
   textDecoration: 'none',
+  display: 'inline-block',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const hr = { borderColor: '#f6dde6', margin: '24px 0' }
+const footer = { fontSize: '12px', color: '#7a6970', margin: 0, textAlign: 'center' as const }
