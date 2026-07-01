@@ -9,6 +9,9 @@ import Index from "./pages/Index";
 import Browse from "./pages/Browse";
 import ProductDetail from "./pages/ProductDetail";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Profile from "./pages/Profile";
 import MyRentals from "./pages/MyRentals";
 import BecomeVendor from "./pages/BecomeVendor";
 import Vendor from "./pages/Vendor";
@@ -59,6 +62,9 @@ const App = () => (
               <Route path="/browse" element={<Browse />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/my-rentals" element={<MyRentals />} />
               <Route path="/my-payments" element={<MyPayments />} />
               <Route path="/cart" element={<Cart />} />

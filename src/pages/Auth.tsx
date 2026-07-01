@@ -154,6 +154,13 @@ const Auth = () => {
                 </div>
               </>
             )}
+            {mode === "signin" && (
+              <div className="text-right -mt-2">
+                <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+            )}
             <Button type="submit" variant="hero" size="lg" className="w-full" disabled={busy}>
               {busy ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
             </Button>
