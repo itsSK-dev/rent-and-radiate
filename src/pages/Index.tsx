@@ -58,15 +58,22 @@ type NearbyShop = {
   distance_km: number | null;
 };
 
+// Launch scope: only Dresses & Jewellery are active. Other categories are
+// intentionally shown as "Coming Soon" so the visual system is ready the day
+// an admin activates them. To enable one later:
+//   1) flip `active: true` here (or move the list into `platform_settings`)
+//   2) add the new value to the `product_category` Postgres enum
+// No other code changes are required — Browse, search, and vendor forms all
+// read categories from this same list / DB enum.
 const CATEGORY_CIRCLES = [
-  { label: "Fashion", slug: "fashion", icon: Shirt, gradient: "from-rose-400 via-pink-500 to-fuchsia-500" },
-  { label: "Jewellery", slug: "jewellery", icon: Gem, gradient: "from-amber-300 via-yellow-500 to-orange-500" },
-  { label: "Electronics", slug: "electronics", icon: Smartphone, gradient: "from-sky-400 via-blue-500 to-indigo-600" },
-  { label: "Home & Kitchen", slug: "home-kitchen", icon: UtensilsCrossed, gradient: "from-emerald-400 via-teal-500 to-cyan-600" },
-  { label: "Furniture", slug: "furniture", icon: Sofa, gradient: "from-amber-500 via-orange-500 to-rose-500" },
-  { label: "Sports", slug: "sports", icon: Dumbbell, gradient: "from-lime-400 via-green-500 to-emerald-600" },
-  { label: "Books", slug: "books", icon: BookOpen, gradient: "from-violet-400 via-purple-500 to-fuchsia-600" },
-  { label: "Others", slug: "others", icon: Package, gradient: "from-slate-400 via-slate-500 to-slate-700" },
+  { label: "Dresses", slug: "dress", icon: Shirt, gradient: "from-rose-400 via-pink-500 to-fuchsia-500", active: true },
+  { label: "Jewellery", slug: "jewellery", icon: Gem, gradient: "from-amber-300 via-yellow-500 to-orange-500", active: true },
+  { label: "Electronics", slug: "electronics", icon: Smartphone, gradient: "from-sky-400 via-blue-500 to-indigo-600", active: false },
+  { label: "Home & Kitchen", slug: "home-kitchen", icon: UtensilsCrossed, gradient: "from-emerald-400 via-teal-500 to-cyan-600", active: false },
+  { label: "Furniture", slug: "furniture", icon: Sofa, gradient: "from-amber-500 via-orange-500 to-rose-500", active: false },
+  { label: "Sports", slug: "sports", icon: Dumbbell, gradient: "from-lime-400 via-green-500 to-emerald-600", active: false },
+  { label: "Books", slug: "books", icon: BookOpen, gradient: "from-violet-400 via-purple-500 to-fuchsia-600", active: false },
+  { label: "Cameras", slug: "cameras", icon: Camera, gradient: "from-slate-400 via-slate-500 to-slate-700", active: false },
 ];
 
 function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
@@ -544,26 +551,47 @@ const Index = () => {
         <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-4 md:gap-6">
           {CATEGORY_CIRCLES.map((c) => {
             const Icon = c.icon;
-            return (
+            const inner = (
+              <>
+                <span className="relative inline-flex items-center justify-center">
+                  <span
+                    className={`absolute inset-0 rounded-full bg-gradient-to-br ${c.gradient} ${c.active ? "opacity-30 blur-xl group-hover:opacity-60" : "opacity-10 blur-xl"} transition-opacity duration-500`}
+                  />
+                  <span
+                    className={`relative inline-flex items-center justify-center h-16 w-16 md:h-20 md:w-20 rounded-full bg-gradient-to-br ${c.gradient} text-white shadow-[0_12px_30px_-10px_rgba(0,0,0,0.35)] ring-1 ring-white/30 ${c.active ? "group-hover:scale-110 group-hover:-rotate-3" : "grayscale opacity-60"} transition-transform duration-300`}
+                  >
+                    <Icon className="h-7 w-7 md:h-9 md:w-9" />
+                  </span>
+                  {!c.active && (
+                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-foreground text-[9px] md:text-[10px] font-medium text-background px-2 py-0.5 shadow">
+                      Coming soon
+                    </span>
+                  )}
+                </span>
+                <span className={`text-xs md:text-sm font-medium transition-colors ${c.active ? "text-foreground group-hover:text-rose-deep" : "text-muted-foreground"}`}>
+                  {c.label}
+                </span>
+              </>
+            );
+            return c.active ? (
               <Link
                 key={c.slug}
                 to={`/browse?category=${encodeURIComponent(c.slug)}`}
                 className="group flex flex-col items-center gap-2.5 text-center"
               >
-                <span className="relative inline-flex items-center justify-center">
-                  <span
-                    className={`absolute inset-0 rounded-full bg-gradient-to-br ${c.gradient} opacity-30 blur-xl group-hover:opacity-60 transition-opacity duration-500`}
-                  />
-                  <span
-                    className={`relative inline-flex items-center justify-center h-16 w-16 md:h-20 md:w-20 rounded-full bg-gradient-to-br ${c.gradient} text-white shadow-[0_12px_30px_-10px_rgba(0,0,0,0.35)] ring-1 ring-white/30 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300`}
-                  >
-                    <Icon className="h-7 w-7 md:h-9 md:w-9" />
-                  </span>
-                </span>
-                <span className="text-xs md:text-sm font-medium text-foreground group-hover:text-rose-deep transition-colors">
-                  {c.label}
-                </span>
+                {inner}
               </Link>
+            ) : (
+              <button
+                key={c.slug}
+                type="button"
+                aria-disabled="true"
+                onClick={() => toast.info(`${c.label} launches soon — stay tuned!`)}
+                className="group flex flex-col items-center gap-2.5 text-center cursor-not-allowed"
+                title="Coming soon"
+              >
+                {inner}
+              </button>
             );
           })}
         </div>
