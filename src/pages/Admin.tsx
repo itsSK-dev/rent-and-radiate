@@ -32,6 +32,7 @@ import { AdminCommissionsPanel } from "@/components/admin/AdminCommissionsPanel"
 import { AdminSubscriptionsPanel } from "@/components/admin/AdminSubscriptionsPanel";
 import { AdminProtectionPanel } from "@/components/admin/AdminProtectionPanel";
 import { AdminFraudPanel } from "@/components/admin/AdminFraudPanel";
+import { AdminVerificationsPanel } from "@/components/admin/AdminVerificationsPanel";
 
 type Dispute = {
   id: string;
