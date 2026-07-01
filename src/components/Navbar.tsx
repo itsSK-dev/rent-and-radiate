@@ -166,6 +166,7 @@ export function Navbar() {
           </div>
         </div>
       )}
+      <UniversalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </header>
   );
 }
