@@ -31,6 +31,7 @@ import { UpcomingReturnsWidget } from "@/components/vendor/UpcomingReturnsWidget
 import { VerifiedSellerBadge } from "@/components/VerifiedSellerBadge";
 import { VendorStoreProfileForm } from "@/components/vendor/VendorStoreProfileForm";
 import { VendorReviewsPanel } from "@/components/vendor/VendorReviewsPanel";
+import { useCategories } from "@/hooks/useCategories";
 
 
 type Store = {
