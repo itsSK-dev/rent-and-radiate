@@ -20,6 +20,9 @@ import { toast } from "sonner";
 import { demoImageMap } from "@/lib/seedDemo";
 import { discountedUnitPrice, inr, computeLine, computeOrderTotals, protectionPlanFee } from "@/lib/pricing";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
+import { WishlistButton } from "@/components/WishlistButton";
+import { ProductCard, type ProductCardData } from "@/components/ProductCard";
+import { Star } from "lucide-react";
 
 type Product = {
   id: string;
