@@ -19,6 +19,27 @@
     <link rel="preconnect" href="https://zlyazcpuxzdvudrfzjxu.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://zlyazcpuxzdvudrfzjxu.supabase.co" />
 
+    <!-- Load Google Fonts with a non-blocking pattern so CSS doesn't stall FCP.
+         `media=print` + onload swaps to `all` after the stylesheet arrives.
+         The <noscript> keeps text legible if JS is disabled. -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Karla:wght@400;500;600;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Karla:wght@400;500;600;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Karla:wght@400;500;600;700&display=swap"
+      />
+    </noscript>
+
     <title>Rent &amp; Radiate — Rent designer dresses &amp; jewellery</title>
     <meta name="description" content="Rent & Radiate is a marketplace to rent, buy and sell designer dresses, jewellery and fashion from boutiques near you." />
     <meta name="author" content="Rent & Radiate" />
