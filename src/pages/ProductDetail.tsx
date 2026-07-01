@@ -96,6 +96,36 @@ const ProductDetail = () => {
         } catch {}
       });
       setBookedDates(blocked);
+
+      // Related products — same category, different id, from approved+verified shops
+      if (data) {
+        const p: any = data;
+        const { data: rel } = await supabase
+          .from("products")
+          .select("id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,status,is_verified,is_active,is_blocked,rating)")
+          .eq("available", true)
+          .eq("category", p.category)
+          .neq("id", p.id)
+          .limit(12);
+        const filtered = ((rel ?? []) as any[]).filter((r) =>
+          r.store?.status === "approved" && r.store?.is_verified && r.store?.is_active && !r.store?.is_blocked
+        ).slice(0, 8);
+        setRelated(filtered as any);
+
+        // Reviews — via rentals of this product
+        const { data: rentalRows } = await supabase
+          .from("rentals").select("id").eq("product_id", p.id);
+        const rentalIds = (rentalRows ?? []).map((r: any) => r.id);
+        if (rentalIds.length) {
+          const { data: rev } = await supabase
+            .from("ratings")
+            .select("id,stars,comment,created_at,rental_id")
+            .in("rental_id", rentalIds)
+            .order("created_at", { ascending: false })
+            .limit(20);
+          setReviews((rev ?? []) as any);
+        }
+      }
     })();
   }, [id]);
 
