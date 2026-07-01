@@ -64,7 +64,7 @@ export default function Rewards() {
         list.forEach(r => { r.referred = byId.get(r.referred_user_id) as any; });
       }
       setRefs(list);
-      setSettings(setData as Settings);
+      setSettings((setData ?? null) as Settings);
     })();
 
     const ch = supabase
