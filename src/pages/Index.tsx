@@ -130,6 +130,12 @@ const Index = () => {
         setStores([]);
         return;
       }
+      // Accept common spelling variants of the launch city (Purnea/Purnia).
+      const cityVariants = /^purn(e|i)a$/i.test(serviceCity)
+        ? ["Purnea", "Purnia"]
+        : [serviceCity];
+      const cityOrExpr = cityVariants.map((c) => `city.ilike.${c}`).join(",");
+
       // Product catalogue is fully DB-driven via vendor uploads + admin approval.
       const { data } = await supabase
         .from("products")
@@ -137,7 +143,7 @@ const Index = () => {
           "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,is_verified,rating)",
         )
         .eq("available", true)
-        .ilike("stores.city", serviceCity)
+        .or(cityOrExpr, { foreignTable: "stores" })
         .limit(6);
       setProducts((data as any) ?? []);
       const { data: s } = await supabase
@@ -147,8 +153,8 @@ const Index = () => {
         .eq("is_verified", true)
         .eq("is_active", true)
         .eq("is_blocked", false)
-        .ilike("city", serviceCity)
-        .limit(8);
+        .or(cityOrExpr)
+        .limit(20);
       const rawStores = (s ?? []) as Array<{
         id: string;
         name: string;
@@ -190,14 +196,30 @@ const Index = () => {
             ? haversineKm(userPos, { lat: st.lat, lng: st.lng })
             : null,
       }));
-      enriched.sort((a, b) => {
+
+      // Top rated ranking: avg rating × total ratings. Ties broken by rating,
+      // then by number of listed products so newly-launched shops with 0
+      // ratings still get a fair, deterministic order.
+      const ranked = [...enriched]
+        .sort((a, b) => {
+          const sa = (a.rating || 0) * (a.rating_count || 0);
+          const sb = (b.rating || 0) * (b.rating_count || 0);
+          if (sb !== sa) return sb - sa;
+          if ((b.rating || 0) !== (a.rating || 0)) return (b.rating || 0) - (a.rating || 0);
+          return (b.product_count || 0) - (a.product_count || 0);
+        })
+        .slice(0, 5);
+      setTopRated(ranked);
+
+      const nearby = enriched.slice().sort((a, b) => {
         if (a.distance_km != null && b.distance_km != null) return a.distance_km - b.distance_km;
         if (a.distance_km != null) return -1;
         if (b.distance_km != null) return 1;
         return b.rating - a.rating;
       });
-      setStores(enriched);
+      setStores(nearby.slice(0, 8));
     })();
+
 
     try {
       const r = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
