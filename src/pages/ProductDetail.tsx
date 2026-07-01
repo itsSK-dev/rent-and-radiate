@@ -20,6 +20,9 @@ import { toast } from "sonner";
 import { demoImageMap } from "@/lib/seedDemo";
 import { discountedUnitPrice, inr, computeLine, computeOrderTotals, protectionPlanFee } from "@/lib/pricing";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
+import { WishlistButton } from "@/components/WishlistButton";
+import { ProductCard, type ProductCardData } from "@/components/ProductCard";
+import { Star } from "lucide-react";
 
 type Product = {
   id: string;
@@ -62,6 +65,8 @@ const ProductDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [protectionPlan, setProtectionPlan] = useState(false);
   const [bookedDates, setBookedDates] = useState<Date[]>([]);
+  const [related, setRelated] = useState<ProductCardData[]>([]);
+  const [reviews, setReviews] = useState<{ id: string; stars: number; comment: string | null; created_at: string; rater?: { full_name: string | null } | null }[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -91,6 +96,36 @@ const ProductDetail = () => {
         } catch {}
       });
       setBookedDates(blocked);
+
+      // Related products — same category, different id, from approved+verified shops
+      if (data) {
+        const p: any = data;
+        const { data: rel } = await supabase
+          .from("products")
+          .select("id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,status,is_verified,is_active,is_blocked,rating)")
+          .eq("available", true)
+          .eq("category", p.category)
+          .neq("id", p.id)
+          .limit(12);
+        const filtered = ((rel ?? []) as any[]).filter((r) =>
+          r.store?.status === "approved" && r.store?.is_verified && r.store?.is_active && !r.store?.is_blocked
+        ).slice(0, 8);
+        setRelated(filtered as any);
+
+        // Reviews — via rentals of this product
+        const { data: rentalRows } = await supabase
+          .from("rentals").select("id").eq("product_id", p.id);
+        const rentalIds = (rentalRows ?? []).map((r: any) => r.id);
+        if (rentalIds.length) {
+          const { data: rev } = await supabase
+            .from("ratings")
+            .select("id,stars,comment,created_at,rental_id")
+            .in("rental_id", rentalIds)
+            .order("created_at", { ascending: false })
+            .limit(20);
+          setReviews((rev ?? []) as any);
+        }
+      }
     })();
   }, [id]);
 
@@ -194,6 +229,9 @@ const ProductDetail = () => {
                 {Number(product.discount_percent) > 0 ? `${product.discount_percent}% OFF` : `${inr(product.discount_flat)} OFF`}
               </Badge>
             )}
+            <div className="absolute top-4 right-4">
+              <WishlistButton productId={product.id} title={product.title} />
+            </div>
           </div>
           {product.images?.length > 1 && (
             <div className="grid grid-cols-5 gap-2">
@@ -352,6 +390,43 @@ const ProductDetail = () => {
           </div>
         </div>
       </section>
+
+      {/* Reviews */}
+      <section className="container pb-12">
+        <h2 className="font-display text-3xl mb-4">Reviews</h2>
+        {reviews.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No reviews yet — be the first after your rental or purchase.</p>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-4">
+            {reviews.map((r) => (
+              <div key={r.id} className="rounded-2xl border border-border bg-card p-4">
+                <div className="flex items-center gap-1 text-amber-500">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className={cn("h-4 w-4", i < r.stars ? "fill-amber-500" : "text-muted-foreground/30")} />
+                  ))}
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                {r.comment && <p className="text-sm mt-2 text-foreground/80">{r.comment}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Related products */}
+      {related.length > 0 && (
+        <section className="container pb-16">
+          <h2 className="font-display text-3xl mb-6">You may also like</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+            {related.map((r) => (
+              <ProductCard key={r.id} p={r} />
+            ))}
+          </div>
+        </section>
+      )}
+
       <Footer />
     </div>
   );
