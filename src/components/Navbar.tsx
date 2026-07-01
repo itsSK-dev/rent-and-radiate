@@ -39,7 +39,7 @@ export function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/browse")} aria-label="Search">
+          <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} aria-label="Search">
             <Search className="h-4 w-4" />
           </Button>
           {user ? <NotificationBell /> : (
