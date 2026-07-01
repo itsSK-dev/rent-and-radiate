@@ -19,11 +19,14 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-      <div className="container flex h-16 items-center justify-between gap-3 md:gap-4">
-        <div className="flex items-center gap-3 md:gap-5 min-w-0">
-          <Link to="/" className="flex items-center gap-2 group shrink-0">
-            <Flower2 className="h-6 w-6 text-primary group-hover:rotate-12 transition-smooth" strokeWidth={1.5} />
-            <span className="font-display text-xl md:text-2xl tracking-tight">Rent &amp; Radiate</span>
+      <div className="container flex h-16 items-center justify-between gap-2 md:gap-4">
+        <div className="flex items-center gap-3 md:gap-5 min-w-0 flex-1">
+          <Link to="/" className="flex items-center gap-2 group shrink-0 min-w-0">
+            <Flower2 className="h-6 w-6 text-primary group-hover:rotate-12 transition-smooth shrink-0" strokeWidth={1.5} />
+            <span className="font-display text-lg sm:text-xl md:text-2xl tracking-tight truncate">
+              <span className="hidden xs:inline">Rent &amp; Radiate</span>
+              <span className="xs:hidden">R&amp;R</span>
+            </span>
           </Link>
           <div className="hidden sm:block">
             <LocationSelector />
@@ -99,20 +102,20 @@ export function Navbar() {
           )}
         </div>
 
-        <div className="flex md:hidden items-center gap-0.5">
+        <div className="flex md:hidden items-center gap-0 shrink-0">
           <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} aria-label="Search" className="h-9 w-9">
-            <Search className="h-4 w-4" />
+            <Search className="h-[18px] w-[18px]" />
           </Button>
           {user ? <NotificationBell /> : (
             <Button variant="ghost" size="icon" onClick={() => navigate("/auth")} aria-label="Notifications" className="h-9 w-9">
-              <Bell className="h-4 w-4" />
+              <Bell className="h-[18px] w-[18px]" />
             </Button>
           )}
           <Button variant="ghost" size="icon" onClick={() => navigate(user ? "/wishlist" : "/auth")} aria-label="Wishlist" className="h-9 w-9">
-            <Heart className="h-4 w-4" />
+            <Heart className="h-[18px] w-[18px]" />
           </Button>
           <Button variant="ghost" size="icon" onClick={() => navigate(user ? "/cart" : "/auth")} aria-label="Cart" className="h-9 w-9">
-            <ShoppingCart className="h-4 w-4" />
+            <ShoppingCart className="h-[18px] w-[18px]" />
           </Button>
           <button className="h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-muted" onClick={() => setOpen(!open)} aria-label="Menu">
             <Menu className="h-5 w-5" />
