@@ -3,6 +3,15 @@ import type { Config } from "tailwindcss";
 export default {
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  // Category gradient classes are stored in the database (public.product_categories.gradient)
+  // and applied dynamically. Tailwind's JIT can't statically detect them, so we safelist
+  // every color/shade used across the category catalog to guarantee they ship in production.
+  safelist: [
+    {
+      pattern:
+        /(from|via|to)-(rose|pink|fuchsia|amber|yellow|orange|purple|violet|indigo|red|emerald|teal|cyan|slate|blue|zinc|neutral|lime|green|sky|fuchsia|lime|sky|stone|gray|primary)-(200|300|400|500|600|700)/,
+    },
+  ],
   prefix: "",
   theme: {
     container: {
