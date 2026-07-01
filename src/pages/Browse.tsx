@@ -163,9 +163,11 @@ const Browse = () => {
             <SelectTrigger className="md:w-44"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All categories</SelectItem>
-              <SelectItem value="dress">Dresses</SelectItem>
-              <SelectItem value="jewellery">Jewellery</SelectItem>
+              {activeCats.map((c) => (
+                <SelectItem key={c.slug} value={c.slug}>{c.label}</SelectItem>
+              ))}
             </SelectContent>
+
           </Select>
           <Select value={sort} onValueChange={(v) => update("sort", v)}>
             <SelectTrigger className="md:w-44"><SelectValue /></SelectTrigger>
