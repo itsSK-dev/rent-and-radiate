@@ -34,6 +34,7 @@ import { AdminProtectionPanel } from "@/components/admin/AdminProtectionPanel";
 import { AdminFraudPanel } from "@/components/admin/AdminFraudPanel";
 import { AdminVerificationsPanel } from "@/components/admin/AdminVerificationsPanel";
 import { AdminUsersPanel } from "@/components/admin/AdminUsersPanel";
+import { AdminCategoriesPanel } from "@/components/admin/AdminCategoriesPanel";
 
 type Dispute = {
   id: string;
