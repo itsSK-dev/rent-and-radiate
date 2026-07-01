@@ -7,11 +7,13 @@ import { LocationSelector } from "@/components/LocationSelector";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useNewOrderCount } from "@/hooks/useNewOrderCount";
+import { UniversalSearchDialog } from "@/components/UniversalSearchDialog";
 
 export function Navbar() {
   const { user, roles, signOut } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const isVendor = roles.includes("store_owner");
   const newOrderCount = useNewOrderCount();
 
@@ -37,7 +39,7 @@ export function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/browse")} aria-label="Search">
+          <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} aria-label="Search">
             <Search className="h-4 w-4" />
           </Button>
           {user ? <NotificationBell /> : (
@@ -98,7 +100,7 @@ export function Navbar() {
         </div>
 
         <div className="flex md:hidden items-center gap-0.5">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/browse")} aria-label="Search" className="h-9 w-9">
+          <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} aria-label="Search" className="h-9 w-9">
             <Search className="h-4 w-4" />
           </Button>
           {user ? <NotificationBell /> : (
@@ -164,6 +166,7 @@ export function Navbar() {
           </div>
         </div>
       )}
+      <UniversalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </header>
   );
 }
