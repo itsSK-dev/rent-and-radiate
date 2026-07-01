@@ -146,6 +146,9 @@ export default function VendorVerification() {
               onChanged={load}
             />
 
+            <VendorDocumentsForm storeId={store.id} onSaved={load} />
+
+
             <div className="rounded-3xl border border-border bg-card p-6 shadow-card">
               <div className="flex items-center gap-2 mb-4">
                 <History className="h-4 w-4 text-rose-deep" />
