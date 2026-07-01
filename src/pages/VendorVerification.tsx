@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VendorVerificationCard } from "@/components/vendor/VendorVerificationCard";
+import { VendorDocumentsForm } from "@/components/vendor/VendorDocumentsForm";
 import { BadgeCheck, Clock, X, ArrowLeft, History } from "lucide-react";
 import { format } from "date-fns";
 
@@ -144,6 +145,9 @@ export default function VendorVerification() {
               hasPayment={true}
               onChanged={load}
             />
+
+            <VendorDocumentsForm storeId={store.id} onSaved={load} />
+
 
             <div className="rounded-3xl border border-border bg-card p-6 shadow-card">
               <div className="flex items-center gap-2 mb-4">

@@ -1979,6 +1979,89 @@ export type Database = {
           },
         ]
       }
+      store_verifications: {
+        Row: {
+          bank_account_holder: string | null
+          bank_account_number: string | null
+          bank_ifsc: string | null
+          bank_name: string | null
+          business_license_number: string | null
+          business_license_url: string | null
+          created_at: string
+          gst_certificate_url: string | null
+          gst_number: string | null
+          id: string
+          id_document_url: string | null
+          id_number: string | null
+          id_type: Database["public"]["Enums"]["store_id_doc_type"] | null
+          owner_id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          shop_photos: string[]
+          status: Database["public"]["Enums"]["store_verification_status"]
+          store_id: string
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
+          business_license_number?: string | null
+          business_license_url?: string | null
+          created_at?: string
+          gst_certificate_url?: string | null
+          gst_number?: string | null
+          id?: string
+          id_document_url?: string | null
+          id_number?: string | null
+          id_type?: Database["public"]["Enums"]["store_id_doc_type"] | null
+          owner_id: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shop_photos?: string[]
+          status?: Database["public"]["Enums"]["store_verification_status"]
+          store_id: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
+          business_license_number?: string | null
+          business_license_url?: string | null
+          created_at?: string
+          gst_certificate_url?: string | null
+          gst_number?: string | null
+          id?: string
+          id_document_url?: string | null
+          id_number?: string | null
+          id_type?: Database["public"]["Enums"]["store_id_doc_type"] | null
+          owner_id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shop_photos?: string[]
+          status?: Database["public"]["Enums"]["store_verification_status"]
+          store_id?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_verifications_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           address: string | null
@@ -2549,7 +2632,9 @@ export type Database = {
         | "on_hold"
         | "reversed"
       shop_subscription_status: "active" | "expired" | "cancelled"
+      store_id_doc_type: "aadhaar" | "pan"
       store_status: "pending" | "approved" | "rejected" | "deleted"
+      store_verification_status: "draft" | "submitted" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2769,7 +2854,9 @@ export const Constants = {
       ],
       settlement_status: ["pending", "eligible", "paid", "on_hold", "reversed"],
       shop_subscription_status: ["active", "expired", "cancelled"],
+      store_id_doc_type: ["aadhaar", "pan"],
       store_status: ["pending", "approved", "rejected", "deleted"],
+      store_verification_status: ["draft", "submitted", "approved", "rejected"],
     },
   },
 } as const
