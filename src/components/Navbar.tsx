@@ -134,6 +134,7 @@ export function Navbar() {
             <div className="h-px bg-border my-2" />
             {user ? (
               <>
+                <Link to="/profile" onClick={() => setOpen(false)} className="py-2">Profile</Link>
                 <Link to="/cart" onClick={() => setOpen(false)} className="py-2">Cart</Link>
                 <Link to="/wishlist" onClick={() => setOpen(false)} className="py-2">Wishlist</Link>
                 <Link to="/notifications" onClick={() => setOpen(false)} className="py-2">Notifications</Link>
