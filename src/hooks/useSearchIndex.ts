@@ -50,7 +50,7 @@ async function fetchIndex(city: string): Promise<{ products: SearchProduct[]; sh
         "id,title,category,description,color,size,price_per_day,actual_price,purpose,images,store_id,store:stores!inner(id,name,city,status,is_verified,is_active,is_blocked)"
       )
       .eq("available", true)
-      .ilike("stores.city", city)
+      .or(cityOrExpr(city), { foreignTable: "stores" })
       .limit(2000),
     supabase
       .from("stores")
@@ -59,7 +59,7 @@ async function fetchIndex(city: string): Promise<{ products: SearchProduct[]; sh
       .eq("is_verified", true)
       .eq("is_active", true)
       .eq("is_blocked", false)
-      .ilike("city", city)
+      .or(cityOrExpr(city))
       .limit(500),
   ]);
 
