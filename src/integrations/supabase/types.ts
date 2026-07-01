@@ -1214,6 +1214,45 @@ export type Database = {
         }
         Relationships: []
       }
+      product_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          gradient: string
+          icon_name: string
+          is_active: boolean
+          label: string
+          launched_at: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          gradient?: string
+          icon_name?: string
+          is_active?: boolean
+          label: string
+          launched_at?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          gradient?: string
+          icon_name?: string
+          is_active?: boolean
+          label?: string
+          launched_at?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           actual_price: number
@@ -2482,6 +2521,27 @@ export type Database = {
         Returns: number
       }
       generate_referral_code: { Args: never; Returns: string }
+      get_active_categories: {
+        Args: never
+        Returns: {
+          created_at: string
+          description: string | null
+          gradient: string
+          icon_name: string
+          is_active: boolean
+          label: string
+          launched_at: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "product_categories"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_effective_commission: {
         Args: { _product_id: string }
         Returns: number
@@ -2595,7 +2655,24 @@ export type Database = {
         | "pending_verification"
         | "verification_failed"
       payout_status: "unpaid" | "paid"
-      product_category: "dress" | "jewellery"
+      product_category:
+        | "dress"
+        | "jewellery"
+        | "accessory"
+        | "footwear"
+        | "bag"
+        | "watch"
+        | "beauty"
+        | "electronics"
+        | "camera"
+        | "musical_instrument"
+        | "furniture"
+        | "home_decor"
+        | "sports"
+        | "baby"
+        | "toys"
+        | "books"
+        | "other"
       product_purpose: "rent" | "buy" | "both"
       refund_condition: "perfect" | "minor" | "moderate" | "severe"
       refund_status:
@@ -2819,7 +2896,25 @@ export const Constants = {
         "verification_failed",
       ],
       payout_status: ["unpaid", "paid"],
-      product_category: ["dress", "jewellery"],
+      product_category: [
+        "dress",
+        "jewellery",
+        "accessory",
+        "footwear",
+        "bag",
+        "watch",
+        "beauty",
+        "electronics",
+        "camera",
+        "musical_instrument",
+        "furniture",
+        "home_decor",
+        "sports",
+        "baby",
+        "toys",
+        "books",
+        "other",
+      ],
       product_purpose: ["rent", "buy", "both"],
       refund_condition: ["perfect", "minor", "moderate", "severe"],
       refund_status: [
