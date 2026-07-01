@@ -541,9 +541,10 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
               <Select value={category} onValueChange={(v) => setCategory(v as any)}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="dress">Dress</SelectItem>
-                  <SelectItem value="jewellery">Jewellery</SelectItem>
-                </SelectContent>
+                  {activeCats.map((c) => (
+                    <SelectItem key={c.slug} value={c.slug}>{c.label}</SelectItem>
+                  ))}
+
               </Select>
             </div>
             <div>
