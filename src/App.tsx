@@ -94,6 +94,7 @@ const App = () => (
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/settings/notifications" element={<NotificationSettings />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="/rewards" element={<Rewards />} />
               <Route path="/refer" element={<Refer />} />
              <Route path="/about" element={<About />} />
@@ -107,8 +108,10 @@ const App = () => (
           </WishlistProvider>
         </AuthProvider>
       </BrowserRouter>
-    </TooltipProvider>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
+
 );
 
 export default App;
