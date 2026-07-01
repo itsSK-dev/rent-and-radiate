@@ -175,6 +175,11 @@ const Admin = () => {
             <AdminShopsPanel />
           </TabsContent>
 
+          <TabsContent value="verifications" className="mt-6">
+            <AdminVerificationsPanel />
+          </TabsContent>
+
+
           <TabsContent value="payments" className="mt-6">
             <AdminPaymentsPanel />
           </TabsContent>
