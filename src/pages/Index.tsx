@@ -131,20 +131,23 @@ const Index = () => {
         setStores([]);
         return;
       }
-      // Accept common spelling variants of the launch city (Purnea/Purnia).
-      const cityVariants = /^purn(e|i)a$/i.test(serviceCity)
-        ? ["Purnea", "Purnia"]
-        : [serviceCity];
-      const cityOrExpr = cityVariants.map((c) => `city.ilike.${c}`).join(",");
+      const cityOr = cityOrExprFor(serviceCity);
 
       // Product catalogue is fully DB-driven via vendor uploads + admin approval.
+      // Only approved + verified + active + not-blocked stores surface products
+      // — same predicate used by Browse and Universal Search for consistency.
       const { data } = await supabase
         .from("products")
         .select(
-          "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,is_verified,rating)",
+          "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,status,is_verified,is_active,is_blocked,rating)",
         )
         .eq("available", true)
-        .or(cityOrExpr, { foreignTable: "stores" })
+        .eq("stores.status", "approved")
+        .eq("stores.is_verified", true)
+        .eq("stores.is_active", true)
+        .eq("stores.is_blocked", false)
+        .or(cityOr, { foreignTable: "stores" })
+        .order("created_at", { ascending: false })
         .limit(6);
       setProducts((data as any) ?? []);
       const { data: s } = await supabase
@@ -154,7 +157,7 @@ const Index = () => {
         .eq("is_verified", true)
         .eq("is_active", true)
         .eq("is_blocked", false)
-        .or(cityOrExpr)
+        .or(cityOr)
         .limit(20);
       const rawStores = (s ?? []) as Array<{
         id: string;
