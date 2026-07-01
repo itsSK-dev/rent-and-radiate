@@ -12,7 +12,7 @@ import { PromoBanners } from "@/components/PromoBanners";
 import { ShareAppSection } from "@/components/ShareAppSection";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
-import { useServiceCity } from "@/lib/serviceArea";
+import { useServiceCity, cityOrExpr as cityOrExprFor } from "@/lib/serviceArea";
 import { ServiceUnavailable } from "@/components/ServiceUnavailable";
 import { useCategories, getCategoryIcon } from "@/hooks/useCategories";
 // NOTE: We intentionally do NOT seed demo products from the client.
