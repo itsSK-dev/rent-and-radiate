@@ -100,6 +100,8 @@ const Index = () => {
 
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [stores, setStores] = useState<NearbyShop[]>([]);
+  const [topRated, setTopRated] = useState<NearbyShop[]>([]);
+  const [ratingsTick, setRatingsTick] = useState(0);
   const [shopsOpen] = useState<boolean>(() => isShopOpenNow());
   const [query, setQuery] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
@@ -129,6 +131,12 @@ const Index = () => {
         setStores([]);
         return;
       }
+      // Accept common spelling variants of the launch city (Purnea/Purnia).
+      const cityVariants = /^purn(e|i)a$/i.test(serviceCity)
+        ? ["Purnea", "Purnia"]
+        : [serviceCity];
+      const cityOrExpr = cityVariants.map((c) => `city.ilike.${c}`).join(",");
+
       // Product catalogue is fully DB-driven via vendor uploads + admin approval.
       const { data } = await supabase
         .from("products")
@@ -136,7 +144,7 @@ const Index = () => {
           "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,is_verified,rating)",
         )
         .eq("available", true)
-        .ilike("stores.city", serviceCity)
+        .or(cityOrExpr, { foreignTable: "stores" })
         .limit(6);
       setProducts((data as any) ?? []);
       const { data: s } = await supabase
@@ -146,8 +154,8 @@ const Index = () => {
         .eq("is_verified", true)
         .eq("is_active", true)
         .eq("is_blocked", false)
-        .ilike("city", serviceCity)
-        .limit(8);
+        .or(cityOrExpr)
+        .limit(20);
       const rawStores = (s ?? []) as Array<{
         id: string;
         name: string;
@@ -189,14 +197,30 @@ const Index = () => {
             ? haversineKm(userPos, { lat: st.lat, lng: st.lng })
             : null,
       }));
-      enriched.sort((a, b) => {
+
+      // Top rated ranking: avg rating × total ratings. Ties broken by rating,
+      // then by number of listed products so newly-launched shops with 0
+      // ratings still get a fair, deterministic order.
+      const ranked = [...enriched]
+        .sort((a, b) => {
+          const sa = (a.rating || 0) * (a.rating_count || 0);
+          const sb = (b.rating || 0) * (b.rating_count || 0);
+          if (sb !== sa) return sb - sa;
+          if ((b.rating || 0) !== (a.rating || 0)) return (b.rating || 0) - (a.rating || 0);
+          return (b.product_count || 0) - (a.product_count || 0);
+        })
+        .slice(0, 5);
+      setTopRated(ranked);
+
+      const nearby = enriched.slice().sort((a, b) => {
         if (a.distance_km != null && b.distance_km != null) return a.distance_km - b.distance_km;
         if (a.distance_km != null) return -1;
         if (b.distance_km != null) return 1;
         return b.rating - a.rating;
       });
-      setStores(enriched);
+      setStores(nearby.slice(0, 8));
     })();
+
 
     try {
       const r = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
@@ -212,7 +236,19 @@ const Index = () => {
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
-  }, [isServiceable, serviceCity]);
+  }, [isServiceable, serviceCity, ratingsTick]);
+
+  // Realtime: re-rank Top Rated when any rating is added, edited or removed,
+  // or when a store row itself updates (rating/rating_count refresh).
+  useEffect(() => {
+    const bump = () => setRatingsTick((n) => n + 1);
+    const ch = supabase
+      .channel(`home-ratings-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "ratings" }, bump)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "stores" }, bump)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
 
   function pushRecent(text: string) {
     try {
@@ -632,6 +668,31 @@ const Index = () => {
             </section>
           )}
 
+          {/* Top Rated Stores — ranked by (average rating × total ratings) */}
+          {topRated.length > 0 && (
+            <section className="container pb-16 md:pb-20">
+              <div className="flex items-end justify-between mb-6 md:mb-8">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
+                    <Star className="h-3.5 w-3.5" /> Rated by real customers
+                  </p>
+                  <h2 className="font-display text-3xl md:text-5xl">Top Rated Stores</h2>
+                </div>
+                <Link
+                  to="/browse"
+                  className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1"
+                >
+                  See all <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                {topRated.map((s, i) => (
+                  <NearbyShopCard key={s.id} shop={s} open={shopsOpen} rank={i + 1} />
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Nearby Verified Shops */}
           {stores.length > 0 && (
             <section className="container pb-16 md:pb-24">
@@ -709,7 +770,7 @@ function QuickActionCard({
   );
 }
 
-function NearbyShopCard({ shop, open }: { shop: NearbyShop; open: boolean }) {
+function NearbyShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean; rank?: number }) {
   const initials = shop.name
     .split(/\s+/)
     .map((w) => w[0])
@@ -758,6 +819,11 @@ function NearbyShopCard({ shop, open }: { shop: NearbyShop; open: boolean }) {
           <BadgeCheck className="h-3.5 w-3.5" />
           Verified
         </span>
+        {rank != null && (
+          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 text-white shadow-md">
+            #{rank} Top rated
+          </span>
+        )}
       </div>
 
       {/* Body */}
