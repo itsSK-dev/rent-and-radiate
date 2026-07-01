@@ -99,8 +99,9 @@ const Checkout = () => {
 
       const [{ data: prof }, { data: plat }] = await Promise.all([
         supabase.from("profiles").select("reward_points").eq("id", user.id).maybeSingle(),
-        supabase.from("platform_settings").select("rewards_enabled, reward_redeem_value, reward_max_redeem_percent").eq("id", true).maybeSingle(),
+        (supabase as any).rpc("get_public_platform_settings"),
       ]);
+
       setPointsBalance((prof as any)?.reward_points ?? 0);
       if (plat) {
         setRewardsEnabled((plat as any).rewards_enabled ?? true);
