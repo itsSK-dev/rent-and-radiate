@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Fuse from "fuse.js";
 import { supabase } from "@/integrations/supabase/client";
-import { useServiceCity } from "@/lib/serviceArea";
+import { useServiceCity, cityOrExpr } from "@/lib/serviceArea";
 
 export type SearchProduct = {
   id: string;
