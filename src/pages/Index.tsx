@@ -668,6 +668,31 @@ const Index = () => {
             </section>
           )}
 
+          {/* Top Rated Stores — ranked by (average rating × total ratings) */}
+          {topRated.length > 0 && (
+            <section className="container pb-16 md:pb-20">
+              <div className="flex items-end justify-between mb-6 md:mb-8">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
+                    <Star className="h-3.5 w-3.5" /> Rated by real customers
+                  </p>
+                  <h2 className="font-display text-3xl md:text-5xl">Top Rated Stores</h2>
+                </div>
+                <Link
+                  to="/browse"
+                  className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1"
+                >
+                  See all <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                {topRated.map((s, i) => (
+                  <NearbyShopCard key={s.id} shop={s} open={shopsOpen} rank={i + 1} />
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Nearby Verified Shops */}
           {stores.length > 0 && (
             <section className="container pb-16 md:pb-24">
