@@ -541,8 +541,10 @@ const Index = () => {
           </Link>
         </div>
         <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-4 md:gap-6">
-          {CATEGORY_CIRCLES.map((c) => {
-            const Icon = c.icon;
+          {categoryConfigs.map((c) => {
+            const Icon = getCategoryIcon(c.icon_name);
+            const active = c.is_active;
+
             const inner = (
               <>
                 <span className="relative inline-flex items-center justify-center">
