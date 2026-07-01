@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { VendorVerificationCard } from "@/components/vendor/VendorVerificationCard";
+import { VendorDocumentsForm } from "@/components/vendor/VendorDocumentsForm";
 import { BadgeCheck, Clock, X, ArrowLeft, History } from "lucide-react";
 import { format } from "date-fns";
 
