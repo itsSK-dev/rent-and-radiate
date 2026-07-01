@@ -35,7 +35,18 @@ export function SupportChat() {
     setBusy(true);
     try {
       const { data: sess } = await supabase.auth.getSession();
-      const token = sess.session?.access_token ?? ANON;
+      const token = sess.session?.access_token;
+      if (!token) {
+        setMsgs((m) => {
+          const copy = [...m];
+          copy[copy.length - 1] = {
+            role: "assistant",
+            content: "Please sign in to chat with support. You'll get instant answers about rentals, deposits and orders once you're logged in.",
+          };
+          return copy;
+        });
+        return;
+      }
       const res = await fetch(`${SUPABASE_URL}/functions/v1/support-chat`, {
         method: "POST",
         headers: {
@@ -45,6 +56,7 @@ export function SupportChat() {
         },
         body: JSON.stringify({ messages: next }),
       });
+
       if (!res.ok || !res.body) {
         const txt = await res.text().catch(() => "");
         setMsgs((m) => {
