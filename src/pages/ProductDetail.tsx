@@ -390,6 +390,43 @@ const ProductDetail = () => {
           </div>
         </div>
       </section>
+
+      {/* Reviews */}
+      <section className="container pb-12">
+        <h2 className="font-display text-3xl mb-4">Reviews</h2>
+        {reviews.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No reviews yet — be the first after your rental or purchase.</p>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-4">
+            {reviews.map((r) => (
+              <div key={r.id} className="rounded-2xl border border-border bg-card p-4">
+                <div className="flex items-center gap-1 text-amber-500">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className={cn("h-4 w-4", i < r.stars ? "fill-amber-500" : "text-muted-foreground/30")} />
+                  ))}
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                {r.comment && <p className="text-sm mt-2 text-foreground/80">{r.comment}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Related products */}
+      {related.length > 0 && (
+        <section className="container pb-16">
+          <h2 className="font-display text-3xl mb-6">You may also like</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+            {related.map((r) => (
+              <ProductCard key={r.id} p={r} />
+            ))}
+          </div>
+        </section>
+      )}
+
       <Footer />
     </div>
   );
