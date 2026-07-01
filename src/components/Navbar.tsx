@@ -7,11 +7,13 @@ import { LocationSelector } from "@/components/LocationSelector";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useNewOrderCount } from "@/hooks/useNewOrderCount";
+import { UniversalSearchDialog } from "@/components/UniversalSearchDialog";
 
 export function Navbar() {
   const { user, roles, signOut } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const isVendor = roles.includes("store_owner");
   const newOrderCount = useNewOrderCount();
 
