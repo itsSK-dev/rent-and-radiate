@@ -190,8 +190,10 @@ const Vendor = () => {
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
             <TabsTrigger value="bookings">Orders</TabsTrigger>
             <TabsTrigger value="returns">Returns & extensions</TabsTrigger>
+            <TabsTrigger value="reviews">Reviews</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="payouts">Payouts & fees</TabsTrigger>
+            <TabsTrigger value="profile">Store profile</TabsTrigger>
           </TabsList>
 
 
