@@ -7,7 +7,19 @@
     <meta name="theme-color" content="#1a0d13" media="(prefers-color-scheme: dark)" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <title>Rent & Radiate — Rent designer dresses & jewellery</title>
+
+    <!-- Security headers (meta-tag equivalents; primary headers should also be set at the edge) -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Permissions-Policy" content="camera=(self), microphone=(self), geolocation=(self), payment=(self), interest-cohort=()" />
+
+    <!-- Perf: preconnect to font + supabase origins to reduce render-blocking latency -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://zlyazcpuxzdvudrfzjxu.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://zlyazcpuxzdvudrfzjxu.supabase.co" />
+
+    <title>Rent &amp; Radiate — Rent designer dresses &amp; jewellery</title>
     <meta name="description" content="Rent & Radiate is a marketplace to rent, buy and sell designer dresses, jewellery and fashion from boutiques near you." />
     <meta name="author" content="Rent & Radiate" />
 

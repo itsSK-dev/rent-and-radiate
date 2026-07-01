@@ -392,9 +392,11 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
+      <main id="main-content" className="flex-1">
 
       {/* Premium branding-only hero carousel (no product actions) */}
       <HeroCarousel />
+
 
       {/* Smart floating search bar */}
       <section className="relative">
@@ -733,11 +735,12 @@ const Index = () => {
 
       {/* Become a seller */}
       <BecomeSellerSection />
-
+      </main>
       <Footer />
     </div>
   );
 };
+
 
 function QuickActionCard({
   to,
