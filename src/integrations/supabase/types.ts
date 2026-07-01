@@ -2412,6 +2412,7 @@ export type Database = {
           upi_id: string
         }[]
       }
+      get_public_platform_settings: { Args: never; Returns: Json }
       get_rental_qr_token: { Args: { _rental_id: string }; Returns: string }
       has_role: {
         Args: {
