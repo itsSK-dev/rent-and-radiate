@@ -125,6 +125,7 @@ const Admin = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="disputes">Disputes</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="shops">Shops</TabsTrigger>
             <TabsTrigger value="verifications">KYC docs</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
