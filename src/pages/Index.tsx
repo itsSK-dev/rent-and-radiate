@@ -551,26 +551,47 @@ const Index = () => {
         <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-4 md:gap-6">
           {CATEGORY_CIRCLES.map((c) => {
             const Icon = c.icon;
-            return (
+            const inner = (
+              <>
+                <span className="relative inline-flex items-center justify-center">
+                  <span
+                    className={`absolute inset-0 rounded-full bg-gradient-to-br ${c.gradient} ${c.active ? "opacity-30 blur-xl group-hover:opacity-60" : "opacity-10 blur-xl"} transition-opacity duration-500`}
+                  />
+                  <span
+                    className={`relative inline-flex items-center justify-center h-16 w-16 md:h-20 md:w-20 rounded-full bg-gradient-to-br ${c.gradient} text-white shadow-[0_12px_30px_-10px_rgba(0,0,0,0.35)] ring-1 ring-white/30 ${c.active ? "group-hover:scale-110 group-hover:-rotate-3" : "grayscale opacity-60"} transition-transform duration-300`}
+                  >
+                    <Icon className="h-7 w-7 md:h-9 md:w-9" />
+                  </span>
+                  {!c.active && (
+                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-foreground text-[9px] md:text-[10px] font-medium text-background px-2 py-0.5 shadow">
+                      Coming soon
+                    </span>
+                  )}
+                </span>
+                <span className={`text-xs md:text-sm font-medium transition-colors ${c.active ? "text-foreground group-hover:text-rose-deep" : "text-muted-foreground"}`}>
+                  {c.label}
+                </span>
+              </>
+            );
+            return c.active ? (
               <Link
                 key={c.slug}
                 to={`/browse?category=${encodeURIComponent(c.slug)}`}
                 className="group flex flex-col items-center gap-2.5 text-center"
               >
-                <span className="relative inline-flex items-center justify-center">
-                  <span
-                    className={`absolute inset-0 rounded-full bg-gradient-to-br ${c.gradient} opacity-30 blur-xl group-hover:opacity-60 transition-opacity duration-500`}
-                  />
-                  <span
-                    className={`relative inline-flex items-center justify-center h-16 w-16 md:h-20 md:w-20 rounded-full bg-gradient-to-br ${c.gradient} text-white shadow-[0_12px_30px_-10px_rgba(0,0,0,0.35)] ring-1 ring-white/30 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300`}
-                  >
-                    <Icon className="h-7 w-7 md:h-9 md:w-9" />
-                  </span>
-                </span>
-                <span className="text-xs md:text-sm font-medium text-foreground group-hover:text-rose-deep transition-colors">
-                  {c.label}
-                </span>
+                {inner}
               </Link>
+            ) : (
+              <button
+                key={c.slug}
+                type="button"
+                aria-disabled="true"
+                onClick={() => toast.info(`${c.label} launches soon — stay tuned!`)}
+                className="group flex flex-col items-center gap-2.5 text-center cursor-not-allowed"
+                title="Coming soon"
+              >
+                {inner}
+              </button>
             );
           })}
         </div>
