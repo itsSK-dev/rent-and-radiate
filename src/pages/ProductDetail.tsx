@@ -27,7 +27,7 @@ import { Star } from "lucide-react";
 type Product = {
   id: string;
   store_id: string;
-  category: "dress" | "jewellery";
+  category: string;
   title: string;
   description: string | null;
   images: string[];

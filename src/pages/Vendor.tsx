@@ -48,7 +48,7 @@ type Store = {
 };
 
 type Product = {
-  id: string; title: string; description: string | null; category: "dress" | "jewellery";
+  id: string; title: string; description: string | null; category: string;
   price_per_day: number; security_deposit: number; available: boolean; images: string[];
   size: string | null; color: string | null;
   actual_price: number; discount_percent: number; discount_flat: number;
