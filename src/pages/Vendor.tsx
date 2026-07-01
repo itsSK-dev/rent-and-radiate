@@ -305,9 +305,21 @@ const Vendor = () => {
             ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
           </TabsContent>
 
+          <TabsContent value="reviews" className="mt-6">
+            {storeId ? (
+              <VendorReviewsPanel storeId={storeId} />
+            ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
+          </TabsContent>
+
           <TabsContent value="payouts" className="mt-6">
             {storeId ? (
               <VendorSettlementsPanel storeId={storeId} />
+            ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
+          </TabsContent>
+
+          <TabsContent value="profile" className="mt-6">
+            {storeId ? (
+              <VendorStoreProfileForm storeId={storeId} onSaved={refresh} />
             ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
           </TabsContent>
 
