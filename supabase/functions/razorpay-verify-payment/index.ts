@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
 
     const { data: rental, error: rErr } = await admin
       .from("rentals")
-      .select("id, customer_id, grand_total, razorpay_order_id")
+      .select("id, customer_id, grand_total, razorpay_order_id, payment_status")
       .eq("id", rentalId)
       .maybeSingle();
     if (rErr || !rental) {
@@ -55,6 +55,22 @@ Deno.serve(async (req) => {
     if (rental.customer_id !== userId) {
       await logAttempt(admin, { rental_id: rentalId, user_id: userId, outcome: "forbidden", reason: "Not order owner", ip, ua });
       return json({ error: "Forbidden" }, 403);
+    }
+
+    // Duplicate-payment guard: if this rental is already marked paid,
+    // return success without inserting another payment row.
+    if (rental.payment_status === "paid" && !failure) {
+      await logAttempt(admin, {
+        rental_id: rentalId,
+        user_id: userId,
+        outcome: "already_paid",
+        reason: "Rental already marked paid — verify call ignored",
+        razorpay_order_id: razorpay_order_id ?? rental.razorpay_order_id,
+        razorpay_payment_id: razorpay_payment_id ?? null,
+        amount: rental.grand_total,
+        ip, ua,
+      });
+      return json({ ok: true, status: "paid", duplicate: true });
     }
 
     // Guard against payment-credential replay across rentals: the submitted
