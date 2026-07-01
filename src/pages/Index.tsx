@@ -235,7 +235,19 @@ const Index = () => {
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
-  }, [isServiceable, serviceCity]);
+  }, [isServiceable, serviceCity, ratingsTick]);
+
+  // Realtime: re-rank Top Rated when any rating is added, edited or removed,
+  // or when a store row itself updates (rating/rating_count refresh).
+  useEffect(() => {
+    const bump = () => setRatingsTick((n) => n + 1);
+    const ch = supabase
+      .channel(`home-ratings-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "ratings" }, bump)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "stores" }, bump)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
 
   function pushRecent(text: string) {
     try {
