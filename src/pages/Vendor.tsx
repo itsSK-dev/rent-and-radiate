@@ -434,7 +434,9 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(editing?.title ?? "");
   const [description, setDescription] = useState(editing?.description ?? "");
-  const [category, setCategory] = useState<"dress" | "jewellery">(editing?.category ?? "dress");
+  const { categories: activeCats } = useCategories(false);
+  const [category, setCategory] = useState<string>(editing?.category ?? "dress");
+
   const [purpose, setPurpose] = useState<"rent" | "buy" | "both">(editing?.purpose ?? "rent");
   const [actualPrice, setActualPrice] = useState(editing?.actual_price?.toString() ?? "");
   const [discountPercent, setDiscountPercent] = useState(editing?.discount_percent?.toString() ?? "0");
