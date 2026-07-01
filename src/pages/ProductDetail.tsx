@@ -65,6 +65,8 @@ const ProductDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [protectionPlan, setProtectionPlan] = useState(false);
   const [bookedDates, setBookedDates] = useState<Date[]>([]);
+  const [related, setRelated] = useState<ProductCardData[]>([]);
+  const [reviews, setReviews] = useState<{ id: string; stars: number; comment: string | null; created_at: string; rater?: { full_name: string | null } | null }[]>([]);
 
   useEffect(() => {
     (async () => {
