@@ -544,6 +544,7 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
                   {activeCats.map((c) => (
                     <SelectItem key={c.slug} value={c.slug}>{c.label}</SelectItem>
                   ))}
+                </SelectContent>
 
               </Select>
             </div>
