@@ -735,11 +735,12 @@ const Index = () => {
 
       {/* Become a seller */}
       <BecomeSellerSection />
-
+      </main>
       <Footer />
     </div>
   );
 };
+
 
 function QuickActionCard({
   to,
