@@ -2,9 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, MapPin, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import hero1 from "@/assets/hero/hero-1.jpg";
-import hero2 from "@/assets/hero/hero-2.jpg";
-import hero3 from "@/assets/hero/hero-3.jpg";
+// Hero images are served from /public so the LCP candidate can be
+// <link rel="preload"> in index.html without waiting for the JS bundle
+// to import a hashed asset URL.
+const hero1 = "/hero/hero-1.jpg";
+const hero2 = "/hero/hero-2.jpg";
+const hero3 = "/hero/hero-3.jpg";
+
 
 /**
  * Branding-only hero carousel. The model imagery is NOT a marketplace
@@ -96,10 +100,14 @@ export function HeroCarousel() {
                 active ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
               }`}
               aria-hidden={!active}
+              // `inert` removes inactive slides from the tab / a11y tree so
+              // Lighthouse doesn't flag aria-hidden with focusable descendants.
+              {...(!active && ({ inert: "" } as any))}
               role="group"
               aria-roledescription="slide"
               aria-label={`${i + 1} of ${SLIDES.length}`}
             >
+
               {/* Decorative imagery — NOT a product. No links / actions. */}
               <img
                 src={slide.image}

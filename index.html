@@ -19,26 +19,31 @@
     <link rel="preconnect" href="https://zlyazcpuxzdvudrfzjxu.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://zlyazcpuxzdvudrfzjxu.supabase.co" />
 
+    <!-- Preload the LCP hero image so the browser can start fetching it
+         before the JS bundle mounts the carousel. -->
+    <link rel="preload" as="image" href="/hero/hero-1.jpg" fetchpriority="high" />
+
     <!-- Load Google Fonts with a non-blocking pattern so CSS doesn't stall FCP.
-         `media=print` + onload swaps to `all` after the stylesheet arrives.
-         The <noscript> keeps text legible if JS is disabled. -->
+         `display=optional` prevents the font swap layout shift (CLS) that
+         Lighthouse was flagging on the large display headline. -->
     <link
       rel="preload"
       as="style"
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Karla:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Karla:wght@400;500;600;700&display=optional"
     />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Karla:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Karla:wght@400;500;600;700&display=optional"
       media="print"
       onload="this.media='all'"
     />
     <noscript>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Karla:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Karla:wght@400;500;600;700&display=optional"
       />
     </noscript>
+
 
     <title>Rent &amp; Radiate — Rent designer dresses &amp; jewellery</title>
     <meta name="description" content="Rent & Radiate is a marketplace to rent, buy and sell designer dresses, jewellery and fashion from boutiques near you." />
