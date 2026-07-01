@@ -33,6 +33,7 @@ import { AdminSubscriptionsPanel } from "@/components/admin/AdminSubscriptionsPa
 import { AdminProtectionPanel } from "@/components/admin/AdminProtectionPanel";
 import { AdminFraudPanel } from "@/components/admin/AdminFraudPanel";
 import { AdminVerificationsPanel } from "@/components/admin/AdminVerificationsPanel";
+import { AdminUsersPanel } from "@/components/admin/AdminUsersPanel";
 
 type Dispute = {
   id: string;
@@ -124,6 +125,7 @@ const Admin = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="disputes">Disputes</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="shops">Shops</TabsTrigger>
             <TabsTrigger value="verifications">KYC docs</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
@@ -173,6 +175,10 @@ const Admin = () => {
 
           <TabsContent value="shops" className="mt-6">
             <AdminShopsPanel />
+          </TabsContent>
+
+          <TabsContent value="users" className="mt-6">
+            <AdminUsersPanel />
           </TabsContent>
 
           <TabsContent value="verifications" className="mt-6">
