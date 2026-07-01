@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { useServiceCity } from "@/lib/serviceArea";
 import { ServiceUnavailable } from "@/components/ServiceUnavailable";
+import { useCategories } from "@/hooks/useCategories";
 
 type Sort = "newest" | "price_asc" | "price_desc";
 
@@ -29,6 +30,8 @@ function similarity(productText: string, queryTokens: string[]): number {
 const Browse = () => {
   const { city: serviceCity, isServiceable } = useServiceCity();
   const [params, setParams] = useSearchParams();
+  const { categories: activeCats } = useCategories(false);
+
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -160,9 +163,11 @@ const Browse = () => {
             <SelectTrigger className="md:w-44"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All categories</SelectItem>
-              <SelectItem value="dress">Dresses</SelectItem>
-              <SelectItem value="jewellery">Jewellery</SelectItem>
+              {activeCats.map((c) => (
+                <SelectItem key={c.slug} value={c.slug}>{c.label}</SelectItem>
+              ))}
             </SelectContent>
+
           </Select>
           <Select value={sort} onValueChange={(v) => update("sort", v)}>
             <SelectTrigger className="md:w-44"><SelectValue /></SelectTrigger>

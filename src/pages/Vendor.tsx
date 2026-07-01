@@ -31,6 +31,7 @@ import { UpcomingReturnsWidget } from "@/components/vendor/UpcomingReturnsWidget
 import { VerifiedSellerBadge } from "@/components/VerifiedSellerBadge";
 import { VendorStoreProfileForm } from "@/components/vendor/VendorStoreProfileForm";
 import { VendorReviewsPanel } from "@/components/vendor/VendorReviewsPanel";
+import { useCategories } from "@/hooks/useCategories";
 
 
 type Store = {
@@ -47,7 +48,7 @@ type Store = {
 };
 
 type Product = {
-  id: string; title: string; description: string | null; category: "dress" | "jewellery";
+  id: string; title: string; description: string | null; category: string;
   price_per_day: number; security_deposit: number; available: boolean; images: string[];
   size: string | null; color: string | null;
   actual_price: number; discount_percent: number; discount_flat: number;
@@ -434,7 +435,9 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(editing?.title ?? "");
   const [description, setDescription] = useState(editing?.description ?? "");
-  const [category, setCategory] = useState<"dress" | "jewellery">(editing?.category ?? "dress");
+  const { categories: activeCats } = useCategories(false);
+  const [category, setCategory] = useState<string>(editing?.category ?? "dress");
+
   const [purpose, setPurpose] = useState<"rent" | "buy" | "both">(editing?.purpose ?? "rent");
   const [actualPrice, setActualPrice] = useState(editing?.actual_price?.toString() ?? "");
   const [discountPercent, setDiscountPercent] = useState(editing?.discount_percent?.toString() ?? "0");
@@ -538,9 +541,11 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
               <Select value={category} onValueChange={(v) => setCategory(v as any)}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="dress">Dress</SelectItem>
-                  <SelectItem value="jewellery">Jewellery</SelectItem>
+                  {activeCats.map((c) => (
+                    <SelectItem key={c.slug} value={c.slug}>{c.label}</SelectItem>
+                  ))}
                 </SelectContent>
+
               </Select>
             </div>
             <div>

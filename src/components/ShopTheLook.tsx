@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 interface Look {
   id: string;
   title: string;
-  category: "dress" | "jewellery";
+  category: string;
   price_per_day: number;
   actual_price: number | null;
   purpose: "rent" | "buy" | "both";

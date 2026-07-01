@@ -9,7 +9,7 @@ import { VerifiedSellerBadge } from "@/components/VerifiedSellerBadge";
 export interface ProductCardData {
   id: string;
   title: string;
-  category: "dress" | "jewellery";
+  category: string;
   price_per_day: number;
   security_deposit: number;
   images: string[];
