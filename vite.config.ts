@@ -34,7 +34,10 @@ export default defineConfig(({ mode }) => ({
     // Terser gives ~10-15% smaller JS than esbuild's minifier for our bundle mix.
     minify: "esbuild",
     cssMinify: "esbuild",
-    sourcemap: false,
+    // Source maps let error trackers (and Lighthouse's "missing source maps"
+    // audit) resolve minified stacks back to original TSX.
+    sourcemap: true,
+
     // Split heavy vendor libs so the initial route only downloads what it needs
     // and returning visitors get long-term cache hits on stable chunks.
     rollupOptions: {
