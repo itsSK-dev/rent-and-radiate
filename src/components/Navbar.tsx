@@ -103,24 +103,25 @@ export function Navbar() {
         </div>
 
         <div className="flex md:hidden items-center gap-0 shrink-0">
-          <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} aria-label="Search" className="h-9 w-9">
+          <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} aria-label="Search" className="h-11 w-11">
             <Search className="h-[18px] w-[18px]" />
           </Button>
           {user ? <NotificationBell /> : (
-            <Button variant="ghost" size="icon" onClick={() => navigate("/auth")} aria-label="Notifications" className="h-9 w-9">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/auth")} aria-label="Notifications" className="h-11 w-11">
               <Bell className="h-[18px] w-[18px]" />
             </Button>
           )}
-          <Button variant="ghost" size="icon" onClick={() => navigate(user ? "/wishlist" : "/auth")} aria-label="Wishlist" className="h-9 w-9">
+          <Button variant="ghost" size="icon" onClick={() => navigate(user ? "/wishlist" : "/auth")} aria-label="Wishlist" className="h-11 w-11">
             <Heart className="h-[18px] w-[18px]" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => navigate(user ? "/cart" : "/auth")} aria-label="Cart" className="h-9 w-9">
+          <Button variant="ghost" size="icon" onClick={() => navigate(user ? "/cart" : "/auth")} aria-label="Cart" className="h-11 w-11">
             <ShoppingCart className="h-[18px] w-[18px]" />
           </Button>
-          <button className="h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-muted" onClick={() => setOpen(!open)} aria-label="Menu">
+          <button className="h-11 w-11 inline-flex items-center justify-center rounded-md hover:bg-muted" onClick={() => setOpen(!open)} aria-label="Menu">
             <Menu className="h-5 w-5" />
           </button>
         </div>
+
       </div>
 
       {open && (
