@@ -101,6 +101,7 @@ const Index = () => {
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [stores, setStores] = useState<NearbyShop[]>([]);
   const [topRated, setTopRated] = useState<NearbyShop[]>([]);
+  const [ratingsTick, setRatingsTick] = useState(0);
   const [shopsOpen] = useState<boolean>(() => isShopOpenNow());
   const [query, setQuery] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
