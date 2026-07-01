@@ -96,6 +96,8 @@ const RECENT_KEY = "rr.recentSearches";
 
 const Index = () => {
   const { city: serviceCity, isServiceable } = useServiceCity();
+  const { categories: categoryConfigs } = useCategories(true);
+
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [stores, setStores] = useState<NearbyShop[]>([]);
   const [shopsOpen] = useState<boolean>(() => isShopOpenNow());
