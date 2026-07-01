@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { useServiceCity } from "@/lib/serviceArea";
 import { ServiceUnavailable } from "@/components/ServiceUnavailable";
+import { useCategories } from "@/hooks/useCategories";
 
 type Sort = "newest" | "price_asc" | "price_desc";
 
