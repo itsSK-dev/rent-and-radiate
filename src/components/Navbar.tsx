@@ -19,11 +19,14 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-      <div className="container flex h-16 items-center justify-between gap-3 md:gap-4">
-        <div className="flex items-center gap-3 md:gap-5 min-w-0">
-          <Link to="/" className="flex items-center gap-2 group shrink-0">
-            <Flower2 className="h-6 w-6 text-primary group-hover:rotate-12 transition-smooth" strokeWidth={1.5} />
-            <span className="font-display text-xl md:text-2xl tracking-tight">Rent &amp; Radiate</span>
+      <div className="container flex h-16 items-center justify-between gap-2 md:gap-4">
+        <div className="flex items-center gap-3 md:gap-5 min-w-0 flex-1">
+          <Link to="/" className="flex items-center gap-2 group shrink-0 min-w-0">
+            <Flower2 className="h-6 w-6 text-primary group-hover:rotate-12 transition-smooth shrink-0" strokeWidth={1.5} />
+            <span className="font-display text-lg sm:text-xl md:text-2xl tracking-tight truncate">
+              <span className="hidden xs:inline">Rent &amp; Radiate</span>
+              <span className="xs:hidden">R&amp;R</span>
+            </span>
           </Link>
           <div className="hidden sm:block">
             <LocationSelector />
