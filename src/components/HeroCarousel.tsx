@@ -2,9 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, MapPin, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import hero1 from "@/assets/hero/hero-1.jpg";
-import hero2 from "@/assets/hero/hero-2.jpg";
-import hero3 from "@/assets/hero/hero-3.jpg";
+// Hero images are served from /public so the LCP candidate can be
+// <link rel="preload"> in index.html without waiting for the JS bundle
+// to import a hashed asset URL.
+const hero1 = "/hero/hero-1.jpg";
+const hero2 = "/hero/hero-2.jpg";
+const hero3 = "/hero/hero-3.jpg";
+
 
 /**
  * Branding-only hero carousel. The model imagery is NOT a marketplace
