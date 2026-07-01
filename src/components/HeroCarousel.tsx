@@ -100,10 +100,14 @@ export function HeroCarousel() {
                 active ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
               }`}
               aria-hidden={!active}
+              // `inert` removes inactive slides from the tab / a11y tree so
+              // Lighthouse doesn't flag aria-hidden with focusable descendants.
+              {...(!active && ({ inert: "" } as any))}
               role="group"
               aria-roledescription="slide"
               aria-label={`${i + 1} of ${SLIDES.length}`}
             >
+
               {/* Decorative imagery — NOT a product. No links / actions. */}
               <img
                 src={slide.image}
