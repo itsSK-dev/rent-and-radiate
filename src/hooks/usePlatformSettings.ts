@@ -9,11 +9,8 @@ export function usePlatformSettings() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const { data } = await (supabase as any)
-        .from("platform_settings")
-        .select("gst_percent,delivery_fee,commission_percent,rental_price_percent,deposit_percent_of_price,protection_plan_percent,protection_plan_min,late_fee_multiplier,late_fee_grace_hours,rent_to_own_enabled,rent_to_own_credit_percent")
-        .eq("id", true)
-        .maybeSingle();
+      const { data } = await (supabase as any).rpc("get_public_platform_settings");
+
       if (mounted && data) {
         setSettings({
           gst_percent: Number(data.gst_percent),

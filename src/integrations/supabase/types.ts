@@ -2393,6 +2393,7 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -2411,6 +2412,7 @@ export type Database = {
           upi_id: string
         }[]
       }
+      get_public_platform_settings: { Args: never; Returns: Json }
       get_rental_qr_token: { Args: { _rental_id: string }; Returns: string }
       has_role: {
         Args: {

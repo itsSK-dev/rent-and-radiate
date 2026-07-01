@@ -51,7 +51,7 @@ export default function Rewards() {
         supabase.from("profiles").select("reward_points, lifetime_reward_points, referral_code").eq("id", user.id).maybeSingle(),
         supabase.from("reward_transactions").select("id, kind, points, balance_after, note, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50),
         (supabase as any).from("referrals").select("id, status, created_at, referred_user_id, referrer_bonus_points").eq("referrer_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("platform_settings").select("reward_earn_rate_percent, reward_redeem_value, reward_max_redeem_percent, referral_signup_bonus, referral_referrer_bonus, referral_min_order_amount").eq("id", true).maybeSingle(),
+        (supabase as any).rpc("get_public_platform_settings"),
       ]);
       setProfile(prof as Profile);
       setTxs((txData ?? []) as Tx[]);
@@ -64,7 +64,7 @@ export default function Rewards() {
         list.forEach(r => { r.referred = byId.get(r.referred_user_id) as any; });
       }
       setRefs(list);
-      setSettings(setData as Settings);
+      setSettings((setData ?? null) as Settings);
     })();
 
     const ch = supabase
