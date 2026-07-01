@@ -179,23 +179,14 @@ const Index = () => {
         }),
       );
 
-      // Optional distance, only if the user already shared geolocation in this session.
-      const userPos: { lat: number; lng: number } | null = await new Promise((resolve) => {
-        if (!navigator.geolocation) return resolve(null);
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-          () => resolve(null),
-          { timeout: 1500, maximumAge: 5 * 60 * 1000 },
-        );
-      });
-
+      // Distance is only calculated after the user explicitly taps "Use my
+      // location" via the Nearby button — never on page load. Lighthouse Best
+      // Practices flags automatic geolocation prompts, and it's poor UX to ask
+      // for a permission the visitor didn't request.
       const enriched: NearbyShop[] = rawStores.map((st, i) => ({
         ...st,
         product_count: counts[i],
-        distance_km:
-          userPos && st.lat != null && st.lng != null
-            ? haversineKm(userPos, { lat: st.lat, lng: st.lng })
-            : null,
+        distance_km: null,
       }));
 
       // Top rated ranking: avg rating × total ratings. Ties broken by rating,
