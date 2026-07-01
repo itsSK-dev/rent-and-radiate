@@ -17,6 +17,18 @@ export function isServiceableCity(city: string | null | undefined): boolean {
   return c === "purnea" || c === "purnia";
 }
 
+/** Common spelling variants for a serviceable city (e.g. Purnea / Purnia).
+ * Every product/store query MUST use these variants so a store saved under
+ * either spelling is discoverable everywhere (Home, Browse, Search, Store). */
+export function cityVariants(city: string): string[] {
+  return /^purn(e|i)a$/i.test(city) ? ["Purnea", "Purnia"] : [city];
+}
+
+/** Postgrest `.or()` expression for filtering a `city` column across variants. */
+export function cityOrExpr(city: string, column = "city"): string {
+  return cityVariants(city).map((c) => `${column}.ilike.${c}`).join(",");
+}
+
 export function readSavedCity(): string {
   try {
     return localStorage.getItem(LOCATION_STORAGE_KEY) || SERVICE_CITY;
