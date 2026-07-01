@@ -770,7 +770,7 @@ function QuickActionCard({
   );
 }
 
-function NearbyShopCard({ shop, open }: { shop: NearbyShop; open: boolean }) {
+function NearbyShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean; rank?: number }) {
   const initials = shop.name
     .split(/\s+/)
     .map((w) => w[0])
