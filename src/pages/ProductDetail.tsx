@@ -229,6 +229,9 @@ const ProductDetail = () => {
                 {Number(product.discount_percent) > 0 ? `${product.discount_percent}% OFF` : `${inr(product.discount_flat)} OFF`}
               </Badge>
             )}
+            <div className="absolute top-4 right-4">
+              <WishlistButton productId={product.id} title={product.title} />
+            </div>
           </div>
           {product.images?.length > 1 && (
             <div className="grid grid-cols-5 gap-2">
