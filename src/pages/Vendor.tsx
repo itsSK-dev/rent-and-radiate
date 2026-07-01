@@ -29,6 +29,8 @@ import { VendorInventoryPanel } from "@/components/vendor/VendorInventoryPanel";
 import { VendorVerificationCard } from "@/components/vendor/VendorVerificationCard";
 import { UpcomingReturnsWidget } from "@/components/vendor/UpcomingReturnsWidget";
 import { VerifiedSellerBadge } from "@/components/VerifiedSellerBadge";
+import { VendorStoreProfileForm } from "@/components/vendor/VendorStoreProfileForm";
+import { VendorReviewsPanel } from "@/components/vendor/VendorReviewsPanel";
 
 
 type Store = {
@@ -188,8 +190,10 @@ const Vendor = () => {
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
             <TabsTrigger value="bookings">Orders</TabsTrigger>
             <TabsTrigger value="returns">Returns & extensions</TabsTrigger>
+            <TabsTrigger value="reviews">Reviews</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="payouts">Payouts & fees</TabsTrigger>
+            <TabsTrigger value="profile">Store profile</TabsTrigger>
           </TabsList>
 
 
@@ -301,9 +305,21 @@ const Vendor = () => {
             ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
           </TabsContent>
 
+          <TabsContent value="reviews" className="mt-6">
+            {storeId ? (
+              <VendorReviewsPanel storeId={storeId} />
+            ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
+          </TabsContent>
+
           <TabsContent value="payouts" className="mt-6">
             {storeId ? (
               <VendorSettlementsPanel storeId={storeId} />
+            ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
+          </TabsContent>
+
+          <TabsContent value="profile" className="mt-6">
+            {storeId ? (
+              <VendorStoreProfileForm storeId={storeId} onSaved={refresh} />
             ) : <p className="text-sm text-muted-foreground">Select or create a store first.</p>}
           </TabsContent>
 
