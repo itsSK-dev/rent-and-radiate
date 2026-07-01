@@ -58,15 +58,22 @@ type NearbyShop = {
   distance_km: number | null;
 };
 
+// Launch scope: only Dresses & Jewellery are active. Other categories are
+// intentionally shown as "Coming Soon" so the visual system is ready the day
+// an admin activates them. To enable one later:
+//   1) flip `active: true` here (or move the list into `platform_settings`)
+//   2) add the new value to the `product_category` Postgres enum
+// No other code changes are required — Browse, search, and vendor forms all
+// read categories from this same list / DB enum.
 const CATEGORY_CIRCLES = [
-  { label: "Fashion", slug: "fashion", icon: Shirt, gradient: "from-rose-400 via-pink-500 to-fuchsia-500" },
-  { label: "Jewellery", slug: "jewellery", icon: Gem, gradient: "from-amber-300 via-yellow-500 to-orange-500" },
-  { label: "Electronics", slug: "electronics", icon: Smartphone, gradient: "from-sky-400 via-blue-500 to-indigo-600" },
-  { label: "Home & Kitchen", slug: "home-kitchen", icon: UtensilsCrossed, gradient: "from-emerald-400 via-teal-500 to-cyan-600" },
-  { label: "Furniture", slug: "furniture", icon: Sofa, gradient: "from-amber-500 via-orange-500 to-rose-500" },
-  { label: "Sports", slug: "sports", icon: Dumbbell, gradient: "from-lime-400 via-green-500 to-emerald-600" },
-  { label: "Books", slug: "books", icon: BookOpen, gradient: "from-violet-400 via-purple-500 to-fuchsia-600" },
-  { label: "Others", slug: "others", icon: Package, gradient: "from-slate-400 via-slate-500 to-slate-700" },
+  { label: "Dresses", slug: "dress", icon: Shirt, gradient: "from-rose-400 via-pink-500 to-fuchsia-500", active: true },
+  { label: "Jewellery", slug: "jewellery", icon: Gem, gradient: "from-amber-300 via-yellow-500 to-orange-500", active: true },
+  { label: "Electronics", slug: "electronics", icon: Smartphone, gradient: "from-sky-400 via-blue-500 to-indigo-600", active: false },
+  { label: "Home & Kitchen", slug: "home-kitchen", icon: UtensilsCrossed, gradient: "from-emerald-400 via-teal-500 to-cyan-600", active: false },
+  { label: "Furniture", slug: "furniture", icon: Sofa, gradient: "from-amber-500 via-orange-500 to-rose-500", active: false },
+  { label: "Sports", slug: "sports", icon: Dumbbell, gradient: "from-lime-400 via-green-500 to-emerald-600", active: false },
+  { label: "Books", slug: "books", icon: BookOpen, gradient: "from-violet-400 via-purple-500 to-fuchsia-600", active: false },
+  { label: "Cameras", slug: "cameras", icon: Camera, gradient: "from-slate-400 via-slate-500 to-slate-700", active: false },
 ];
 
 function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
