@@ -819,6 +819,11 @@ function NearbyShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean;
           <BadgeCheck className="h-3.5 w-3.5" />
           Verified
         </span>
+        {rank != null && (
+          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 text-white shadow-md">
+            #{rank} Top rated
+          </span>
+        )}
       </div>
 
       {/* Body */}
