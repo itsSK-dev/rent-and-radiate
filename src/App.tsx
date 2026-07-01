@@ -44,6 +44,9 @@ import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Help from "./pages/Help";
+import Settings from "./pages/Settings";
+import { ThemeProvider } from "./hooks/useTheme";
+
 
 
 const queryClient = new QueryClient();
