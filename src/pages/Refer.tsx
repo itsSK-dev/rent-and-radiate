@@ -53,13 +53,12 @@ export default function Refer() {
           .select("id, status, created_at, referrer_bonus_points, referred_user_id")
           .eq("referrer_id", user.id)
           .order("created_at", { ascending: false }),
-        supabase.from("platform_settings")
-          .select("referral_signup_bonus, referral_referrer_bonus, referral_min_order_amount")
-          .eq("id", true).maybeSingle(),
+        (supabase as any).rpc("get_public_platform_settings"),
       ]);
 
       setCode((prof as any)?.referral_code ?? null);
-      setSettings(setData as Settings);
+      setSettings((setData ?? null) as Settings);
+
 
       const list = ((refData ?? []) as Row[]);
       if (list.length) {
