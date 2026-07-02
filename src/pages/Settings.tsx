@@ -23,6 +23,31 @@ const THEME_OPTIONS: { value: ThemeMode; label: string; description: string; Ico
 
 const Settings = () => {
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await signOut();
+      try {
+        Object.keys(localStorage)
+          .filter((k) => k.startsWith("sb-") || k.includes("supabase.auth"))
+          .forEach((k) => localStorage.removeItem(k));
+      } catch { /* ignore */ }
+      toast.success("You've been logged out.");
+      setDialogOpen(false);
+      navigate("/auth", { replace: true });
+    } catch (err) {
+      console.error("Logout failed", err);
+      toast.error("Unable to log out. Please try again.");
+    } finally {
+      setLoggingOut(false);
+    }
+  }
+
 
   return (
     <div className="min-h-screen bg-background">
