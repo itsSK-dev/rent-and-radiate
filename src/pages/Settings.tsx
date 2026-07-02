@@ -143,9 +143,61 @@ const Settings = () => {
             </Link>
           </Card>
         </section>
+
+        {user && (
+          <section aria-labelledby="account-heading" className="mt-8">
+            <div className="flex items-center gap-2 mb-3">
+              <LogOut className="h-5 w-5 text-destructive" aria-hidden />
+              <h2 id="account-heading" className="text-lg font-semibold">Account</h2>
+            </div>
+            <Card className="p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <p className="font-medium">Log out of your account</p>
+                <p className="text-sm text-muted-foreground">
+                  You'll need to sign in again to access your profile, rentals, and wishlist.
+                </p>
+              </div>
+              <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    className="w-full sm:w-auto"
+                    disabled={loggingOut}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Log Out</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to log out of your account?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={loggingOut}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={(e) => { e.preventDefault(); handleLogout(); }}
+                      disabled={loggingOut}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {loggingOut ? (
+                        <><Loader2 className="h-4 w-4 animate-spin" /> Logging out…</>
+                      ) : (
+                        "Log Out"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </Card>
+          </section>
+        )}
       </main>
     </div>
   );
 };
+
 
 export default Settings;
