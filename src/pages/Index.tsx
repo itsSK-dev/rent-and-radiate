@@ -393,7 +393,7 @@ const Index = () => {
 
 
       {/* Smart floating search bar */}
-      <section className="relative">
+      <section data-home-snap="after-hero" className="relative">
         <div className="container pt-8 md:pt-10 pb-4">
           <div ref={searchWrapRef} className="relative max-w-3xl mx-auto md:mx-0">
             <form
