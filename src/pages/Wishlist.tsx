@@ -34,7 +34,10 @@ export default function Wishlist() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { navigate("/auth?next=/wishlist"); return; }
+    if (!user) {
+      toast.info("Please sign in to continue with your order.");
+      navigate("/auth?next=/wishlist");
+    }
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
