@@ -165,7 +165,11 @@ const ProductDetail = () => {
   const isBlocked = (d: Date) => bookedDates.some((b) => isSameDay(b, d));
 
   async function addToCart() {
-    if (!user) { navigate(`/auth?next=/product/${id}`); return; }
+    if (!user) {
+      toast.info("Please sign in to continue with your order.");
+      navigate(`/auth?next=/product/${id}`);
+      return;
+    }
     if (mode === "rent" && (!start || !end)) return toast.error("Pick rental dates first.");
     if (qty > (product!.quantity ?? 0)) return toast.error("Not enough stock.");
     const payload: any = {
