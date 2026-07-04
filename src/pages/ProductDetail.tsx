@@ -187,7 +187,11 @@ const ProductDetail = () => {
   }
 
   async function buyNow() {
-    if (!user) { navigate(`/auth?next=/product/${id}`); return; }
+    if (!user) {
+      toast.info("Please sign in to continue with your order.");
+      navigate(`/auth?next=/product/${id}`);
+      return;
+    }
     if (mode === "rent" && (!start || !end)) return toast.error("Pick rental dates.");
     if (mode === "rent" && start && end) {
       const span = eachDayOfInterval({ start, end });
