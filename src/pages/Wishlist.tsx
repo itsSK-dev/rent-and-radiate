@@ -14,6 +14,7 @@ import { Heart, Loader2, CalendarIcon, Sparkles } from "lucide-react";
 import { addDays, format, differenceInCalendarDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type Row = ProductCardData & { available: boolean };
 
@@ -33,7 +34,10 @@ export default function Wishlist() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { navigate("/auth?next=/wishlist"); return; }
+    if (!user) {
+      toast.info("Please sign in to continue with your order.");
+      navigate("/auth?next=/wishlist");
+    }
   }, [authLoading, user, navigate]);
 
   useEffect(() => {

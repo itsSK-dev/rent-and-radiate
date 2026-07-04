@@ -79,7 +79,10 @@ const MyRentals = () => {
   const [refunds, setRefunds] = useState<RefundRow[]>([]);
 
   useEffect(() => {
-    if (!loading && !user) navigate("/auth?next=/my-rentals");
+    if (!loading && !user) {
+      toast.info("Please sign in to view your order history.");
+      navigate("/auth?next=/my-rentals");
+    }
   }, [user, loading, navigate]);
 
   useEffect(() => {

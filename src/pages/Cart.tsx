@@ -46,7 +46,11 @@ const Cart = () => {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { navigate("/auth?next=/cart"); return; }
+    if (!user) {
+      toast.info("Please sign in to continue with your order.");
+      navigate("/auth?next=/cart");
+      return;
+    }
     refresh();
   }, [user, authLoading]); // eslint-disable-line
 
