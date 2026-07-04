@@ -129,3 +129,18 @@
   .shadow-card { box-shadow: var(--shadow-card); }
   .transition-smooth { transition: var(--transition-smooth); }
 }
+
+/* Home page scroll priority: hero locks into view first, rest of the
+ * page snaps after it. Uses CSS scroll-snap on the document scroller so
+ * no layout/height changes are required. Active only while the home
+ * route is mounted (class toggled from src/pages/Index.tsx). */
+html.home-snap {
+  scroll-snap-type: y proximity;
+}
+html.home-snap [data-home-snap] {
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.home-snap { scroll-snap-type: none; }
+}

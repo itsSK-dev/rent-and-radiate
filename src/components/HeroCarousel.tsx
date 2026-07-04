@@ -81,6 +81,7 @@ export function HeroCarousel() {
 
   return (
     <section
+      data-home-snap="hero"
       className="relative w-full overflow-hidden bg-gradient-to-b from-blossom/40 via-background to-background"
       aria-roledescription="carousel"
       aria-label="Featured collections"
