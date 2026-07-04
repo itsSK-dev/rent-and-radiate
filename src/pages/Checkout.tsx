@@ -82,7 +82,11 @@ const Checkout = () => {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { navigate(`/auth?next=/checkout/${rentalId}`); return; }
+    if (!user) {
+      toast.info("Please sign in to continue with your order.");
+      navigate(`/auth?next=/checkout/${rentalId}`);
+      return;
+    }
     (async () => {
       const [{ data: r, error }, { data: psRows }] = await Promise.all([
         supabase.from("rentals")
