@@ -15,8 +15,14 @@ type Receipt = {
   end_date: string;
   days: number;
   rental_total: number;
+  subtotal: number | null;
+  discount_amount: number | null;
+  gst_amount: number | null;
+  delivery_fee: number | null;
+  platform_fee: number | null;
   deposit: number;
   grand_total: number;
+
   status: string;
   payment_status: string;
   payment_method: string | null;
