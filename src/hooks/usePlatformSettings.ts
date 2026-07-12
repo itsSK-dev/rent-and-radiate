@@ -32,6 +32,7 @@ export function usePlatformSettings() {
           rent_to_own_credit_percent: Number(data.rent_to_own_credit_percent ?? 50),
           platform_fee_slabs: data.platform_fee_slabs ?? DEFAULT_PLATFORM_FEE_SLABS,
           delivery_fee_slabs: data.delivery_fee_slabs ?? DEFAULT_DELIVERY_FEE_SLABS,
+          rental_platform_fee_enabled: Boolean(data.rental_platform_fee_enabled ?? false),
         });
       }
       if (mounted) setLoading(false);
