@@ -90,7 +90,7 @@ const Checkout = () => {
     (async () => {
       const [{ data: r, error }, { data: psRows }] = await Promise.all([
         supabase.from("rentals")
-          .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, protection_plan, protection_plan_fee, reward_points_used, reward_discount")
+          .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, platform_fee, protection_plan, protection_plan_fee, reward_points_used, reward_discount")
           .eq("id", rentalId!).maybeSingle(),
         (supabase as any).rpc("get_public_payment_settings"),
       ]);
@@ -146,7 +146,7 @@ const Checkout = () => {
       .from("rentals")
       .update({ reward_points_used: Math.max(0, Math.floor(pointsToUse)) })
       .eq("id", rental.id)
-      .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, protection_plan, protection_plan_fee, reward_points_used, reward_discount")
+      .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, platform_fee, protection_plan, protection_plan_fee, reward_points_used, reward_discount")
       .maybeSingle();
     setRedeemBusy(false);
     if (error || !data) return toast.error(error?.message ?? "Could not apply points");
