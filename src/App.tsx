@@ -83,6 +83,7 @@ const App = () => (
                   <Route path="/browse" element={<Browse />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/role-select" element={<RoleSelect />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/profile" element={<Profile />} />
