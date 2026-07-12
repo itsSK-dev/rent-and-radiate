@@ -380,9 +380,11 @@ const ProductDetail = () => {
                 <Row label={`Price × ${qty}`} value={inr(line.base)} />
               )}
               {totals.discount > 0 && <Row label="Discount" value={`− ${inr(totals.discount)}`} className="text-rose-deep" />}
-              <Row label={`GST (${settings.gst_percent}%)`} value={inr(totals.gst)} muted />
+              {totals.platformFee > 0 && <Row label="Platform fee" value={inr(totals.platformFee)} muted />}
+              {settings.gst_enabled && totals.gst > 0 && <Row label={`GST (${settings.gst_percent}%)`} value={inr(totals.gst)} muted />}
               {delivery === "delivery" && <Row label="Delivery" value={inr(totals.delivery)} muted />}
               {mode === "rent" && line.deposit > 0 && <Row label="Refundable deposit" value={inr(line.deposit)} muted />}
+
               {mode === "rent" && protectionPlan && <Row label="Protection Plan" value={inr(ppFee)} muted />}
               <Row label="Total payable" value={inr(displayGrandTotal)} bold />
             </div>
