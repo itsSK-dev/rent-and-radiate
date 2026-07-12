@@ -143,14 +143,15 @@ const ProductDetail = () => {
   const canRent = purpose === "rent" || purpose === "both";
   const canBuy = purpose === "buy" || purpose === "both";
   const outOfStock = (product.quantity ?? 0) <= 0;
-  const days = mode === "rent" && start && end ? Math.max(1, differenceInCalendarDays(end, start) + 1) : 0;
+  const days = mode === "rent" && start && end ? Math.max(1, differenceInCalendarDays(end, start)) : 0;
 
   const line = computeLine({
     kind: mode,
     pricePerDay: Number(product.price_per_day),
     actualPrice: Number(product.actual_price),
-    discountPercent: Number(product.discount_percent),
-    discountFlat: Number(product.discount_flat),
+    // Shop owner uploads the final price — no additional checkout discount.
+    discountPercent: mode === "rent" ? 0 : Number(product.discount_percent),
+    discountFlat: mode === "rent" ? 0 : Number(product.discount_flat),
     securityDeposit: Number(product.security_deposit),
     quantity: qty,
     days,
@@ -159,7 +160,8 @@ const ProductDetail = () => {
     delivery: delivery === "delivery",
     feeInputs: [{ line, unitPrice: line.finalUnit, quantity: qty, days: mode === "rent" ? days : 1 }],
   });
-  const ppFee = mode === "rent" && protectionPlan ? protectionPlanFee(line.subtotal, settings) : 0;
+  // Rental Protection Plan disabled — force to 0.
+  const ppFee = 0;
   const displayGrandTotal = totals.grandTotal + ppFee;
 
   const finalUnit = discountedUnitPrice(product.actual_price, product.discount_percent, product.discount_flat);
