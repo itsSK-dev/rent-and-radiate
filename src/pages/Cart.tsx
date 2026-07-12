@@ -255,11 +255,13 @@ const Cart = () => {
               <div className="space-y-1.5 text-sm border-t border-border pt-4">
                 <Row label="Subtotal" value={inr(totals.subtotal + totals.discount)} />
                 {totals.discount > 0 && <Row label="Discount" value={`− ${inr(totals.discount)}`} className="text-rose-deep" />}
-                <Row label={`GST (${settings.gst_percent}%)`} value={inr(totals.gst)} muted />
+                {totals.platformFee > 0 && <Row label="Platform fee" value={inr(totals.platformFee)} muted />}
+                {settings.gst_enabled && totals.gst > 0 && <Row label={`GST (${settings.gst_percent}%)`} value={inr(totals.gst)} muted />}
                 {delivery === "delivery" && <Row label="Delivery" value={inr(totals.delivery)} muted />}
                 {totals.deposit > 0 && <Row label="Refundable deposit" value={inr(totals.deposit)} muted />}
                 <Row label="Total payable" value={inr(totals.grandTotal)} bold />
               </div>
+
 
               <Button variant="hero" size="lg" className="w-full" onClick={checkout} disabled={submitting || items.length === 0}>
                 {submitting ? "Placing…" : `Checkout · ${inr(totals.grandTotal)}`}
