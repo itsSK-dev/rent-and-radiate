@@ -24,6 +24,8 @@ export type PlatformSettings = {
   rent_to_own_credit_percent: number;
   platform_fee_slabs: PlatformFeeSlabs;
   delivery_fee_slabs: DeliveryFeeSlabs;
+  /** When false, rental orders are charged no platform fee (buy orders unaffected). */
+  rental_platform_fee_enabled: boolean;
 };
 
 export const MIN_RENTAL_PERCENT = 10;
