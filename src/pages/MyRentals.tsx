@@ -15,6 +15,7 @@ import { RentalStatusTimeline } from "@/components/RentalStatusTimeline";
 import { OrderTypeBadge } from "@/components/OrderTypeBadge";
 import { REFUND_STATUS_LABEL, REFUND_STATUS_TONE } from "@/lib/refundTiers";
 import { RentalAdvancedActions } from "@/components/RentalAdvancedActions";
+import { DeliveryOTPCard } from "@/components/DeliveryOTPCard";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 
@@ -234,6 +235,13 @@ const MyRentals = () => {
                         </p>
                       )}
                     </div>
+
+                    {["assigned", "picked_up", "out_for_delivery"].includes(r.status) && (
+                      <DeliveryOTPCard rentalId={r.id} kind="delivery" />
+                    )}
+                    {r.kind === "rent" && ["return_scheduled", "return_picked_up"].includes(r.status) && (
+                      <DeliveryOTPCard rentalId={r.id} kind="return" />
+                    )}
 
                     <RentalAdvancedActions
                       rental={{

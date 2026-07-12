@@ -15,7 +15,7 @@ import { format } from "date-fns";
 import { Search, Package, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OrderTypeBadge, RentalDates } from "@/components/OrderTypeBadge";
-import { VendorQRVerify } from "@/components/vendor/VendorQRVerify";
+// VendorQRVerify removed — shop handoff now uses delivery-partner OTP flow.
 
 type Row = {
   id: string;
@@ -186,7 +186,8 @@ export default function VendorOrders() {
           </Button>
         </header>
 
-        <VendorQRVerify />
+        {/* Handoff is now via delivery-partner OTP, no shop-side QR scanner. */}
+
 
 
         {/* Filters */}
