@@ -19,9 +19,9 @@ const RoleSelect = () => {
   // Already signed in? Send them to their appropriate landing page.
   useEffect(() => {
     if (loading || !user) return;
-    if (next) return navigate(next, { replace: true });
-    if (roles.includes("admin")) return navigate("/admin", { replace: true });
-    if (roles.includes("store_owner")) return navigate("/vendor", { replace: true });
+    if (next) { navigate(next, { replace: true }); return; }
+    if (roles.includes("admin")) { navigate("/admin", { replace: true }); return; }
+    if (roles.includes("store_owner")) { navigate("/vendor", { replace: true }); return; }
     navigate("/", { replace: true });
   }, [user, roles, loading, navigate, next]);
 
