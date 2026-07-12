@@ -22,25 +22,41 @@ const schema = z.object({
 const Auth = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
+  const intentParam = params.get("intent");
+  const intent: "customer" | "shop_owner" =
+    intentParam === "shop_owner" ? "shop_owner" : "customer";
   const [mode, setMode] = useState<"signin" | "signup">(params.get("mode") === "signup" ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [referralCode, setReferralCode] = useState((params.get("ref") || "").toUpperCase());
-  const [role, setRole] = useState<"customer" | "store_owner">("customer");
   const [busy, setBusy] = useState(false);
+
+  // Persist intent so post-OAuth redirect knows where to send the user.
+  useEffect(() => {
+    try { localStorage.setItem("rr_auth_intent", intent); } catch { /* noop */ }
+  }, [intent]);
 
   useEffect(() => {
     document.title = `${mode === "signup" ? "Create your account" : "Sign in"} · Rent & Radiate`;
   }, [mode]);
 
   useEffect(() => {
-    if (user) {
-      const next = params.get("next");
-      navigate(next || "/", { replace: true });
+    if (!user) return;
+    const next = params.get("next");
+    if (next) { navigate(next, { replace: true }); return; }
+    const savedIntent = (() => {
+      try { return localStorage.getItem("rr_auth_intent"); } catch { return null; }
+    })();
+    const effectiveIntent = savedIntent === "shop_owner" ? "shop_owner" : intent;
+    if (roles.includes("admin")) { navigate("/admin", { replace: true }); return; }
+    if (effectiveIntent === "shop_owner") {
+      navigate(roles.includes("store_owner") ? "/vendor" : "/become-vendor", { replace: true });
+      return;
     }
-  }, [user, navigate, params]);
+    navigate("/", { replace: true });
+  }, [user, roles, navigate, params, intent]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
