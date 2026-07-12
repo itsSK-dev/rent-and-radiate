@@ -166,8 +166,8 @@ export function Navbar() {
               </>
             ) : (
               <>
-                <Link to="/auth" onClick={() => setOpen(false)} className="py-2">Sign in</Link>
-                <Link to="/auth?mode=signup" onClick={() => setOpen(false)} className="py-2 text-primary font-medium">Get started</Link>
+                <Link to="/role-select" onClick={() => setOpen(false)} className="py-2">Sign in</Link>
+                <Link to="/role-select" onClick={() => setOpen(false)} className="py-2 text-primary font-medium">Get started</Link>
               </>
             )}
           </div>
