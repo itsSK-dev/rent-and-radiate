@@ -52,6 +52,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Help = lazy(() => import("./pages/Help"));
 const Settings = lazy(() => import("./pages/Settings"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+const RoleSelect = lazy(() => import("./pages/RoleSelect"));
 
 const queryClient = new QueryClient();
 
