@@ -33,6 +33,9 @@ const Auth = () => {
   const intentParam = params.get("intent");
   const intent: "customer" | "shop_owner" =
     intentParam === "shop_owner" ? "shop_owner" : "customer";
+  // Phone OTP is temporarily disabled until the SMS provider is configured.
+  // Flip to `true` to re-enable phone login (UI + tab). The underlying logic below is preserved.
+  const PHONE_AUTH_ENABLED = false;
   const [method, setMethod] = useState<"email" | "phone">("email");
   const [mode, setMode] = useState<"signin" | "signup">(params.get("mode") === "signup" ? "signup" : "signin");
 
