@@ -66,6 +66,7 @@ export function PlatformSettingsPanel() {
       referral_min_order_amount: d.referral_min_order_amount ?? 500,
       platform_fee_slabs: d.platform_fee_slabs ?? DEFAULT_PLATFORM_SLABS,
       delivery_fee_slabs: d.delivery_fee_slabs ?? DEFAULT_DELIVERY_SLABS,
+      rental_platform_fee_enabled: d.rental_platform_fee_enabled ?? false,
     };
     setS(merged);
     setRemindersText(merged.reminder_intervals_hours.join(","));
