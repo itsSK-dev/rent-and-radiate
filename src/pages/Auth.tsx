@@ -221,9 +221,9 @@ const Auth = () => {
             </div>
 
             <Tabs value={method} onValueChange={(v) => setMethod(v as "email" | "phone")}>
-              <TabsList className="grid grid-cols-2 w-full">
+              <TabsList className={`grid w-full ${PHONE_AUTH_ENABLED ? "grid-cols-2" : "grid-cols-1"}`}>
                 <TabsTrigger value="email">Email</TabsTrigger>
-                <TabsTrigger value="phone">Phone</TabsTrigger>
+                {PHONE_AUTH_ENABLED && <TabsTrigger value="phone">Phone</TabsTrigger>}
               </TabsList>
 
               <TabsContent value="email" className="mt-4">
