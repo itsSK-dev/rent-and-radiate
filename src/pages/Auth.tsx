@@ -265,7 +265,7 @@ const Auth = () => {
                 </form>
               </TabsContent>
 
-              <TabsContent value="phone" className="mt-4">
+              {PHONE_AUTH_ENABLED && <TabsContent value="phone" className="mt-4">
                 {!otpSent ? (
                   <form onSubmit={sendOtp} className="space-y-4">
                     {mode === "signup" && (
