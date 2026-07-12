@@ -92,10 +92,10 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/role-select")}>
                 <UserIcon className="h-4 w-4 mr-2" /> Sign in
               </Button>
-              <Button variant="hero" size="sm" onClick={() => navigate("/auth?mode=signup")}>
+              <Button variant="hero" size="sm" onClick={() => navigate("/role-select")}>
                 Get started
               </Button>
             </>
