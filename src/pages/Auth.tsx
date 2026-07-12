@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ShoppingBag, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { lovable } from "@/integrations/lovable";
@@ -22,25 +22,41 @@ const schema = z.object({
 const Auth = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
+  const intentParam = params.get("intent");
+  const intent: "customer" | "shop_owner" =
+    intentParam === "shop_owner" ? "shop_owner" : "customer";
   const [mode, setMode] = useState<"signin" | "signup">(params.get("mode") === "signup" ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [referralCode, setReferralCode] = useState((params.get("ref") || "").toUpperCase());
-  const [role, setRole] = useState<"customer" | "store_owner">("customer");
   const [busy, setBusy] = useState(false);
+
+  // Persist intent so post-OAuth redirect knows where to send the user.
+  useEffect(() => {
+    try { localStorage.setItem("rr_auth_intent", intent); } catch { /* noop */ }
+  }, [intent]);
 
   useEffect(() => {
     document.title = `${mode === "signup" ? "Create your account" : "Sign in"} · Rent & Radiate`;
   }, [mode]);
 
   useEffect(() => {
-    if (user) {
-      const next = params.get("next");
-      navigate(next || "/", { replace: true });
+    if (!user) return;
+    const next = params.get("next");
+    if (next) { navigate(next, { replace: true }); return; }
+    const savedIntent = (() => {
+      try { return localStorage.getItem("rr_auth_intent"); } catch { return null; }
+    })();
+    const effectiveIntent = savedIntent === "shop_owner" ? "shop_owner" : intent;
+    if (roles.includes("admin")) { navigate("/admin", { replace: true }); return; }
+    if (effectiveIntent === "shop_owner") {
+      navigate(roles.includes("store_owner") ? "/vendor" : "/become-vendor", { replace: true });
+      return;
     }
-  }, [user, navigate, params]);
+    navigate("/", { replace: true });
+  }, [user, roles, navigate, params, intent]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -111,12 +127,23 @@ const Auth = () => {
       <Navbar />
       <section className="container py-16 md:py-24 flex justify-center">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8 animate-fade-up">
+          <div className="text-center mb-6 animate-fade-up">
+            <div className={`inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs mb-4 ${intent === "shop_owner" ? "bg-primary text-primary-foreground border-primary" : "bg-primary-soft text-primary"}`}>
+              {intent === "shop_owner" ? <Store className="h-3.5 w-3.5" /> : <ShoppingBag className="h-3.5 w-3.5" />}
+              {intent === "shop_owner" ? "Shop Owner" : "Customer"}
+              <Link to={`/role-select${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`} className="underline underline-offset-2 ml-1 opacity-80 hover:opacity-100">change</Link>
+            </div>
             <h1 className="font-display text-4xl md:text-5xl">
-              {mode === "signup" ? "Join Rent & Radiate" : "Welcome back"}
+              {mode === "signup"
+                ? intent === "shop_owner" ? "Open your shop" : "Join Rent & Radiate"
+                : "Welcome back"}
             </h1>
             <p className="text-muted-foreground mt-2 text-sm">
-              {mode === "signup" ? "Create an account to rent or to open your store." : "Sign in to continue."}
+              {mode === "signup"
+                ? intent === "shop_owner"
+                  ? "Create your shop owner account to start listing."
+                  : "Create an account to rent and shop."
+                : "Sign in to continue."}
             </p>
           </div>
 
@@ -145,12 +172,10 @@ const Auth = () => {
                     <p className="text-xs text-primary mt-1">🎁 You'll receive welcome bonus points after signup.</p>
                   )}
                 </div>
-                <div>
-                  <Label className="text-sm">I want to</Label>
-                  <RadioGroup value={role} onValueChange={(v) => setRole(v as any)} className="grid grid-cols-2 gap-2 mt-2">
-                    <RoleOpt value="customer" label="Rent items" />
-                    <RoleOpt value="store_owner" label="Open a store" />
-                  </RadioGroup>
+                <div className="rounded-xl border border-border bg-background/60 p-3 text-xs text-muted-foreground">
+                  {intent === "shop_owner"
+                    ? "You're creating a Shop Owner account. After signup we'll help you set up your store."
+                    : "You're creating a Customer account. Rent and buy from boutique stores."}
                 </div>
               </>
             )}
@@ -233,13 +258,5 @@ const Auth = () => {
   );
 };
 
-function RoleOpt({ value, label }: { value: string; label: string }) {
-  return (
-    <Label htmlFor={value} className="flex items-center gap-2 rounded-xl border border-border bg-background p-3 cursor-pointer hover:border-primary transition-smooth has-[:checked]:border-primary has-[:checked]:bg-primary-soft/40">
-      <RadioGroupItem value={value} id={value} />
-      <span className="text-sm">{label}</span>
-    </Label>
-  );
-}
 
 export default Auth;

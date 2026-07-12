@@ -52,6 +52,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Help = lazy(() => import("./pages/Help"));
 const Settings = lazy(() => import("./pages/Settings"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+const RoleSelect = lazy(() => import("./pages/RoleSelect"));
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,7 @@ const App = () => (
                   <Route path="/browse" element={<Browse />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/role-select" element={<RoleSelect />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/profile" element={<Profile />} />
