@@ -1104,13 +1104,16 @@ export type Database = {
         Row: {
           commission_percent: number
           delivery_fee: number
+          delivery_fee_slabs: Json
           deposit_percent_of_price: number
           gateway_fee_percent: number
+          gst_enabled: boolean
           gst_percent: number
           id: boolean
           late_fee_grace_hours: number
           late_fee_multiplier: number
           payout_hold_days: number
+          platform_fee_slabs: Json
           protection_claim_rules: string | null
           protection_claim_window_days: number
           protection_max_claim_percent: number
@@ -1141,13 +1144,16 @@ export type Database = {
         Insert: {
           commission_percent?: number
           delivery_fee?: number
+          delivery_fee_slabs?: Json
           deposit_percent_of_price?: number
           gateway_fee_percent?: number
+          gst_enabled?: boolean
           gst_percent?: number
           id?: boolean
           late_fee_grace_hours?: number
           late_fee_multiplier?: number
           payout_hold_days?: number
+          platform_fee_slabs?: Json
           protection_claim_rules?: string | null
           protection_claim_window_days?: number
           protection_max_claim_percent?: number
@@ -1178,13 +1184,16 @@ export type Database = {
         Update: {
           commission_percent?: number
           delivery_fee?: number
+          delivery_fee_slabs?: Json
           deposit_percent_of_price?: number
           gateway_fee_percent?: number
+          gst_enabled?: boolean
           gst_percent?: number
           id?: boolean
           late_fee_grace_hours?: number
           late_fee_multiplier?: number
           payout_hold_days?: number
+          platform_fee_slabs?: Json
           protection_claim_rules?: string | null
           protection_claim_window_days?: number
           protection_max_claim_percent?: number
@@ -1680,6 +1689,7 @@ export type Database = {
           late_fee_hours: number
           payment_method: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
+          platform_fee: number
           product_id: string
           protection_plan: boolean
           protection_plan_fee: number
@@ -1727,6 +1737,7 @@ export type Database = {
           late_fee_hours?: number
           payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          platform_fee?: number
           product_id: string
           protection_plan?: boolean
           protection_plan_fee?: number
@@ -1774,6 +1785,7 @@ export type Database = {
           late_fee_hours?: number
           payment_method?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          platform_fee?: number
           product_id?: string
           protection_plan?: boolean
           protection_plan_fee?: number
