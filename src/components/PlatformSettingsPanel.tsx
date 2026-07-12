@@ -109,6 +109,7 @@ export function PlatformSettingsPanel() {
         referral_min_order_amount: Math.max(0, Number(s.referral_min_order_amount) || 0),
         platform_fee_slabs: platformSlabs,
         delivery_fee_slabs: deliverySlabs,
+        rental_platform_fee_enabled: Boolean(s.rental_platform_fee_enabled),
       }).eq("id", true);
     setSaving(false);
     if (error) return toast.error(error.message);
