@@ -340,20 +340,7 @@ const ProductDetail = () => {
               </p>
             )}
 
-            {mode === "rent" && (
-              <label className="flex items-start gap-3 rounded-2xl border border-border bg-blossom/30 p-3 cursor-pointer">
-                <Switch checked={protectionPlan} onCheckedChange={setProtectionPlan} className="mt-1" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium flex items-center gap-1.5">
-                    <ShieldCheck className="h-4 w-4 text-rose-deep" /> Rental Protection Plan
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Optional. Covers accidental damage up to ₹{Number(line.deposit).toLocaleString("en-IN")}. Adds{" "}
-                    <strong>{inr(protectionPlanFee(line.subtotal, settings))}</strong> to this order.
-                  </p>
-                </div>
-              </label>
-            )}
+            {/* Rental Protection Plan disabled for now — will be re-enabled in the future. */}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -373,21 +360,17 @@ const ProductDetail = () => {
 
             <div className="space-y-1.5 text-sm border-t border-border pt-4">
               {mode === "rent" && (
-                <>
-                  <Row label="Rate / day" value={inr(product.price_per_day)} muted />
-                  <Row label={`Rental (${days || 0} day${days === 1 ? "" : "s"} × ${qty})`} value={inr(line.base)} />
-                </>
+                <Row label={`Rental (${days || 0} day${days === 1 ? "" : "s"} × ${qty})`} value={inr(line.subtotal)} />
               )}
               {mode === "buy" && (
                 <Row label={`Price × ${qty}`} value={inr(line.base)} />
               )}
-              {totals.discount > 0 && <Row label="Discount" value={`− ${inr(totals.discount)}`} className="text-rose-deep" />}
+              {mode === "buy" && totals.discount > 0 && <Row label="Discount" value={`− ${inr(totals.discount)}`} className="text-rose-deep" />}
               {totals.platformFee > 0 && <Row label="Platform fee" value={inr(totals.platformFee)} muted />}
               {settings.gst_enabled && totals.gst > 0 && <Row label={`GST (${settings.gst_percent}%)`} value={inr(totals.gst)} muted />}
               {delivery === "delivery" && <Row label="Delivery" value={inr(totals.delivery)} muted />}
               {mode === "rent" && line.deposit > 0 && <Row label="Refundable deposit" value={inr(line.deposit)} muted />}
 
-              {mode === "rent" && protectionPlan && <Row label="Protection Plan" value={inr(ppFee)} muted />}
               <Row label="Total payable" value={inr(displayGrandTotal)} bold />
             </div>
 
