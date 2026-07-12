@@ -220,6 +220,20 @@ export function PlatformSettingsPanel() {
         </label>
       </div>
 
+      <div className="border-t border-border pt-4 space-y-3">
+        <h3 className="font-medium">Rental platform fee</h3>
+        <label className="flex items-center gap-3">
+          <Switch
+            checked={s.rental_platform_fee_enabled}
+            onCheckedChange={(v) => setS({ ...s, rental_platform_fee_enabled: v })}
+          />
+          <span className="text-sm">Charge platform fee on rental orders (buy orders always charge it)</span>
+        </label>
+        <p className="text-[11px] text-muted-foreground">
+          When off, rental checkout, cart, and receipts show no platform fee and the total excludes it. Purchase orders are unaffected.
+        </p>
+      </div>
+
       <Button variant="hero" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save settings"}</Button>
 
     </div>
