@@ -33,6 +33,9 @@ const Auth = () => {
   const intentParam = params.get("intent");
   const intent: "customer" | "shop_owner" =
     intentParam === "shop_owner" ? "shop_owner" : "customer";
+  // Phone OTP is temporarily disabled until the SMS provider is configured.
+  // Flip to `true` to re-enable phone login (UI + tab). The underlying logic below is preserved.
+  const PHONE_AUTH_ENABLED = false;
   const [method, setMethod] = useState<"email" | "phone">("email");
   const [mode, setMode] = useState<"signin" | "signup">(params.get("mode") === "signup" ? "signup" : "signin");
 
@@ -218,9 +221,9 @@ const Auth = () => {
             </div>
 
             <Tabs value={method} onValueChange={(v) => setMethod(v as "email" | "phone")}>
-              <TabsList className="grid grid-cols-2 w-full">
+              <TabsList className={`grid w-full ${PHONE_AUTH_ENABLED ? "grid-cols-2" : "grid-cols-1"}`}>
                 <TabsTrigger value="email">Email</TabsTrigger>
-                <TabsTrigger value="phone">Phone</TabsTrigger>
+                {PHONE_AUTH_ENABLED && <TabsTrigger value="phone">Phone</TabsTrigger>}
               </TabsList>
 
               <TabsContent value="email" className="mt-4">
@@ -262,7 +265,7 @@ const Auth = () => {
                 </form>
               </TabsContent>
 
-              <TabsContent value="phone" className="mt-4">
+              {PHONE_AUTH_ENABLED && <TabsContent value="phone" className="mt-4">
                 {!otpSent ? (
                   <form onSubmit={sendOtp} className="space-y-4">
                     {mode === "signup" && (
@@ -318,7 +321,7 @@ const Auth = () => {
                     </button>
                   </form>
                 )}
-              </TabsContent>
+              </TabsContent>}
             </Tabs>
 
             <p className="text-sm text-center text-muted-foreground">
