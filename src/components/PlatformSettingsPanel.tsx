@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 type Settings = {
-  gst_percent: number; delivery_fee: number; commission_percent: number;
+  gst_percent: number; gst_enabled: boolean;
+  delivery_fee: number; commission_percent: number;
   gateway_fee_percent: number; payout_hold_days: number; rental_price_percent: number;
   deposit_percent_of_price: number;
   protection_plan_percent: number; protection_plan_min: number;
@@ -17,7 +18,9 @@ type Settings = {
   rent_to_own_enabled: boolean; rent_to_own_credit_percent: number;
   referrals_enabled: boolean;
   referral_signup_bonus: number; referral_referrer_bonus: number; referral_min_order_amount: number;
+  platform_fee_slabs: any; delivery_fee_slabs: any;
 };
+
 
 export function PlatformSettingsPanel() {
   const [s, setS] = useState<Settings | null>(null);
