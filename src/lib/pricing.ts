@@ -62,6 +62,7 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   rent_to_own_credit_percent: 50,
   platform_fee_slabs: DEFAULT_PLATFORM_FEE_SLABS,
   delivery_fee_slabs: DEFAULT_DELIVERY_FEE_SLABS,
+  rental_platform_fee_enabled: false,
 };
 
 /** One-day platform fee for a given final (discounted) unit price. */
