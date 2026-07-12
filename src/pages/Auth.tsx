@@ -247,13 +247,5 @@ const Auth = () => {
   );
 };
 
-function RoleOpt({ value, label }: { value: string; label: string }) {
-  return (
-    <Label htmlFor={value} className="flex items-center gap-2 rounded-xl border border-border bg-background p-3 cursor-pointer hover:border-primary transition-smooth has-[:checked]:border-primary has-[:checked]:bg-primary-soft/40">
-      <RadioGroupItem value={value} id={value} />
-      <span className="text-sm">{label}</span>
-    </Label>
-  );
-}
 
 export default Auth;
