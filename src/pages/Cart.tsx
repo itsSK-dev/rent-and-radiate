@@ -85,8 +85,9 @@ const Cart = () => {
       kind: it.kind,
       pricePerDay: Number(it.product.price_per_day),
       actualPrice: Number(it.product.actual_price),
-      discountPercent: Number(it.product.discount_percent),
-      discountFlat: Number(it.product.discount_flat),
+      // Shop owner uploads the final price — no additional checkout discount for rentals.
+      discountPercent: it.kind === "rent" ? 0 : Number(it.product.discount_percent),
+      discountFlat: it.kind === "rent" ? 0 : Number(it.product.discount_flat),
       securityDeposit: Number(it.product.security_deposit),
       quantity: it.quantity,
       days,
