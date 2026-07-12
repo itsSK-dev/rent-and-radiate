@@ -99,6 +99,8 @@ const Cart = () => {
     .map((it) => {
       const line = lineFor(it);
       if (!it.product || !line) return null;
+      // Rental platform fee is admin-toggleable; when off, rent lines add no fee.
+      if (it.kind === "rent" && !settings.rental_platform_fee_enabled) return null;
       const days = it.kind === "rent" && it.start_date && it.end_date
         ? Math.max(1, differenceInCalendarDays(new Date(it.end_date), new Date(it.start_date)))
         : 1;
@@ -120,9 +122,12 @@ const Cart = () => {
         const days = it.kind === "rent" && it.start_date && it.end_date
           ? Math.max(1, differenceInCalendarDays(new Date(it.end_date), new Date(it.start_date)))
           : null;
+        const chargeFee = it.kind !== "rent" || settings.rental_platform_fee_enabled;
         const single = computeOrderTotals([line], settings, {
           delivery: false,
-          feeInputs: [{ line, unitPrice: line.finalUnit, quantity: it.quantity, days: days ?? 1 }],
+          feeInputs: chargeFee
+            ? [{ line, unitPrice: line.finalUnit, quantity: it.quantity, days: days ?? 1 }]
+            : [],
         });
         const payload: any = {
           customer_id: user!.id,

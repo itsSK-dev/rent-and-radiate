@@ -19,6 +19,7 @@ type Settings = {
   referrals_enabled: boolean;
   referral_signup_bonus: number; referral_referrer_bonus: number; referral_min_order_amount: number;
   platform_fee_slabs: any; delivery_fee_slabs: any;
+  rental_platform_fee_enabled: boolean;
 };
 
 
@@ -40,7 +41,7 @@ export function PlatformSettingsPanel() {
   async function load() {
     const { data } = await (supabase as any)
       .from("platform_settings")
-      .select("gst_percent,gst_enabled,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days,rental_price_percent,deposit_percent_of_price,protection_plan_percent,protection_plan_min,late_fee_multiplier,late_fee_grace_hours,reminder_intervals_hours,rent_to_own_enabled,rent_to_own_credit_percent,referrals_enabled,referral_signup_bonus,referral_referrer_bonus,referral_min_order_amount,platform_fee_slabs,delivery_fee_slabs")
+      .select("gst_percent,gst_enabled,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days,rental_price_percent,deposit_percent_of_price,protection_plan_percent,protection_plan_min,late_fee_multiplier,late_fee_grace_hours,reminder_intervals_hours,rent_to_own_enabled,rent_to_own_credit_percent,referrals_enabled,referral_signup_bonus,referral_referrer_bonus,referral_min_order_amount,platform_fee_slabs,delivery_fee_slabs,rental_platform_fee_enabled")
       .eq("id", true).maybeSingle();
     const d = data ?? {};
     const merged: Settings = {
@@ -65,6 +66,7 @@ export function PlatformSettingsPanel() {
       referral_min_order_amount: d.referral_min_order_amount ?? 500,
       platform_fee_slabs: d.platform_fee_slabs ?? DEFAULT_PLATFORM_SLABS,
       delivery_fee_slabs: d.delivery_fee_slabs ?? DEFAULT_DELIVERY_SLABS,
+      rental_platform_fee_enabled: d.rental_platform_fee_enabled ?? false,
     };
     setS(merged);
     setRemindersText(merged.reminder_intervals_hours.join(","));
@@ -107,6 +109,7 @@ export function PlatformSettingsPanel() {
         referral_min_order_amount: Math.max(0, Number(s.referral_min_order_amount) || 0),
         platform_fee_slabs: platformSlabs,
         delivery_fee_slabs: deliverySlabs,
+        rental_platform_fee_enabled: Boolean(s.rental_platform_fee_enabled),
       }).eq("id", true);
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -215,6 +218,20 @@ export function PlatformSettingsPanel() {
           <Switch checked={s.gst_enabled} onCheckedChange={(v) => setS({ ...s, gst_enabled: v })} />
           <span className="text-sm">Charge GST on orders (uses the GST % above)</span>
         </label>
+      </div>
+
+      <div className="border-t border-border pt-4 space-y-3">
+        <h3 className="font-medium">Rental platform fee</h3>
+        <label className="flex items-center gap-3">
+          <Switch
+            checked={s.rental_platform_fee_enabled}
+            onCheckedChange={(v) => setS({ ...s, rental_platform_fee_enabled: v })}
+          />
+          <span className="text-sm">Charge platform fee on rental orders (buy orders always charge it)</span>
+        </label>
+        <p className="text-[11px] text-muted-foreground">
+          When off, rental checkout, cart, and receipts show no platform fee and the total excludes it. Purchase orders are unaffected.
+        </p>
       </div>
 
       <Button variant="hero" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save settings"}</Button>

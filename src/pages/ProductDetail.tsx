@@ -156,9 +156,13 @@ const ProductDetail = () => {
     quantity: qty,
     days,
   });
+  // Rental platform fee is admin-toggleable. When disabled, rent lines don't contribute a fee.
+  const chargeRentalPlatformFee = mode !== "rent" || settings.rental_platform_fee_enabled;
   const totals = computeOrderTotals([line], settings, {
     delivery: delivery === "delivery",
-    feeInputs: [{ line, unitPrice: line.finalUnit, quantity: qty, days: mode === "rent" ? days : 1 }],
+    feeInputs: chargeRentalPlatformFee
+      ? [{ line, unitPrice: line.finalUnit, quantity: qty, days: mode === "rent" ? days : 1 }]
+      : [],
   });
   // Rental Protection Plan disabled — force to 0.
   const ppFee = 0;

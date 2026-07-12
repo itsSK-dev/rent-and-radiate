@@ -1133,6 +1133,7 @@ export type Database = {
           reminder_intervals_hours: number[]
           rent_to_own_credit_percent: number
           rent_to_own_enabled: boolean
+          rental_platform_fee_enabled: boolean
           rental_price_percent: number
           reward_earn_rate_percent: number
           reward_max_redeem_percent: number
@@ -1173,6 +1174,7 @@ export type Database = {
           reminder_intervals_hours?: number[]
           rent_to_own_credit_percent?: number
           rent_to_own_enabled?: boolean
+          rental_platform_fee_enabled?: boolean
           rental_price_percent?: number
           reward_earn_rate_percent?: number
           reward_max_redeem_percent?: number
@@ -1213,6 +1215,7 @@ export type Database = {
           reminder_intervals_hours?: number[]
           rent_to_own_credit_percent?: number
           rent_to_own_enabled?: boolean
+          rental_platform_fee_enabled?: boolean
           rental_price_percent?: number
           reward_earn_rate_percent?: number
           reward_max_redeem_percent?: number
