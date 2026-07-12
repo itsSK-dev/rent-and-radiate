@@ -134,9 +134,14 @@ const Receipt = () => {
 
           <div className="border-t border-border pt-5 space-y-2 text-sm">
             <Row label={`Rental (${r.days} day${r.days === 1 ? "" : "s"})`} value={`₹${Number(r.rental_total).toLocaleString("en-IN")}`} />
+            {Number(r.discount_amount) > 0 && <Row label="Discount" value={`− ₹${Number(r.discount_amount).toLocaleString("en-IN")}`} />}
+            {Number(r.platform_fee) > 0 && <Row label="Platform fee" value={`₹${Number(r.platform_fee).toLocaleString("en-IN")}`} muted />}
+            {Number(r.gst_amount) > 0 && <Row label="GST" value={`₹${Number(r.gst_amount).toLocaleString("en-IN")}`} muted />}
+            {Number(r.delivery_fee) > 0 && <Row label="Delivery" value={`₹${Number(r.delivery_fee).toLocaleString("en-IN")}`} muted />}
             <Row label="Refundable deposit" value={`₹${Number(r.deposit).toLocaleString("en-IN")}`} muted />
             <Row label="Total" value={`₹${Number(r.grand_total).toLocaleString("en-IN")}`} bold />
           </div>
+
 
           <p className="text-xs text-muted-foreground border-t border-border pt-4">
             {isPaid
