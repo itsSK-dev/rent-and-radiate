@@ -127,12 +127,23 @@ const Auth = () => {
       <Navbar />
       <section className="container py-16 md:py-24 flex justify-center">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8 animate-fade-up">
+          <div className="text-center mb-6 animate-fade-up">
+            <div className={`inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs mb-4 ${intent === "shop_owner" ? "bg-primary text-primary-foreground border-primary" : "bg-primary-soft text-primary"}`}>
+              {intent === "shop_owner" ? <Store className="h-3.5 w-3.5" /> : <ShoppingBag className="h-3.5 w-3.5" />}
+              {intent === "shop_owner" ? "Shop Owner" : "Customer"}
+              <Link to={`/role-select${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`} className="underline underline-offset-2 ml-1 opacity-80 hover:opacity-100">change</Link>
+            </div>
             <h1 className="font-display text-4xl md:text-5xl">
-              {mode === "signup" ? "Join Rent & Radiate" : "Welcome back"}
+              {mode === "signup"
+                ? intent === "shop_owner" ? "Open your shop" : "Join Rent & Radiate"
+                : "Welcome back"}
             </h1>
             <p className="text-muted-foreground mt-2 text-sm">
-              {mode === "signup" ? "Create an account to rent or to open your store." : "Sign in to continue."}
+              {mode === "signup"
+                ? intent === "shop_owner"
+                  ? "Create your shop owner account to start listing."
+                  : "Create an account to rent and shop."
+                : "Sign in to continue."}
             </p>
           </div>
 
