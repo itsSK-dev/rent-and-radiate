@@ -45,7 +45,7 @@ const Receipt = () => {
     (async () => {
       const { data } = await supabase
         .from("rentals")
-        .select("id,created_at,start_date,end_date,days,rental_total,deposit,grand_total,status,payment_status,payment_method,razorpay_order_id,razorpay_payment_id,product:products(title),store:stores(name,city,address)")
+        .select("id,created_at,start_date,end_date,days,rental_total,subtotal,discount_amount,gst_amount,delivery_fee,platform_fee,deposit,grand_total,status,payment_status,payment_method,razorpay_order_id,razorpay_payment_id,product:products(title),store:stores(name,city,address)")
         .eq("id", rentalId!)
         .maybeSingle();
       setR(data as any);
