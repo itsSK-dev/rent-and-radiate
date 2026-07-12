@@ -344,6 +344,286 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_assignments: {
+        Row: {
+          accepted_at: string | null
+          cancelled_at: string | null
+          created_at: string
+          delivered_at: string | null
+          id: string
+          notes: string | null
+          partner_id: string
+          picked_up_at: string | null
+          rental_id: string
+          return_picked_up_at: string | null
+          returned_to_store_at: string | null
+          status: Database["public"]["Enums"]["delivery_assignment_status"]
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          notes?: string | null
+          partner_id: string
+          picked_up_at?: string | null
+          rental_id: string
+          return_picked_up_at?: string | null
+          returned_to_store_at?: string | null
+          status?: Database["public"]["Enums"]["delivery_assignment_status"]
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          notes?: string | null
+          partner_id?: string
+          picked_up_at?: string | null
+          rental_id?: string
+          return_picked_up_at?: string | null
+          returned_to_store_at?: string | null
+          status?: Database["public"]["Enums"]["delivery_assignment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_assignments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_assignments_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_earnings: {
+        Row: {
+          amount: number
+          assignment_id: string
+          created_at: string
+          id: string
+          paid_at: string | null
+          partner_id: string
+          rental_id: string
+          status: string
+        }
+        Insert: {
+          amount?: number
+          assignment_id: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          partner_id: string
+          rental_id: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          assignment_id?: string
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          partner_id?: string
+          rental_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_earnings_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_earnings_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_otps: {
+        Row: {
+          code_hash: string
+          created_at: string
+          expires_at: string
+          id: string
+          kind: Database["public"]["Enums"]["delivery_otp_kind"]
+          rental_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          kind: Database["public"]["Enums"]["delivery_otp_kind"]
+          rental_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["delivery_otp_kind"]
+          rental_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_otps_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_partner_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          file_path: string
+          id: string
+          partner_id: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type: string
+          file_path: string
+          id?: string
+          partner_id: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          file_path?: string
+          id?: string
+          partner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_partner_documents_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_partners: {
+        Row: {
+          additional_info: string | null
+          approved_at: string | null
+          approved_by: string | null
+          bank_account: string | null
+          city: string
+          created_at: string
+          current_address: string
+          date_of_birth: string | null
+          email: string | null
+          emergency_contact_name: string
+          emergency_contact_number: string
+          experience_duration: string | null
+          full_name: string
+          gender: string | null
+          has_experience: boolean | null
+          id: string
+          is_online: boolean
+          mobile: string
+          permanent_address: string | null
+          pin_code: string
+          previous_company: string | null
+          profile_photo_url: string | null
+          rejection_reason: string | null
+          state: string
+          status: Database["public"]["Enums"]["delivery_partner_status"]
+          updated_at: string
+          upi_id: string | null
+          user_id: string
+          vehicle_number: string | null
+          vehicle_type: Database["public"]["Enums"]["delivery_vehicle_type"]
+        }
+        Insert: {
+          additional_info?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_account?: string | null
+          city: string
+          created_at?: string
+          current_address: string
+          date_of_birth?: string | null
+          email?: string | null
+          emergency_contact_name: string
+          emergency_contact_number: string
+          experience_duration?: string | null
+          full_name: string
+          gender?: string | null
+          has_experience?: boolean | null
+          id?: string
+          is_online?: boolean
+          mobile: string
+          permanent_address?: string | null
+          pin_code: string
+          previous_company?: string | null
+          profile_photo_url?: string | null
+          rejection_reason?: string | null
+          state: string
+          status?: Database["public"]["Enums"]["delivery_partner_status"]
+          updated_at?: string
+          upi_id?: string | null
+          user_id: string
+          vehicle_number?: string | null
+          vehicle_type: Database["public"]["Enums"]["delivery_vehicle_type"]
+        }
+        Update: {
+          additional_info?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_account?: string | null
+          city?: string
+          created_at?: string
+          current_address?: string
+          date_of_birth?: string | null
+          email?: string | null
+          emergency_contact_name?: string
+          emergency_contact_number?: string
+          experience_duration?: string | null
+          full_name?: string
+          gender?: string | null
+          has_experience?: boolean | null
+          id?: string
+          is_online?: boolean
+          mobile?: string
+          permanent_address?: string | null
+          pin_code?: string
+          previous_company?: string | null
+          profile_photo_url?: string | null
+          rejection_reason?: string | null
+          state?: string
+          status?: Database["public"]["Enums"]["delivery_partner_status"]
+          updated_at?: string
+          upi_id?: string | null
+          user_id?: string
+          vehicle_number?: string | null
+          vehicle_type?: Database["public"]["Enums"]["delivery_vehicle_type"]
+        }
+        Relationships: []
+      }
       deposit_refunds: {
         Row: {
           admin_notes: string | null
@@ -1671,6 +1951,7 @@ export type Database = {
         Row: {
           actual_delivered_at: string | null
           address: string | null
+          assigned_partner_id: string | null
           commission_amount: number
           converted_to_purchase_rental_id: string | null
           created_at: string
@@ -1719,6 +2000,7 @@ export type Database = {
         Insert: {
           actual_delivered_at?: string | null
           address?: string | null
+          assigned_partner_id?: string | null
           commission_amount?: number
           converted_to_purchase_rental_id?: string | null
           created_at?: string
@@ -1767,6 +2049,7 @@ export type Database = {
         Update: {
           actual_delivered_at?: string | null
           address?: string | null
+          assigned_partner_id?: string | null
           commission_amount?: number
           converted_to_purchase_rental_id?: string | null
           created_at?: string
@@ -1813,6 +2096,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rentals_assigned_partner_id_fkey"
+            columns: ["assigned_partner_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_partners"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rentals_converted_to_purchase_rental_id_fkey"
             columns: ["converted_to_purchase_rental_id"]
@@ -2634,10 +2924,24 @@ export type Database = {
         | "sponsored_product"
         | "homepage_promotion"
         | "custom"
-      app_role: "customer" | "store_owner" | "admin"
+      app_role: "customer" | "store_owner" | "admin" | "delivery_partner"
       campaign_audience: "all" | "selected" | "city" | "category"
       campaign_status: "draft" | "scheduled" | "sending" | "sent" | "failed"
+      delivery_assignment_status:
+        | "broadcast"
+        | "accepted"
+        | "rejected"
+        | "picked_up"
+        | "out_for_delivery"
+        | "delivered"
+        | "return_scheduled"
+        | "return_picked_up"
+        | "returned_to_store"
+        | "cancelled"
       delivery_method: "delivery" | "pickup"
+      delivery_otp_kind: "delivery" | "return"
+      delivery_partner_status: "pending" | "approved" | "rejected" | "suspended"
+      delivery_vehicle_type: "bike" | "cycle" | "scooter" | "car"
       dispute_status: "open" | "reviewing" | "resolved" | "rejected"
       extension_status: "pending" | "approved" | "rejected"
       fraud_alert_kind:
@@ -2660,6 +2964,7 @@ export type Database = {
         | "rental_update"
         | "promo"
         | "admin_broadcast"
+        | "delivery_update"
       order_kind: "rent" | "buy"
       payment_status:
         | "unpaid"
@@ -2708,6 +3013,12 @@ export type Database = {
         | "packing"
         | "ready_for_pickup"
         | "shipped"
+        | "assigned"
+        | "picked_up"
+        | "out_for_delivery"
+        | "return_scheduled"
+        | "return_picked_up"
+        | "completed"
       return_status:
         | "requested"
         | "approved"
@@ -2872,10 +3183,25 @@ export const Constants = {
         "homepage_promotion",
         "custom",
       ],
-      app_role: ["customer", "store_owner", "admin"],
+      app_role: ["customer", "store_owner", "admin", "delivery_partner"],
       campaign_audience: ["all", "selected", "city", "category"],
       campaign_status: ["draft", "scheduled", "sending", "sent", "failed"],
+      delivery_assignment_status: [
+        "broadcast",
+        "accepted",
+        "rejected",
+        "picked_up",
+        "out_for_delivery",
+        "delivered",
+        "return_scheduled",
+        "return_picked_up",
+        "returned_to_store",
+        "cancelled",
+      ],
       delivery_method: ["delivery", "pickup"],
+      delivery_otp_kind: ["delivery", "return"],
+      delivery_partner_status: ["pending", "approved", "rejected", "suspended"],
+      delivery_vehicle_type: ["bike", "cycle", "scooter", "car"],
       dispute_status: ["open", "reviewing", "resolved", "rejected"],
       extension_status: ["pending", "approved", "rejected"],
       fraud_alert_kind: [
@@ -2899,6 +3225,7 @@ export const Constants = {
         "rental_update",
         "promo",
         "admin_broadcast",
+        "delivery_update",
       ],
       order_kind: ["rent", "buy"],
       payment_status: [
@@ -2951,6 +3278,12 @@ export const Constants = {
         "packing",
         "ready_for_pickup",
         "shipped",
+        "assigned",
+        "picked_up",
+        "out_for_delivery",
+        "return_scheduled",
+        "return_picked_up",
+        "completed",
       ],
       return_status: [
         "requested",
