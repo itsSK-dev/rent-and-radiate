@@ -155,9 +155,13 @@ const ProductDetail = () => {
     quantity: qty,
     days,
   });
-  const totals = computeOrderTotals([line], settings, { delivery: delivery === "delivery" });
+  const totals = computeOrderTotals([line], settings, {
+    delivery: delivery === "delivery",
+    feeInputs: [{ line, unitPrice: line.finalUnit, quantity: qty, days: mode === "rent" ? days : 1 }],
+  });
   const ppFee = mode === "rent" && protectionPlan ? protectionPlanFee(line.subtotal, settings) : 0;
   const displayGrandTotal = totals.grandTotal + ppFee;
+
   const finalUnit = discountedUnitPrice(product.actual_price, product.discount_percent, product.discount_flat);
   const hasDiscount = canBuy && Number(product.actual_price) > 0 && finalUnit < Number(product.actual_price);
   const heroImg = product.images?.[activeImage] || product.images?.[0] || demoImageMap[product.title];
