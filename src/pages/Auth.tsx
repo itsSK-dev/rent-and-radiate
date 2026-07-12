@@ -161,12 +161,10 @@ const Auth = () => {
                     <p className="text-xs text-primary mt-1">🎁 You'll receive welcome bonus points after signup.</p>
                   )}
                 </div>
-                <div>
-                  <Label className="text-sm">I want to</Label>
-                  <RadioGroup value={role} onValueChange={(v) => setRole(v as any)} className="grid grid-cols-2 gap-2 mt-2">
-                    <RoleOpt value="customer" label="Rent items" />
-                    <RoleOpt value="store_owner" label="Open a store" />
-                  </RadioGroup>
+                <div className="rounded-xl border border-border bg-background/60 p-3 text-xs text-muted-foreground">
+                  {intent === "shop_owner"
+                    ? "You're creating a Shop Owner account. After signup we'll help you set up your store."
+                    : "You're creating a Customer account. Rent and buy from boutique stores."}
                 </div>
               </>
             )}
