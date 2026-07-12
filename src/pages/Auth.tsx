@@ -183,8 +183,8 @@ const Auth = () => {
         <div className="w-full max-w-md">
           <div className="text-center mb-6 animate-fade-up">
             <div className={`inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs mb-4 ${intent === "shop_owner" ? "bg-primary text-primary-foreground border-primary" : "bg-primary-soft text-primary"}`}>
-              {intent === "shop_owner" ? <Store className="h-3.5 w-3.5" /> : <ShoppingBag className="h-3.5 w-3.5" />}
-              {intent === "shop_owner" ? "Shop Owner" : "Customer"}
+              <ShoppingBag className="h-3.5 w-3.5" />
+              {intent === "shop_owner" ? "Shop Owner" : intent === "delivery_partner" ? "Delivery Partner" : "Customer"}
               <Link to={`/role-select${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`} className="underline underline-offset-2 ml-1 opacity-80 hover:opacity-100">change</Link>
             </div>
             <h1 className="font-display text-4xl md:text-5xl">
