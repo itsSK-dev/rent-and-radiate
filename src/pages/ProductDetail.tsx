@@ -218,11 +218,13 @@ const ProductDetail = () => {
       discount_amount: totals.discount,
       gst_amount: totals.gst,
       delivery_fee: totals.delivery,
+      platform_fee: totals.platformFee,
       commission_amount: totals.commission,
       grand_total: totals.grandTotal,
       delivery_method: delivery,
       protection_plan: mode === "rent" ? protectionPlan : false,
     };
+
     const { data: created, error } = await supabase.from("rentals").insert(payload).select("id").single();
     setSubmitting(false);
     if (error || !created) return toast.error(error?.message ?? "Could not place order");
