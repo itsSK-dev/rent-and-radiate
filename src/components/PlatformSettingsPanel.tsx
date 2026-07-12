@@ -19,6 +19,7 @@ type Settings = {
   referrals_enabled: boolean;
   referral_signup_bonus: number; referral_referrer_bonus: number; referral_min_order_amount: number;
   platform_fee_slabs: any; delivery_fee_slabs: any;
+  rental_platform_fee_enabled: boolean;
 };
 
 
