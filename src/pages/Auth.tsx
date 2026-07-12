@@ -321,7 +321,7 @@ const Auth = () => {
                     </button>
                   </form>
                 )}
-              </TabsContent>
+              </TabsContent>}
             </Tabs>
 
             <p className="text-sm text-center text-muted-foreground">
