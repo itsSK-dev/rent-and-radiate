@@ -110,7 +110,7 @@ export default function Wishlist() {
               const canRent = purpose === "rent" || purpose === "both";
               const outOfStock = (p.quantity ?? 1) <= 0 || !p.available;
               const days = range?.from && range?.to
-                ? Math.max(1, differenceInCalendarDays(range.to, range.from) + 1)
+                ? Math.max(1, differenceInCalendarDays(range.to, range.from))
                 : 0;
               const label = range?.from && range?.to
                 ? `${format(range.from, "MMM d")} – ${format(range.to, "MMM d")}`

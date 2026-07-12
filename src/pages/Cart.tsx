@@ -79,14 +79,15 @@ const Cart = () => {
   function lineFor(it: CartRow): LineBreakdown | null {
     if (!it.product) return null;
     const days = it.kind === "rent" && it.start_date && it.end_date
-      ? Math.max(1, differenceInCalendarDays(new Date(it.end_date), new Date(it.start_date)) + 1)
+      ? Math.max(1, differenceInCalendarDays(new Date(it.end_date), new Date(it.start_date)))
       : 0;
     return computeLine({
       kind: it.kind,
       pricePerDay: Number(it.product.price_per_day),
       actualPrice: Number(it.product.actual_price),
-      discountPercent: Number(it.product.discount_percent),
-      discountFlat: Number(it.product.discount_flat),
+      // Shop owner uploads the final price — no additional checkout discount for rentals.
+      discountPercent: it.kind === "rent" ? 0 : Number(it.product.discount_percent),
+      discountFlat: it.kind === "rent" ? 0 : Number(it.product.discount_flat),
       securityDeposit: Number(it.product.security_deposit),
       quantity: it.quantity,
       days,
@@ -99,7 +100,7 @@ const Cart = () => {
       const line = lineFor(it);
       if (!it.product || !line) return null;
       const days = it.kind === "rent" && it.start_date && it.end_date
-        ? Math.max(1, differenceInCalendarDays(new Date(it.end_date), new Date(it.start_date)) + 1)
+        ? Math.max(1, differenceInCalendarDays(new Date(it.end_date), new Date(it.start_date)))
         : 1;
       return { line, unitPrice: line.finalUnit, quantity: it.quantity, days };
     })
@@ -117,7 +118,7 @@ const Cart = () => {
         if (!it.product) continue;
         const line = lineFor(it)!;
         const days = it.kind === "rent" && it.start_date && it.end_date
-          ? Math.max(1, differenceInCalendarDays(new Date(it.end_date), new Date(it.start_date)) + 1)
+          ? Math.max(1, differenceInCalendarDays(new Date(it.end_date), new Date(it.start_date)))
           : null;
         const single = computeOrderTotals([line], settings, {
           delivery: false,
@@ -205,7 +206,7 @@ const Cart = () => {
                 const line = lineFor(it);
                 if (!it.product || !line) return null;
                 const days = it.kind === "rent" && it.start_date && it.end_date
-                  ? Math.max(1, differenceInCalendarDays(new Date(it.end_date), new Date(it.start_date)) + 1)
+                  ? Math.max(1, differenceInCalendarDays(new Date(it.end_date), new Date(it.start_date)))
                   : 0;
                 return (
                   <div key={it.id} className="rounded-2xl border border-border bg-card p-4 flex gap-4">
