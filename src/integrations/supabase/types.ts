@@ -624,6 +624,76 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_proofs: {
+        Row: {
+          assignment_id: string
+          created_at: string
+          file_path: string
+          id: string
+          kind: Database["public"]["Enums"]["delivery_proof_kind"]
+          notes: string | null
+          partner_id: string
+          rental_id: string
+          review_notes: string | null
+          review_status: Database["public"]["Enums"]["delivery_proof_review"]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string
+          file_path: string
+          id?: string
+          kind: Database["public"]["Enums"]["delivery_proof_kind"]
+          notes?: string | null
+          partner_id: string
+          rental_id: string
+          review_notes?: string | null
+          review_status?: Database["public"]["Enums"]["delivery_proof_review"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string
+          file_path?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["delivery_proof_kind"]
+          notes?: string | null
+          partner_id?: string
+          rental_id?: string
+          review_notes?: string | null
+          review_status?: Database["public"]["Enums"]["delivery_proof_review"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_proofs_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_proofs_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_proofs_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deposit_refunds: {
         Row: {
           admin_notes: string | null
@@ -2941,6 +3011,8 @@ export type Database = {
       delivery_method: "delivery" | "pickup"
       delivery_otp_kind: "delivery" | "return"
       delivery_partner_status: "pending" | "approved" | "rejected" | "suspended"
+      delivery_proof_kind: "delivery" | "return"
+      delivery_proof_review: "pending" | "approved" | "rejected"
       delivery_vehicle_type: "bike" | "cycle" | "scooter" | "car"
       dispute_status: "open" | "reviewing" | "resolved" | "rejected"
       extension_status: "pending" | "approved" | "rejected"
@@ -3201,6 +3273,8 @@ export const Constants = {
       delivery_method: ["delivery", "pickup"],
       delivery_otp_kind: ["delivery", "return"],
       delivery_partner_status: ["pending", "approved", "rejected", "suspended"],
+      delivery_proof_kind: ["delivery", "return"],
+      delivery_proof_review: ["pending", "approved", "rejected"],
       delivery_vehicle_type: ["bike", "cycle", "scooter", "car"],
       dispute_status: ["open", "reviewing", "resolved", "rejected"],
       extension_status: ["pending", "approved", "rejected"],

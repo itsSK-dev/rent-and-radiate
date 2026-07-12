@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Phone, MapPin, Navigation, Package } from "lucide-react";
 import { format } from "date-fns";
 import { inr } from "@/lib/pricing";
+import { DeliveryProofUpload } from "@/components/DeliveryProofUpload";
 
 type Assignment = {
   id: string; rental_id: string; partner_id: string; status: string;
@@ -172,11 +173,11 @@ export default function Delivery() {
           </TabsContent>
           <TabsContent value="active" className="mt-4 space-y-3">
             {active.length === 0 ? <Empty msg="No active deliveries." /> :
-              active.map((a) => <AssignmentCard key={a.id} a={a} showDeliverOtp />)}
+              active.map((a) => <AssignmentCard key={a.id} a={a} showDeliverOtp showDeliveryProof partnerId={partner.id} partnerUserId={partner.user_id} />)}
           </TabsContent>
           <TabsContent value="returns" className="mt-4 space-y-3">
             {returns.length === 0 ? <Empty msg="No return pickups." /> :
-              returns.map((a) => <AssignmentCard key={a.id} a={a} showReturnOtp onReturnedToStore={() => markReturnedToStore(a)} />)}
+              returns.map((a) => <AssignmentCard key={a.id} a={a} showReturnOtp showReturnProof partnerId={partner.id} partnerUserId={partner.user_id} onReturnedToStore={() => markReturnedToStore(a)} />)}
           </TabsContent>
           <TabsContent value="history" className="mt-4 space-y-3">
             {history.length === 0 ? <Empty msg="No completed deliveries yet." /> :
@@ -210,12 +211,15 @@ function Empty({ msg }: { msg: string }) {
 
 function AssignmentCard({
   a, onAccept, onReject, showPickup, onPickedUp, showDeliverOtp, showReturnOtp, onReturnedToStore, readonly,
+  showDeliveryProof, showReturnProof, partnerId, partnerUserId,
 }: {
   a: Assignment;
   onAccept?: () => void; onReject?: () => void;
   showPickup?: boolean; onPickedUp?: () => void;
   showDeliverOtp?: boolean; showReturnOtp?: boolean;
   onReturnedToStore?: () => void; readonly?: boolean;
+  showDeliveryProof?: boolean; showReturnProof?: boolean;
+  partnerId?: string; partnerUserId?: string;
 }) {
   const r = a.rental;
   if (!r) return null;
@@ -260,7 +264,13 @@ function AssignmentCard({
           {onReject && <Button size="sm" variant="ghost" onClick={onReject}>Reject</Button>}
           {showPickup && onPickedUp && <Button size="sm" variant="hero" onClick={onPickedUp}>Mark Picked Up</Button>}
           {showDeliverOtp && <OtpDialog rentalId={r.id} kind="delivery" />}
+          {showDeliveryProof && partnerId && partnerUserId && (
+            <DeliveryProofUpload assignmentId={a.id} rentalId={r.id} partnerId={partnerId} partnerUserId={partnerUserId} kind="delivery" />
+          )}
           {showReturnOtp && <OtpDialog rentalId={r.id} kind="return" />}
+          {showReturnProof && partnerId && partnerUserId && (
+            <DeliveryProofUpload assignmentId={a.id} rentalId={r.id} partnerId={partnerId} partnerUserId={partnerUserId} kind="return" />
+          )}
           {onReturnedToStore && <Button size="sm" variant="hero" onClick={onReturnedToStore}>Handed to Store</Button>}
         </div>
       )}
