@@ -41,7 +41,7 @@ export function PlatformSettingsPanel() {
   async function load() {
     const { data } = await (supabase as any)
       .from("platform_settings")
-      .select("gst_percent,gst_enabled,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days,rental_price_percent,deposit_percent_of_price,protection_plan_percent,protection_plan_min,late_fee_multiplier,late_fee_grace_hours,reminder_intervals_hours,rent_to_own_enabled,rent_to_own_credit_percent,referrals_enabled,referral_signup_bonus,referral_referrer_bonus,referral_min_order_amount,platform_fee_slabs,delivery_fee_slabs")
+      .select("gst_percent,gst_enabled,delivery_fee,commission_percent,gateway_fee_percent,payout_hold_days,rental_price_percent,deposit_percent_of_price,protection_plan_percent,protection_plan_min,late_fee_multiplier,late_fee_grace_hours,reminder_intervals_hours,rent_to_own_enabled,rent_to_own_credit_percent,referrals_enabled,referral_signup_bonus,referral_referrer_bonus,referral_min_order_amount,platform_fee_slabs,delivery_fee_slabs,rental_platform_fee_enabled")
       .eq("id", true).maybeSingle();
     const d = data ?? {};
     const merged: Settings = {
