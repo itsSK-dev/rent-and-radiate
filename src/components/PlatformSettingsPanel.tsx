@@ -189,7 +189,36 @@ export function PlatformSettingsPanel() {
         </div>
       </div>
 
+      <div className="border-t border-border pt-4 space-y-3">
+        <h3 className="font-medium">Platform fee (charged to customer)</h3>
+        <p className="text-[11px] text-muted-foreground">Applied per rental day (or once for purchase) based on the final discounted price. Edit the JSON below to change slabs without touching code.</p>
+        <textarea
+          className="w-full min-h-[160px] rounded-md border border-border bg-background p-3 text-xs font-mono"
+          value={platformSlabsText}
+          onChange={(e) => setPlatformSlabsText(e.target.value)}
+        />
+      </div>
+
+      <div className="border-t border-border pt-4 space-y-3">
+        <h3 className="font-medium">Delivery charge slabs</h3>
+        <p className="text-[11px] text-muted-foreground">Delivery fee (₹25–₹50) picked from the first slab whose <code>max_order</code> ≥ order subtotal.</p>
+        <textarea
+          className="w-full min-h-[120px] rounded-md border border-border bg-background p-3 text-xs font-mono"
+          value={deliverySlabsText}
+          onChange={(e) => setDeliverySlabsText(e.target.value)}
+        />
+      </div>
+
+      <div className="border-t border-border pt-4 space-y-3">
+        <h3 className="font-medium">GST</h3>
+        <label className="flex items-center gap-3">
+          <Switch checked={s.gst_enabled} onCheckedChange={(v) => setS({ ...s, gst_enabled: v })} />
+          <span className="text-sm">Charge GST on orders (uses the GST % above)</span>
+        </label>
+      </div>
+
       <Button variant="hero" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save settings"}</Button>
+
     </div>
   );
 }
