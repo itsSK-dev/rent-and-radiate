@@ -31,8 +31,10 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const intentParam = params.get("intent");
-  const intent: "customer" | "shop_owner" =
-    intentParam === "shop_owner" ? "shop_owner" : "customer";
+  const intent: "customer" | "shop_owner" | "delivery_partner" =
+    intentParam === "shop_owner" ? "shop_owner"
+    : intentParam === "delivery_partner" ? "delivery_partner"
+    : "customer";
   // Phone OTP is temporarily disabled until the SMS provider is configured.
   // Flip to `true` to re-enable phone login (UI + tab). The underlying logic below is preserved.
   const PHONE_AUTH_ENABLED = false;
@@ -68,10 +70,16 @@ const Auth = () => {
     const savedIntent = (() => {
       try { return localStorage.getItem("rr_auth_intent"); } catch { return null; }
     })();
-    const effectiveIntent = savedIntent === "shop_owner" ? "shop_owner" : intent;
+    const effectiveIntent = savedIntent === "shop_owner" ? "shop_owner"
+                          : savedIntent === "delivery_partner" ? "delivery_partner"
+                          : intent;
     if (roles.includes("admin")) { navigate("/admin", { replace: true }); return; }
     if (effectiveIntent === "shop_owner") {
       navigate(roles.includes("store_owner") ? "/vendor" : "/become-vendor", { replace: true });
+      return;
+    }
+    if (effectiveIntent === "delivery_partner") {
+      navigate(roles.includes("delivery_partner") ? "/delivery" : "/delivery/register", { replace: true });
       return;
     }
     navigate("/", { replace: true });
@@ -175,8 +183,8 @@ const Auth = () => {
         <div className="w-full max-w-md">
           <div className="text-center mb-6 animate-fade-up">
             <div className={`inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs mb-4 ${intent === "shop_owner" ? "bg-primary text-primary-foreground border-primary" : "bg-primary-soft text-primary"}`}>
-              {intent === "shop_owner" ? <Store className="h-3.5 w-3.5" /> : <ShoppingBag className="h-3.5 w-3.5" />}
-              {intent === "shop_owner" ? "Shop Owner" : "Customer"}
+              <ShoppingBag className="h-3.5 w-3.5" />
+              {intent === "shop_owner" ? "Shop Owner" : intent === "delivery_partner" ? "Delivery Partner" : "Customer"}
               <Link to={`/role-select${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`} className="underline underline-offset-2 ml-1 opacity-80 hover:opacity-100">change</Link>
             </div>
             <h1 className="font-display text-4xl md:text-5xl">

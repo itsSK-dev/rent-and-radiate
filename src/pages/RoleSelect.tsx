@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Store } from "lucide-react";
+import { ShoppingBag, Store, Truck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const RoleSelect = () => {
@@ -25,7 +25,7 @@ const RoleSelect = () => {
     navigate("/", { replace: true });
   }, [user, roles, loading, navigate, next]);
 
-  const buildLink = (intent: "customer" | "shop_owner", mode: "signin" | "signup") => {
+  const buildLink = (intent: "customer" | "shop_owner" | "delivery_partner", mode: "signin" | "signup") => {
     const qs = new URLSearchParams();
     qs.set("intent", intent);
     if (mode === "signup") qs.set("mode", "signup");
@@ -44,7 +44,7 @@ const RoleSelect = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           <RoleCard
             icon={<ShoppingBag className="h-7 w-7" strokeWidth={1.5} />}
             title="Continue as Customer"
@@ -63,6 +63,15 @@ const RoleSelect = () => {
             secondaryHref={buildLink("shop_owner", "signin")}
             secondaryLabel="Sign in to my shop"
             accent
+          />
+          <RoleCard
+            icon={<Truck className="h-7 w-7" strokeWidth={1.5} />}
+            title="Become a Delivery Partner"
+            description="Earn by delivering rentals in your city."
+            primaryHref={buildLink("delivery_partner", "signup")}
+            primaryLabel="Apply now"
+            secondaryHref={buildLink("delivery_partner", "signin")}
+            secondaryLabel="I'm already a partner"
           />
         </div>
 

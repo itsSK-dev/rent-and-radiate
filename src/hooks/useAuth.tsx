@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type Role = "customer" | "store_owner" | "admin";
+type Role = "customer" | "store_owner" | "admin" | "delivery_partner";
 
 interface AuthContextValue {
   user: User | null;
