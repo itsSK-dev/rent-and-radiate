@@ -189,31 +189,42 @@ export function computeLine(i: LineInput): LineBreakdown {
 }
 
 export type OrderTotals = {
-  subtotal: number;       // sum of line subtotals
-  discount: number;       // sum of line discounts
-  deposit: number;        // sum of deposits (rent)
-  gst: number;            // gst on (subtotal)
-  delivery: number;       // delivery fee (single, applied once)
-  commission: number;     // platform commission for vendor
-  grandTotal: number;     // payable
-  vendorEarnings: number; // subtotal - commission (delivery & GST handled by platform)
+  subtotal: number;
+  discount: number;
+  deposit: number;
+  gst: number;
+  delivery: number;
+  platformFee: number;
+  commission: number;
+  grandTotal: number;
+  vendorEarnings: number;
 };
+
+export type LineWithFeeInput = { line: LineBreakdown; unitPrice: number; quantity: number; days: number };
 
 export function computeOrderTotals(
   lines: LineBreakdown[],
   settings: PlatformSettings,
-  opts: { delivery: boolean } = { delivery: true },
+  opts: { delivery: boolean; feeInputs?: LineWithFeeInput[] } = { delivery: true },
 ): OrderTotals {
   const subtotal = round2(lines.reduce((s, l) => s + l.subtotal, 0));
   const discount = round2(lines.reduce((s, l) => s + l.discount, 0));
   const deposit = round2(lines.reduce((s, l) => s + l.deposit, 0));
-  const gst = round2((subtotal * (Number(settings.gst_percent) || 0)) / 100);
-  const delivery = opts.delivery ? round2(Number(settings.delivery_fee) || 0) : 0;
+  const gstEnabled = settings.gst_enabled !== false;
+  const gst = gstEnabled ? round2((subtotal * (Number(settings.gst_percent) || 0)) / 100) : 0;
+  const delivery = opts.delivery ? round2(computeDeliveryCharge(subtotal, settings.delivery_fee_slabs, settings.delivery_fee)) : 0;
   const commission = round2((subtotal * (Number(settings.commission_percent) || 0)) / 100);
-  const grandTotal = round2(subtotal + gst + delivery + deposit);
+  const platformFee = round2(
+    (opts.feeInputs ?? []).reduce(
+      (s, f) => s + computePlatformFee(f.unitPrice, f.quantity, f.days, settings.platform_fee_slabs),
+      0,
+    ),
+  );
+  const grandTotal = round2(subtotal + gst + delivery + deposit + platformFee);
   const vendorEarnings = round2(subtotal - commission);
-  return { subtotal, discount, deposit, gst, delivery, commission, grandTotal, vendorEarnings };
+  return { subtotal, discount, deposit, gst, delivery, platformFee, commission, grandTotal, vendorEarnings };
 }
+
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;
