@@ -94,7 +94,17 @@ const Cart = () => {
   }
 
   const lines = items.map(lineFor).filter((x): x is LineBreakdown => !!x);
-  const totals = computeOrderTotals(lines, settings, { delivery: delivery === "delivery" });
+  const feeInputs = items
+    .map((it) => {
+      const line = lineFor(it);
+      if (!it.product || !line) return null;
+      const days = it.kind === "rent" && it.start_date && it.end_date
+        ? Math.max(1, differenceInCalendarDays(new Date(it.end_date), new Date(it.start_date)) + 1)
+        : 1;
+      return { line, unitPrice: line.finalUnit, quantity: it.quantity, days };
+    })
+    .filter((x): x is { line: LineBreakdown; unitPrice: number; quantity: number; days: number } => !!x);
+  const totals = computeOrderTotals(lines, settings, { delivery: delivery === "delivery", feeInputs });
 
   // Group by store — we'll create one rental per cart item (simplest & matches existing schema).
   async function checkout() {
@@ -106,10 +116,13 @@ const Cart = () => {
       for (const it of items) {
         if (!it.product) continue;
         const line = lineFor(it)!;
-        const single = computeOrderTotals([line], settings, { delivery: false });
         const days = it.kind === "rent" && it.start_date && it.end_date
           ? Math.max(1, differenceInCalendarDays(new Date(it.end_date), new Date(it.start_date)) + 1)
           : null;
+        const single = computeOrderTotals([line], settings, {
+          delivery: false,
+          feeInputs: [{ line, unitPrice: line.finalUnit, quantity: it.quantity, days: days ?? 1 }],
+        });
         const payload: any = {
           customer_id: user!.id,
           product_id: it.product.id,
@@ -125,6 +138,7 @@ const Cart = () => {
           discount_amount: single.discount,
           gst_amount: single.gst,
           delivery_fee: 0, // delivery applied to first order below
+          platform_fee: single.platformFee,
           commission_amount: single.commission,
           grand_total: single.grandTotal,
           delivery_method: delivery,
@@ -145,6 +159,7 @@ const Cart = () => {
             .eq("id", firstId);
         }
       }
+
 
       // Clear cart
       await (supabase as any).from("cart_items").delete().eq("user_id", user!.id);
@@ -240,11 +255,13 @@ const Cart = () => {
               <div className="space-y-1.5 text-sm border-t border-border pt-4">
                 <Row label="Subtotal" value={inr(totals.subtotal + totals.discount)} />
                 {totals.discount > 0 && <Row label="Discount" value={`− ${inr(totals.discount)}`} className="text-rose-deep" />}
-                <Row label={`GST (${settings.gst_percent}%)`} value={inr(totals.gst)} muted />
+                {totals.platformFee > 0 && <Row label="Platform fee" value={inr(totals.platformFee)} muted />}
+                {settings.gst_enabled && totals.gst > 0 && <Row label={`GST (${settings.gst_percent}%)`} value={inr(totals.gst)} muted />}
                 {delivery === "delivery" && <Row label="Delivery" value={inr(totals.delivery)} muted />}
                 {totals.deposit > 0 && <Row label="Refundable deposit" value={inr(totals.deposit)} muted />}
                 <Row label="Total payable" value={inr(totals.grandTotal)} bold />
               </div>
+
 
               <Button variant="hero" size="lg" className="w-full" onClick={checkout} disabled={submitting || items.length === 0}>
                 {submitting ? "Placing…" : `Checkout · ${inr(totals.grandTotal)}`}

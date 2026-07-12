@@ -15,8 +15,14 @@ type Receipt = {
   end_date: string;
   days: number;
   rental_total: number;
+  subtotal: number | null;
+  discount_amount: number | null;
+  gst_amount: number | null;
+  delivery_fee: number | null;
+  platform_fee: number | null;
   deposit: number;
   grand_total: number;
+
   status: string;
   payment_status: string;
   payment_method: string | null;
@@ -39,7 +45,7 @@ const Receipt = () => {
     (async () => {
       const { data } = await supabase
         .from("rentals")
-        .select("id,created_at,start_date,end_date,days,rental_total,deposit,grand_total,status,payment_status,payment_method,razorpay_order_id,razorpay_payment_id,product:products(title),store:stores(name,city,address)")
+        .select("id,created_at,start_date,end_date,days,rental_total,subtotal,discount_amount,gst_amount,delivery_fee,platform_fee,deposit,grand_total,status,payment_status,payment_method,razorpay_order_id,razorpay_payment_id,product:products(title),store:stores(name,city,address)")
         .eq("id", rentalId!)
         .maybeSingle();
       setR(data as any);
@@ -128,9 +134,14 @@ const Receipt = () => {
 
           <div className="border-t border-border pt-5 space-y-2 text-sm">
             <Row label={`Rental (${r.days} day${r.days === 1 ? "" : "s"})`} value={`₹${Number(r.rental_total).toLocaleString("en-IN")}`} />
+            {Number(r.discount_amount) > 0 && <Row label="Discount" value={`− ₹${Number(r.discount_amount).toLocaleString("en-IN")}`} />}
+            {Number(r.platform_fee) > 0 && <Row label="Platform fee" value={`₹${Number(r.platform_fee).toLocaleString("en-IN")}`} muted />}
+            {Number(r.gst_amount) > 0 && <Row label="GST" value={`₹${Number(r.gst_amount).toLocaleString("en-IN")}`} muted />}
+            {Number(r.delivery_fee) > 0 && <Row label="Delivery" value={`₹${Number(r.delivery_fee).toLocaleString("en-IN")}`} muted />}
             <Row label="Refundable deposit" value={`₹${Number(r.deposit).toLocaleString("en-IN")}`} muted />
             <Row label="Total" value={`₹${Number(r.grand_total).toLocaleString("en-IN")}`} bold />
           </div>
+
 
           <p className="text-xs text-muted-foreground border-t border-border pt-4">
             {isPaid

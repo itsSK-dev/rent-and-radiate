@@ -1,7 +1,17 @@
 // Shared pricing helpers used across product detail, cart, checkout, vendor.
 
+export type PlatformFeeSlabs = {
+  tiers: { max: number; fee: number }[];
+  above: { base_fee: number; threshold: number; step: number; step_fee: number };
+};
+
+export type DeliveryFeeSlabs = {
+  tiers: { max_order: number; fee: number }[];
+};
+
 export type PlatformSettings = {
   gst_percent: number;
+  gst_enabled: boolean;
   delivery_fee: number;
   commission_percent: number;
   rental_price_percent: number;
@@ -12,12 +22,32 @@ export type PlatformSettings = {
   late_fee_grace_hours: number;
   rent_to_own_enabled: boolean;
   rent_to_own_credit_percent: number;
+  platform_fee_slabs: PlatformFeeSlabs;
+  delivery_fee_slabs: DeliveryFeeSlabs;
 };
 
 export const MIN_RENTAL_PERCENT = 10;
 
+export const DEFAULT_PLATFORM_FEE_SLABS: PlatformFeeSlabs = {
+  tiers: [
+    { max: 499, fee: 50 },
+    { max: 999, fee: 70 },
+    { max: 1999, fee: 120 },
+  ],
+  above: { base_fee: 120, threshold: 1999, step: 1000, step_fee: 50 },
+};
+
+export const DEFAULT_DELIVERY_FEE_SLABS: DeliveryFeeSlabs = {
+  tiers: [
+    { max_order: 499, fee: 50 },
+    { max_order: 999, fee: 40 },
+    { max_order: 100_000_000, fee: 25 },
+  ],
+};
+
 export const DEFAULT_SETTINGS: PlatformSettings = {
   gst_percent: 18,
+  gst_enabled: true,
   delivery_fee: 50,
   commission_percent: 10,
   rental_price_percent: 10,
@@ -28,7 +58,45 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   late_fee_grace_hours: 2,
   rent_to_own_enabled: false,
   rent_to_own_credit_percent: 50,
+  platform_fee_slabs: DEFAULT_PLATFORM_FEE_SLABS,
+  delivery_fee_slabs: DEFAULT_DELIVERY_FEE_SLABS,
 };
+
+/** One-day platform fee for a given final (discounted) unit price. */
+export function computePlatformFeeOneDay(price: number, slabs?: PlatformFeeSlabs): number {
+  const cfg = slabs ?? DEFAULT_PLATFORM_FEE_SLABS;
+  const p = Math.max(0, Number(price) || 0);
+  const sortedTiers = [...cfg.tiers].sort((a, b) => a.max - b.max);
+  for (const t of sortedTiers) if (p <= Number(t.max)) return Math.max(0, Number(t.fee) || 0);
+  const a = cfg.above;
+  const step = Math.max(1, Number(a.step) || 1000);
+  const extra = Math.max(0, Math.ceil((p - Number(a.threshold)) / step));
+  return Math.max(0, (Number(a.base_fee) || 0) + extra * (Number(a.step_fee) || 0));
+}
+
+/** Total platform fee = one-day-fee × days × quantity (days = 1 for buy orders). */
+export function computePlatformFee(
+  unitPrice: number,
+  quantity: number,
+  days: number,
+  slabs?: PlatformFeeSlabs,
+): number {
+  const perDay = computePlatformFeeOneDay(unitPrice, slabs);
+  const qty = Math.max(1, Number(quantity) || 1);
+  const d = Math.max(1, Number(days) || 1);
+  return round2(perDay * qty * d);
+}
+
+/** Configurable delivery charge based on order value (rental/buy subtotal). */
+export function computeDeliveryCharge(orderValue: number, slabs?: DeliveryFeeSlabs, fallback = 50): number {
+  const cfg = slabs ?? DEFAULT_DELIVERY_FEE_SLABS;
+  const v = Math.max(0, Number(orderValue) || 0);
+  const sorted = [...cfg.tiers].sort((a, b) => a.max_order - b.max_order);
+  for (const t of sorted) if (v <= Number(t.max_order)) return Math.max(0, Number(t.fee) || 0);
+  return Math.max(0, Number(fallback) || 0);
+}
+
+
 
 /** Optional Rental Protection Plan fee = max(min, percent% of rental subtotal). */
 export function protectionPlanFee(subtotal: number, s: Pick<PlatformSettings, "protection_plan_percent" | "protection_plan_min">) {
@@ -121,31 +189,42 @@ export function computeLine(i: LineInput): LineBreakdown {
 }
 
 export type OrderTotals = {
-  subtotal: number;       // sum of line subtotals
-  discount: number;       // sum of line discounts
-  deposit: number;        // sum of deposits (rent)
-  gst: number;            // gst on (subtotal)
-  delivery: number;       // delivery fee (single, applied once)
-  commission: number;     // platform commission for vendor
-  grandTotal: number;     // payable
-  vendorEarnings: number; // subtotal - commission (delivery & GST handled by platform)
+  subtotal: number;
+  discount: number;
+  deposit: number;
+  gst: number;
+  delivery: number;
+  platformFee: number;
+  commission: number;
+  grandTotal: number;
+  vendorEarnings: number;
 };
+
+export type LineWithFeeInput = { line: LineBreakdown; unitPrice: number; quantity: number; days: number };
 
 export function computeOrderTotals(
   lines: LineBreakdown[],
   settings: PlatformSettings,
-  opts: { delivery: boolean } = { delivery: true },
+  opts: { delivery: boolean; feeInputs?: LineWithFeeInput[] } = { delivery: true },
 ): OrderTotals {
   const subtotal = round2(lines.reduce((s, l) => s + l.subtotal, 0));
   const discount = round2(lines.reduce((s, l) => s + l.discount, 0));
   const deposit = round2(lines.reduce((s, l) => s + l.deposit, 0));
-  const gst = round2((subtotal * (Number(settings.gst_percent) || 0)) / 100);
-  const delivery = opts.delivery ? round2(Number(settings.delivery_fee) || 0) : 0;
+  const gstEnabled = settings.gst_enabled !== false;
+  const gst = gstEnabled ? round2((subtotal * (Number(settings.gst_percent) || 0)) / 100) : 0;
+  const delivery = opts.delivery ? round2(computeDeliveryCharge(subtotal, settings.delivery_fee_slabs, settings.delivery_fee)) : 0;
   const commission = round2((subtotal * (Number(settings.commission_percent) || 0)) / 100);
-  const grandTotal = round2(subtotal + gst + delivery + deposit);
+  const platformFee = round2(
+    (opts.feeInputs ?? []).reduce(
+      (s, f) => s + computePlatformFee(f.unitPrice, f.quantity, f.days, settings.platform_fee_slabs),
+      0,
+    ),
+  );
+  const grandTotal = round2(subtotal + gst + delivery + deposit + platformFee);
   const vendorEarnings = round2(subtotal - commission);
-  return { subtotal, discount, deposit, gst, delivery, commission, grandTotal, vendorEarnings };
+  return { subtotal, discount, deposit, gst, delivery, platformFee, commission, grandTotal, vendorEarnings };
 }
+
 
 function round2(n: number) {
   return Math.round(n * 100) / 100;

@@ -155,9 +155,13 @@ const ProductDetail = () => {
     quantity: qty,
     days,
   });
-  const totals = computeOrderTotals([line], settings, { delivery: delivery === "delivery" });
+  const totals = computeOrderTotals([line], settings, {
+    delivery: delivery === "delivery",
+    feeInputs: [{ line, unitPrice: line.finalUnit, quantity: qty, days: mode === "rent" ? days : 1 }],
+  });
   const ppFee = mode === "rent" && protectionPlan ? protectionPlanFee(line.subtotal, settings) : 0;
   const displayGrandTotal = totals.grandTotal + ppFee;
+
   const finalUnit = discountedUnitPrice(product.actual_price, product.discount_percent, product.discount_flat);
   const hasDiscount = canBuy && Number(product.actual_price) > 0 && finalUnit < Number(product.actual_price);
   const heroImg = product.images?.[activeImage] || product.images?.[0] || demoImageMap[product.title];
@@ -214,11 +218,13 @@ const ProductDetail = () => {
       discount_amount: totals.discount,
       gst_amount: totals.gst,
       delivery_fee: totals.delivery,
+      platform_fee: totals.platformFee,
       commission_amount: totals.commission,
       grand_total: totals.grandTotal,
       delivery_method: delivery,
       protection_plan: mode === "rent" ? protectionPlan : false,
     };
+
     const { data: created, error } = await supabase.from("rentals").insert(payload).select("id").single();
     setSubmitting(false);
     if (error || !created) return toast.error(error?.message ?? "Could not place order");
@@ -374,9 +380,11 @@ const ProductDetail = () => {
                 <Row label={`Price × ${qty}`} value={inr(line.base)} />
               )}
               {totals.discount > 0 && <Row label="Discount" value={`− ${inr(totals.discount)}`} className="text-rose-deep" />}
-              <Row label={`GST (${settings.gst_percent}%)`} value={inr(totals.gst)} muted />
+              {totals.platformFee > 0 && <Row label="Platform fee" value={inr(totals.platformFee)} muted />}
+              {settings.gst_enabled && totals.gst > 0 && <Row label={`GST (${settings.gst_percent}%)`} value={inr(totals.gst)} muted />}
               {delivery === "delivery" && <Row label="Delivery" value={inr(totals.delivery)} muted />}
               {mode === "rent" && line.deposit > 0 && <Row label="Refundable deposit" value={inr(line.deposit)} muted />}
+
               {mode === "rent" && protectionPlan && <Row label="Protection Plan" value={inr(ppFee)} muted />}
               <Row label="Total payable" value={inr(displayGrandTotal)} bold />
             </div>
