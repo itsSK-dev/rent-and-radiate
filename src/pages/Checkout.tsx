@@ -318,8 +318,10 @@ const Checkout = () => {
           <div className="border-t border-border pt-4 space-y-2 text-sm">
             <Row label={`${rental.kind === "buy" ? "Purchase" : "Rental"}${rental.quantity > 1 ? ` × ${rental.quantity}` : ""}`} value={`₹${(Number(rental.subtotal) + Number(rental.discount_amount || 0)).toLocaleString("en-IN")}`} />
             {Number(rental.discount_amount) > 0 && <Row label="Discount" value={`− ₹${Number(rental.discount_amount).toLocaleString("en-IN")}`} />}
+            {Number((rental as any).platform_fee) > 0 && <Row label="Platform fee" value={`₹${Number((rental as any).platform_fee).toLocaleString("en-IN")}`} muted />}
             {Number(rental.gst_amount) > 0 && <Row label="GST" value={`₹${Number(rental.gst_amount).toLocaleString("en-IN")}`} muted />}
             {Number(rental.delivery_fee) > 0 && <Row label="Delivery" value={`₹${Number(rental.delivery_fee).toLocaleString("en-IN")}`} muted />}
+
             {Number(rental.deposit) > 0 && <Row label="Refundable deposit" value={`₹${Number(rental.deposit).toLocaleString("en-IN")}`} muted />}
             {Number(rental.protection_plan_fee) > 0 && <Row label="Rental Protection Plan" value={`₹${Number(rental.protection_plan_fee).toLocaleString("en-IN")}`} muted />}
             {Number(rental.reward_discount) > 0 && <Row label={`Reward points (${rental.reward_points_used})`} value={`− ₹${Number(rental.reward_discount).toLocaleString("en-IN")}`} />}
