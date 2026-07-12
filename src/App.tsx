@@ -53,6 +53,8 @@ const Help = lazy(() => import("./pages/Help"));
 const Settings = lazy(() => import("./pages/Settings"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const RoleSelect = lazy(() => import("./pages/RoleSelect"));
+const DeliveryPartnerRegister = lazy(() => import("./pages/DeliveryPartnerRegister"));
+const Delivery = lazy(() => import("./pages/Delivery"));
 
 const queryClient = new QueryClient();
 
@@ -118,6 +120,8 @@ const App = () => (
                   <Route path="/privacy" element={<Privacy />} />
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/help" element={<Help />} />
+                  <Route path="/delivery/register" element={<DeliveryPartnerRegister />} />
+                  <Route path="/delivery" element={<Delivery />} />
                   <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
