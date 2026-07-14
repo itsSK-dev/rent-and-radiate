@@ -2,9 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, MapPin, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-const hero1 = "/hero/hero-1.jpg";
-const hero2 = "/hero/hero-2.jpg";
-const hero3 = "/hero/hero-3.jpg";
+// Hero images are served from /public so the LCP candidate can be
+// <link rel="preload"> in index.html without waiting for the JS bundle
+// to import a hashed asset URL.
+const hero1 = "/hero/hero-1.webp";
+const hero2 = "/hero/hero-2.webp";
+const hero3 = "/hero/hero-3.webp";
+const hero1Sm = "/hero/hero-1-sm.webp";
+const hero2Sm = "/hero/hero-2-sm.webp";
+const hero3Sm = "/hero/hero-3-sm.webp";
 
 
 /**
@@ -19,9 +25,11 @@ type Slide = {
   subtitle: string;
 };
 
-const SLIDES: Slide[] = [
+type SlideEx = Slide & { imageSm: string };
+const SLIDES: SlideEx[] = [
   {
     image: hero1,
+    imageSm: hero1Sm,
     alt: "Model wearing a designer pink saree with gold jewellery",
     eyebrow: "Rent Smart. Buy Local.",
     title: "Wear luxury\nwithout the price tag",
@@ -29,6 +37,7 @@ const SLIDES: Slide[] = [
   },
   {
     image: hero2,
+    imageSm: hero2Sm,
     alt: "Model showcasing a pink handbag and gold watch",
     eyebrow: "Discover Premium Fashion Near You",
     title: "Bags, watches\n& everyday luxury",
@@ -36,6 +45,7 @@ const SLIDES: Slide[] = [
   },
   {
     image: hero3,
+    imageSm: hero3Sm,
     alt: "Model in a flowing pastel evening gown with diamond jewellery",
     eyebrow: "Luxury Within Reach",
     title: "Gowns for every\nunforgettable evening",
@@ -109,6 +119,8 @@ export function HeroCarousel() {
               {/* Decorative imagery — NOT a product. No links / actions. */}
               <img
                 src={slide.image}
+                srcSet={`${slide.imageSm} 800w, ${slide.image} 1600w`}
+                sizes="100vw"
                 alt={slide.alt}
                 width={1600}
                 height={900}

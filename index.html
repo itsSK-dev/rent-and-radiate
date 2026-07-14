@@ -19,8 +19,17 @@
     <link rel="preconnect" href="https://zlyazcpuxzdvudrfzjxu.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://zlyazcpuxzdvudrfzjxu.supabase.co" />
 
-    <!-- Preload the LCP hero image -->
-    <link rel="preload" as="image" href="/hero/hero-1.jpg" fetchpriority="high" />
+    <!-- Preload the LCP hero image (responsive) so the browser starts fetching
+         the correctly-sized WebP before the JS bundle mounts the carousel. -->
+    <link
+      rel="preload"
+      as="image"
+      href="/hero/hero-1.webp"
+      imagesrcset="/hero/hero-1-sm.webp 800w, /hero/hero-1.webp 1600w"
+      imagesizes="100vw"
+      type="image/webp"
+      fetchpriority="high"
+    />
 
     <!-- Load Google Fonts with a non-blocking pattern so CSS doesn't stall FCP.
          `display=optional` prevents the font swap layout shift (CLS) that
