@@ -109,8 +109,6 @@ export function HeroCarousel() {
               {/* Decorative imagery — NOT a product. No links / actions. */}
               <img
                 src={slide.image}
-                srcSet={`${slide.imageSm} 800w, ${slide.image} 1600w`}
-                sizes="100vw"
                 alt={slide.alt}
                 width={1600}
                 height={900}
