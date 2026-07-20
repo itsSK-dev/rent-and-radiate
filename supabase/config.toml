@@ -3,6 +3,9 @@ project_id = "zlyazcpuxzdvudrfzjxu"
 [functions]
   [functions.ai-search]
     verify_jwt = true
+  [functions.alert-security-event]
+    verify_jwt = false
+    verify_jwt = true
   [functions.auth-email-hook]
     verify_jwt = false
   [functions.confirm-cod-payment]

@@ -111,7 +111,13 @@ const Auth = () => {
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       setBusy(false);
-      if (error) return toast.error(error.message);
+      if (error) {
+        const { recordFailedLogin } = await import("@/lib/securityLog");
+        recordFailedLogin(email, error.message);
+        return toast.error(error.message);
+      }
+      const { clearFailedLogins } = await import("@/lib/securityLog");
+      clearFailedLogins(email);
     }
   }
 

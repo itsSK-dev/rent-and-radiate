@@ -24,6 +24,7 @@ import { AdminPaymentsPanel } from "@/components/AdminPaymentsPanel";
 import { PaymentSettingsPanel } from "@/components/PaymentSettingsPanel";
 import { AdminDeliveryPanel } from "@/components/AdminDeliveryPanel";
 import { AdminAuditLogPanel } from "@/components/AdminAuditLogPanel";
+import { AdminSecurityEventsPanel } from "@/components/admin/AdminSecurityEventsPanel";
 import { AdminAdsPanel } from "@/components/AdminAdsPanel";
 import { AdminNotificationsPanel } from "@/components/AdminNotificationsPanel";
 import { AdminOverviewPanel } from "@/components/admin/AdminOverviewPanel";
@@ -141,6 +142,7 @@ const Admin = () => {
             <TabsTrigger value="ads">Ads</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="audit">Audit log</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="commissions">Commissions</TabsTrigger>
             <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
             <TabsTrigger value="protection">Protection</TabsTrigger>
@@ -229,6 +231,10 @@ const Admin = () => {
 
           <TabsContent value="audit" className="mt-6">
             <AdminAuditLogPanel />
+          </TabsContent>
+
+          <TabsContent value="security" className="mt-6">
+            <AdminSecurityEventsPanel />
           </TabsContent>
 
 

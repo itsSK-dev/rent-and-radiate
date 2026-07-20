@@ -10,7 +10,9 @@ export interface TemplateEntry {
 }
 
 import { template as statusUpdate } from './status-update.tsx'
+import { template as securityAlert } from './security-alert.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'status-update': statusUpdate,
+  'security-alert': securityAlert,
 }

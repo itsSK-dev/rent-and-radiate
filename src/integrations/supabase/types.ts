@@ -2336,6 +2336,51 @@ export type Database = {
           },
         ]
       }
+      security_events: {
+        Row: {
+          actor_email: string | null
+          actor_user_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          ip: string | null
+          metadata: Json
+          notification_status: string | null
+          notified_at: string | null
+          severity: string
+          summary: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          actor_email?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          notification_status?: string | null
+          notified_at?: string | null
+          severity: string
+          summary?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          actor_email?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip?: string | null
+          metadata?: Json
+          notification_status?: string | null
+          notified_at?: string | null
+          severity?: string
+          summary?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       shop_subscriptions: {
         Row: {
           assigned_by: string | null
@@ -2957,6 +3002,19 @@ export type Database = {
       log_proof_access: {
         Args: { _context?: string; _path: string }
         Returns: undefined
+      }
+      log_security_event: {
+        Args: {
+          _actor_email?: string
+          _actor_user_id?: string
+          _event_type: string
+          _ip?: string
+          _metadata?: Json
+          _severity: string
+          _summary?: string
+          _user_agent?: string
+        }
+        Returns: string
       }
       move_to_dlq: {
         Args: {
