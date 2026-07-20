@@ -37,6 +37,7 @@ const ResetPassword = () => {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (password.length < 6) return toast.error("Password must be at least 6 characters.");
+    if (password.length > 128) return toast.error("Password must be 128 characters or fewer.");
     if (password !== confirm) return toast.error("Passwords do not match.");
     setBusy(true);
     const { error } = await supabase.auth.updateUser({ password });
