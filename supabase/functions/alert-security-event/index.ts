@@ -10,9 +10,36 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
+    // Require caller to be either service_role or an authenticated admin.
+    const authHeader = req.headers.get('Authorization') ?? ''
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+    if (!token) {
+      return json({ error: 'Unauthorized' }, 401)
+    }
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    let authorized = token === serviceRoleKey
+    if (!authorized) {
+      const { data: claimsData, error: claimsErr } = await admin.auth.getClaims(token)
+      const uid = claimsData?.claims?.sub
+      if (claimsErr || !uid) {
+        return json({ error: 'Unauthorized' }, 401)
+      }
+      const { data: roleRow } = await admin
+        .from('user_roles')
+        .select('user_id')
+        .eq('user_id', uid)
+        .eq('role', 'admin')
+        .maybeSingle()
+      authorized = !!roleRow
+    }
+    if (!authorized) {
+      return json({ error: 'Forbidden' }, 403)
+    }
+
     const body = await req.json().catch(() => ({}))
     const { event_id } = body ?? {}
     if (!event_id) return json({ error: 'event_id required' }, 400)
+
 
     const { data: event, error: evErr } = await admin
       .from('security_events')
