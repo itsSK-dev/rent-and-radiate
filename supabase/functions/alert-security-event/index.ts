@@ -122,7 +122,12 @@ Deno.serve(async (req) => {
       metadata: { ...(event.metadata ?? {}), _notify: results },
     }).eq('id', event_id)
 
-    return json({ ok: true, results })
+    return json({
+      ok: true,
+      sent: results.filter((r) => r.ok).length,
+      failed: results.filter((r) => !r.ok).length,
+    })
+
   } catch (e) {
     console.error('alert-security-event error:', e)
     return json({ error: (e as Error).message }, 500)
