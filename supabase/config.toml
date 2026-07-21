@@ -4,7 +4,6 @@ project_id = "zlyazcpuxzdvudrfzjxu"
   [functions.ai-search]
     verify_jwt = true
   [functions.alert-security-event]
-    verify_jwt = false
     verify_jwt = true
   [functions.auth-email-hook]
     verify_jwt = false
