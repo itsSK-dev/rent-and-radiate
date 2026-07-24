@@ -69,6 +69,19 @@ Deno.serve(async (req) => {
       user_agent: req.headers.get("user-agent"),
     });
 
+    // Record a payments row so deferred-cash orders appear in financial
+    // reports alongside prepaid ones. `status = 'cod'` mirrors the rentals
+    // payment_status enum; the row is finalized to 'paid' on collection.
+    await admin.from("payments").insert({
+      rental_id: rentalId,
+      user_id: userId,
+      provider: mode,
+      method: mode,
+      amount: rental.grand_total,
+      currency: "INR",
+      status: "cod",
+    });
+
     return json({ ok: true });
   } catch (e) {
     console.error(e);
