@@ -196,8 +196,9 @@ const Checkout = () => {
   }
 
   async function launchRazorpay(method: "upi" | "card" | "netbanking" | "wallet") {
-    if (!rental || !user) return;
+    if (!rental || !user || launching) return;
     setLaunching(true);
+    let opened = false;
     try {
       const ok = await loadRazorpayScript();
       if (!ok) { toast.error("Could not load payment gateway"); return; }
@@ -236,21 +237,25 @@ const Checkout = () => {
           },
         },
         handler: async (resp: any) => {
-          const { data: vData, error: vErr } = await supabase.functions.invoke("razorpay-verify-payment", {
-            body: {
-              rentalId: rental.id,
-              razorpay_order_id: resp.razorpay_order_id,
-              razorpay_payment_id: resp.razorpay_payment_id,
-              razorpay_signature: resp.razorpay_signature,
-              method,
-            },
-          });
-          if (vErr || (vData as any)?.error) {
-            toast.error((vData as any)?.error ?? vErr?.message ?? "Payment verification failed");
-            return;
+          try {
+            const { data: vData, error: vErr } = await supabase.functions.invoke("razorpay-verify-payment", {
+              body: {
+                rentalId: rental.id,
+                razorpay_order_id: resp.razorpay_order_id,
+                razorpay_payment_id: resp.razorpay_payment_id,
+                razorpay_signature: resp.razorpay_signature,
+                method,
+              },
+            });
+            if (vErr || (vData as any)?.error) {
+              toast.error((vData as any)?.error ?? vErr?.message ?? "Payment verification failed");
+              return;
+            }
+            toast.success("Payment successful! Order confirmed.");
+            navigate("/my-rentals");
+          } finally {
+            setLaunching(false);
           }
-          toast.success("Payment successful! Order confirmed.");
-          navigate("/my-rentals");
         },
         modal: {
           ondismiss: () => setLaunching(false),
@@ -262,10 +267,14 @@ const Checkout = () => {
           body: { rentalId: rental!.id, failure: resp?.error ?? null, method },
         });
         toast.error(resp?.error?.description ?? "Payment failed");
+        setLaunching(false);
       });
       rzp.open();
+      opened = true;
     } finally {
-      setLaunching(false);
+      // Keep `launching` true while the modal is open; the dismiss/handler
+      // callbacks will reset it. Only clear here if we never opened.
+      if (!opened) setLaunching(false);
     }
   }
 
