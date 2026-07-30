@@ -13,6 +13,7 @@ import {
   BadgeCheck, Clock, X, Check, ExternalLink, FileText, ShieldCheck, Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
+import { catalogLog } from "@/lib/catalogDebug";
 
 type Row = {
   id: string;
@@ -189,10 +190,12 @@ function ReviewDialog({ row, onClose, onDone }: { row: Row | null; onClose: () =
     setBusy(next === "approved" ? "approve" : "reject");
     const patch: any = { status: next };
     if (next === "rejected") patch.rejection_reason = reason.trim();
+    catalogLog("verification-review-start", { verificationId: row.id, storeId: row.store_id, next });
     const { error } = await (supabase as any)
       .from("store_verifications").update(patch).eq("id", row.id);
     setBusy(null);
     if (error) return toast.error(error.message);
+    catalogLog("verification-review-success", { verificationId: row.id, storeId: row.store_id, next });
     toast.success(next === "approved" ? "Approved — shop is now verified" : "Sent back to seller");
     onDone();
   }

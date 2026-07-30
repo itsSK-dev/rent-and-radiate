@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 
-/** Single source of truth for the launch service area.
- * Only Purnea, Bihar is live right now. Everything else shows a
- * "coming soon" gate but still lets users register interest. */
+/** Single source of truth for the default marketplace location. */
 export const SERVICE_CITY = "Purnea";
 export const SERVICE_REGION = "Bihar";
 export const SERVICE_CITY_LABEL = `${SERVICE_CITY}, ${SERVICE_REGION}`;
@@ -10,11 +8,13 @@ export const SERVICE_CITY_LABEL = `${SERVICE_CITY}, ${SERVICE_REGION}`;
 export const LOCATION_STORAGE_KEY = "rr.location";
 export const LOCATION_CHANGE_EVENT = "rr:location-change";
 
-/** Case-insensitive match, tolerant of common spellings ("Purnia"). */
+/**
+ * The marketplace is data-driven: any city with an approved, active shop should
+ * be browseable. Keep a non-empty city guard so invalid/blank locations still
+ * show the unavailable state instead of querying the whole catalogue.
+ */
 export function isServiceableCity(city: string | null | undefined): boolean {
-  if (!city) return false;
-  const c = city.trim().toLowerCase();
-  return c === "purnea" || c === "purnia";
+  return !!city?.trim();
 }
 
 /** Common spelling variants for a serviceable city (e.g. Purnea / Purnia).

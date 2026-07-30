@@ -16,6 +16,7 @@ import { useServiceCity, cityOrExpr as cityOrExprFor } from "@/lib/serviceArea";
 import { ServiceUnavailable } from "@/components/ServiceUnavailable";
 import { useCategories, getCategoryIcon } from "@/hooks/useCategories";
 import { NEARBY_RADIUS_KM, haversineKm, setSavedCoords, useUserCoords } from "@/lib/geo";
+import { catalogLog } from "@/lib/catalogDebug";
 
 // NOTE: We intentionally do NOT seed demo products from the client.
 // Client-side seeding only works for the user who owns the target store
@@ -110,6 +111,7 @@ const Index = () => {
   const recogRef = useRef<any>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const searchWrapRef = useRef<HTMLDivElement>(null);
+  const catalogRequestSeq = useRef(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -138,12 +140,14 @@ const Index = () => {
   }, []);
 
   const fetchCatalog = useCallback(async () => {
+    const seq = ++catalogRequestSeq.current;
     // Skip catalog fetches entirely when the user is outside the service area.
     if (!isServiceable) {
       setProducts([]);
       setStores([]);
       setTopRated([]);
       setCatalogLoaded(true);
+      catalogLog("home-skip", { serviceCity, isServiceable });
       return;
     }
     const cityOr = cityOrExprFor(serviceCity);
@@ -151,7 +155,7 @@ const Index = () => {
     // Product catalogue is fully DB-driven via vendor uploads + admin approval.
     // Only approved + verified + active + not-blocked stores surface products
     // — same predicate used by Browse and Universal Search for consistency.
-    const { data } = await supabase
+    const { data, error: productError } = await supabase
       .from("products")
       .select(
         "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,status,is_verified,is_active,is_blocked,rating)",
@@ -164,9 +168,21 @@ const Index = () => {
       .or(cityOr, { foreignTable: "stores" })
       .order("created_at", { ascending: false })
       .limit(6);
+    if (seq !== catalogRequestSeq.current) {
+      catalogLog("home-products-stale-response", { seq, current: catalogRequestSeq.current });
+      return;
+    }
+    catalogLog("home-products-fetch", {
+      seq,
+      serviceCity,
+      cityOr,
+      rows: data?.length ?? 0,
+      error: productError?.message,
+      firstIds: (data ?? []).slice(0, 6).map((p: any) => p.id),
+    });
     setProducts((data as any) ?? []);
 
-    const { data: s } = await supabase
+    const { data: s, error: storesError } = await supabase
       .from("stores")
       .select("id,name,city,rating,rating_count,logo_url,lat,lng")
       .eq("status", "approved")
@@ -175,6 +191,10 @@ const Index = () => {
       .eq("is_blocked", false)
       .or(cityOr)
       .limit(20);
+    if (seq !== catalogRequestSeq.current) {
+      catalogLog("home-stores-stale-response", { seq, current: catalogRequestSeq.current });
+      return;
+    }
     const rawStores = (s ?? []) as Array<{
       id: string;
       name: string;
@@ -197,6 +217,10 @@ const Index = () => {
         return count ?? 0;
       }),
     );
+    if (seq !== catalogRequestSeq.current) {
+      catalogLog("home-counts-stale-response", { seq, current: catalogRequestSeq.current });
+      return;
+    }
 
     // Distance is only calculated after the user explicitly taps "Use my
     // location" via the Nearby button — never on page load. Lighthouse Best
@@ -228,7 +252,9 @@ const Index = () => {
     // Nearby = verified shops within NEARBY_RADIUS_KM of the visitor's shared
     // location. Without a shared location we fall back to the service-city
     // shops (never random out-of-area shops).
-    const nearby = (coords ? enriched.filter((st) => st.distance_km != null && st.distance_km <= NEARBY_RADIUS_KM) : enriched)
+    const nearby = (coords
+      ? enriched.filter((st) => st.distance_km == null || st.distance_km <= NEARBY_RADIUS_KM)
+      : enriched)
       .slice()
       .sort((a, b) => {
         if (a.distance_km != null && b.distance_km != null) return a.distance_km - b.distance_km;
@@ -237,6 +263,17 @@ const Index = () => {
         return b.rating - a.rating;
       });
     setStores(nearby.slice(0, 8));
+    catalogLog("home-stores-fetch", {
+      seq,
+      serviceCity,
+      cityOr,
+      rows: s?.length ?? 0,
+      enriched: enriched.length,
+      nearby: nearby.length,
+      coords: !!coords,
+      error: storesError?.message,
+      firstIds: rawStores.slice(0, 8).map((st) => st.id),
+    });
     setCatalogLoaded(true);
   }, [isServiceable, serviceCity, coords]);
 
@@ -249,8 +286,8 @@ const Index = () => {
   useEffect(() => {
     const ch = supabase
       .channel(`home-catalog-${Math.random().toString(36).slice(2, 8)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => { void fetchCatalog(); })
-      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => { void fetchCatalog(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, (payload) => { catalogLog("home-realtime-products", payload); void fetchCatalog(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, (payload) => { catalogLog("home-realtime-stores", payload); void fetchCatalog(); })
       .subscribe();
     return () => {
       supabase.removeChannel(ch);

@@ -32,6 +32,7 @@ import { VerifiedSellerBadge } from "@/components/VerifiedSellerBadge";
 import { VendorStoreProfileForm } from "@/components/vendor/VendorStoreProfileForm";
 import { VendorReviewsPanel } from "@/components/vendor/VendorReviewsPanel";
 import { useCategories } from "@/hooks/useCategories";
+import { catalogLog } from "@/lib/catalogDebug";
 
 
 type Store = {
@@ -80,19 +81,26 @@ const Vendor = () => {
 
   async function refresh() {
     if (!user) return;
-    const { data: s } = await supabase
+    const { data: s, error: storesError } = await supabase
       .from("stores")
       .select("id,name,city,status,is_verified,is_active,is_blocked,logo_url,address,rejection_reason")
       .eq("owner_id", user.id);
+    catalogLog("vendor-stores-fetch", { rows: s?.length ?? 0, error: storesError?.message, userId: user.id });
     setStores((s as any) ?? []);
     const sid = s?.[0]?.id ?? null;
     setStoreId(sid);
 
     if (sid) {
-      const { data: p } = await supabase
+      const { data: p, error: productsError } = await supabase
         .from("products")
         .select("id,title,description,category,price_per_day,security_deposit,available,images,size,color,actual_price,discount_percent,discount_flat,quantity,purpose")
         .eq("store_id", sid).order("created_at", { ascending: false });
+      catalogLog("vendor-products-fetch", {
+        storeId: sid,
+        rows: p?.length ?? 0,
+        error: productsError?.message,
+        firstIds: (p ?? []).slice(0, 5).map((row: any) => row.id),
+      });
       setProducts((p as any) ?? []);
       const { data: r } = await supabase.from("rentals")
         .select("id,start_date,end_date,days,grand_total,deposit,subtotal,commission_amount,status,store_id,customer_id,kind,quantity,delivery_stage,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)")
@@ -461,12 +469,15 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
 
   async function uploadFiles(): Promise<string[]> {
     if (files.length === 0) return [];
+    if (!user) throw new Error("Sign in is required to upload product images.");
     const urls: string[] = [];
     for (const f of files) {
-      const path = `${user!.id}/${Date.now()}-${f.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const path = `${user.id}/${Date.now()}-${f.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      catalogLog("product-image-upload-start", { path, size: f.size, type: f.type });
       const { error } = await supabase.storage.from("product-images").upload(path, f);
       if (error) throw new Error(error.message);
       const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+      catalogLog("product-image-upload-success", { path, hasUrl: !!data.publicUrl });
       urls.push(data.publicUrl);
     }
     return urls;
@@ -499,10 +510,22 @@ function ProductDialog({ storeId, editing, onSaved }: { storeId: string; editing
         images, available,
         rent_to_own_enabled: rentToOwn && (purpose === "both"),
       };
-      const { error } = isEdit
-        ? await supabase.from("products").update(payload).eq("id", editing!.id)
-        : await supabase.from("products").insert(payload);
+      catalogLog("product-save-start", {
+        isEdit,
+        storeId,
+        title: payload.title,
+        category: payload.category,
+        purpose: payload.purpose,
+        quantity: payload.quantity,
+        available: payload.available,
+        imageCount: images.length,
+      });
+      const saveResult = isEdit && editing
+        ? await supabase.from("products").update(payload).eq("id", editing.id).select("id,title,category,store_id,available,quantity,created_at")
+        : await supabase.from("products").insert(payload).select("id,title,category,store_id,available,quantity,created_at");
+      const { data: saved, error } = saveResult;
       if (error) throw new Error(error.message);
+      catalogLog("product-save-success", { rows: saved?.length ?? 0, saved });
       toast.success(isEdit ? "Product updated" : "Product added");
       setOpen(false);
       if (!isEdit) {

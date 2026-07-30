@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -11,6 +11,7 @@ import { Sparkles } from "lucide-react";
 import { useServiceCity, cityOrExpr } from "@/lib/serviceArea";
 import { ServiceUnavailable } from "@/components/ServiceUnavailable";
 import { useCategories } from "@/hooks/useCategories";
+import { catalogLog } from "@/lib/catalogDebug";
 
 type Sort = "newest" | "price_asc" | "price_desc";
 
@@ -34,6 +35,7 @@ const Browse = () => {
 
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [loading, setLoading] = useState(true);
+  const requestSeq = useRef(0);
 
   const category = params.get("category") ?? "all";
   const q = params.get("q") ?? "";
@@ -66,12 +68,15 @@ const Browse = () => {
   }, [category]);
 
   const fetchProducts = useCallback(async () => {
+    const seq = ++requestSeq.current;
     if (!isServiceable) {
       setProducts([]);
       setLoading(false);
+      catalogLog("browse-skip", { serviceCity, isServiceable });
       return;
     }
     setLoading(true);
+    const cityFilter = cityOrExpr(serviceCity);
     let query = supabase
       .from("products")
       .select("id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,status,is_verified,is_active,is_blocked,rating)")
@@ -80,7 +85,7 @@ const Browse = () => {
       .eq("stores.is_verified", true)
       .eq("stores.is_active", true)
       .eq("stores.is_blocked", false)
-      .or(cityOrExpr(serviceCity), { foreignTable: "stores" });
+      .or(cityFilter, { foreignTable: "stores" });
     if (category !== "all") query = query.eq("category", category as any);
     if (storeId) query = query.eq("store_id", storeId);
     if (q) query = query.ilike("title", `%${q}%`);
@@ -89,7 +94,23 @@ const Browse = () => {
     if (sort === "price_asc") query = query.order("price_per_day", { ascending: true });
     else if (sort === "price_desc") query = query.order("price_per_day", { ascending: false });
     else query = query.order("created_at", { ascending: false });
-    const { data } = await query;
+    const { data, error } = await query;
+    if (seq !== requestSeq.current) {
+      catalogLog("browse-stale-response", { seq, current: requestSeq.current });
+      return;
+    }
+    catalogLog("browse-fetch", {
+      seq,
+      serviceCity,
+      cityFilter,
+      category,
+      purpose,
+      q,
+      storeId,
+      rows: data?.length ?? 0,
+      error: error?.message,
+      firstIds: (data ?? []).slice(0, 5).map((p: any) => p.id),
+    });
     setProducts((data ?? []) as any);
     setLoading(false);
   }, [category, q, sort, storeId, purpose, isServiceable, serviceCity]);
@@ -103,8 +124,8 @@ const Browse = () => {
   useEffect(() => {
     const ch = supabase
       .channel(`browse-${Math.random().toString(36).slice(2, 8)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => { void fetchProducts(); })
-      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => { void fetchProducts(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, (payload) => { catalogLog("browse-realtime-products", payload); void fetchProducts(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, (payload) => { catalogLog("browse-realtime-stores", payload); void fetchProducts(); })
       .subscribe();
     return () => {
       supabase.removeChannel(ch);

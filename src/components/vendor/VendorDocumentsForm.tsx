@@ -13,6 +13,7 @@ import { z } from "zod";
 import {
   Upload, FileCheck2, Loader2, X, Send, BadgeCheck, Clock, AlertCircle, Image as ImageIcon,
 } from "lucide-react";
+import { catalogLog } from "@/lib/catalogDebug";
 
 const AADHAAR = /^\d{12}$/;
 const PAN = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -111,6 +112,7 @@ export function VendorDocumentsForm({ storeId, onSaved }: { storeId: string; onS
     setUploading(field);
     const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
     const path = `${user.id}/${storeId}/${field}-${Date.now()}.${ext}`;
+    catalogLog("verification-file-upload-start", { storeId, field, path, size: file.size, type: file.type });
     const { error } = await supabase.storage.from("verification-docs").upload(path, file, {
       upsert: true, contentType: file.type,
     });
@@ -118,6 +120,7 @@ export function VendorDocumentsForm({ storeId, onSaved }: { storeId: string; onS
     if (error) return toast.error(error.message);
     const { data: signed } = await supabase.storage.from("verification-docs").createSignedUrl(path, 60 * 60 * 24 * 365);
     const url = signed?.signedUrl ?? "";
+    catalogLog("verification-file-upload-success", { storeId, field, path, hasUrl: !!url });
     if (field === "shop_photos") {
       setForm((f: any) => ({ ...f, shop_photos: [...(f.shop_photos || []), url].slice(0, 6) }));
     } else {
@@ -161,9 +164,11 @@ export function VendorDocumentsForm({ storeId, onSaved }: { storeId: string; onS
     const q = record?.id
       ? (supabase as any).from("store_verifications").update(payload).eq("id", record.id)
       : (supabase as any).from("store_verifications").insert(payload);
+    catalogLog("verification-save-start", { storeId, status: nextStatus, isUpdate: !!record?.id });
     const { error } = await q;
     setBusy(false);
     if (error) return toast.error(error.message);
+    catalogLog("verification-save-success", { storeId, status: nextStatus, isUpdate: !!record?.id });
     toast.success(nextStatus === "submitted" ? "Submitted for admin review" : "Draft saved");
     await load();
     onSaved?.();

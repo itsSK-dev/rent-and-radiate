@@ -5,6 +5,7 @@ import { Sparkles, ArrowUpRight } from "lucide-react";
 import { inr } from "@/lib/pricing";
 import { Badge } from "@/components/ui/badge";
 import { useServiceCity, cityOrExpr } from "@/lib/serviceArea";
+import { catalogLog } from "@/lib/catalogDebug";
 
 interface Look {
   id: string;
@@ -27,13 +28,15 @@ export function ShopTheLook() {
     if (!isServiceable) {
       setItems([]);
       setLoaded(true);
+      catalogLog("shop-look-skip", { serviceCity, isServiceable });
       return;
     }
     // Same visibility predicate as Home/Browse: approved + verified + active
     // store INSIDE the visitor's service city. Without the city scope this rail
     // rotated in products from out-of-area shops, which looked like a freshly
     // uploaded local product being "replaced" by an older one.
-    const { data } = await supabase
+    const cityFilter = cityOrExpr(serviceCity);
+    const { data, error } = await supabase
       .from("products")
       .select(
         "id,title,category,price_per_day,actual_price,purpose,images,quantity,available,store:stores!inner(name,city,status,is_verified,is_active,is_blocked)",
@@ -44,11 +47,19 @@ export function ShopTheLook() {
       .eq("stores.is_verified", true)
       .eq("stores.is_active", true)
       .eq("stores.is_blocked", false)
-      .or(cityOrExpr(serviceCity), { foreignTable: "stores" })
+      .or(cityFilter, { foreignTable: "stores" })
       .order("created_at", { ascending: false })
       .limit(40);
 
     const ok = (data ?? []).filter((p: any) => (p.images?.length ?? 0) > 0) as any as Look[];
+    catalogLog("shop-look-fetch", {
+      serviceCity,
+      cityFilter,
+      rows: data?.length ?? 0,
+      rendered: ok.length,
+      error: error?.message,
+      firstIds: (data ?? []).slice(0, 5).map((p: any) => p.id),
+    });
     setItems(ok);
     setLoaded(true);
   }, [isServiceable, serviceCity]);
@@ -69,8 +80,8 @@ export function ShopTheLook() {
   useEffect(() => {
     const ch = supabase
       .channel(`shop-the-look-${Math.random().toString(36).slice(2, 8)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => { void fetchLooks(); })
-      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => { void fetchLooks(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, (payload) => { catalogLog("shop-look-realtime-products", payload); void fetchLooks(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, (payload) => { catalogLog("shop-look-realtime-stores", payload); void fetchLooks(); })
       .subscribe();
     return () => {
       supabase.removeChannel(ch);

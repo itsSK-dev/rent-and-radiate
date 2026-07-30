@@ -26,11 +26,13 @@ import {
   ExternalLink, Settings, Loader2, Ban, AlertTriangle,
 } from "lucide-react";
 import { verifyStoreVisibleToCustomers } from "@/lib/verifyStoreVisibility";
+import { catalogLog } from "@/lib/catalogDebug";
 
 async function confirmVisibilityOrAlert(storeId: string, shopName: string) {
   // Small delay to ensure triggers/replication settle
   await new Promise((r) => setTimeout(r, 400));
   const result = await verifyStoreVisibleToCustomers(storeId);
+  catalogLog("shop-visibility-check", { storeId, shopName, result });
   if (result.visible) {
     toast.success(`${shopName} is now live and visible to customers.`, {
       icon: <Check className="h-4 w-4" />,
@@ -113,6 +115,7 @@ export function AdminShopsPanel() {
 
   async function quickUpdate(id: string, patch: Partial<Shop>, msg: string) {
     setBusyId(id);
+    catalogLog("admin-shop-update-start", { id, patch });
     const { data, error } = await supabase
       .from("stores")
       .update(patch as any)
@@ -121,6 +124,7 @@ export function AdminShopsPanel() {
       .maybeSingle();
     setBusyId(null);
     if (error) return toast.error(error.message);
+    catalogLog("admin-shop-update-result", { id, rows: data ? 1 : 0, error: error?.message });
     if (!data) return toast.error("Save failed. Admin access is required for this shop update.");
     toast.success(msg);
     await load();
@@ -197,7 +201,7 @@ export function AdminShopsPanel() {
                     shop={shop}
                     busy={busyId === shop.id}
                     onApprove={async () => {
-                      await quickUpdate(shop.id, { status: "approved" }, "Shop approved");
+                      await quickUpdate(shop.id, { status: "approved", is_verified: true, approved: true, is_active: true }, "Shop approved");
                       await confirmVisibilityOrAlert(shop.id, shop.name);
                     }}
                     onReject={() => quickUpdate(shop.id, { status: "rejected" }, "Shop rejected")}
@@ -396,13 +400,15 @@ function ManageShopDialog({
     if (!shop) return;
     setSaving(true);
     const nextVerified = status === "approved";
+    const nextActive = nextVerified ? true : isActive;
+    catalogLog("admin-shop-manage-save-start", { shopId: shop.id, status, nextVerified, nextActive, isBlocked });
     const { data, error } = await supabase
       .from("stores")
       .update({
         status,
         is_verified: nextVerified,
         approved: nextVerified,
-        is_active: isActive,
+        is_active: nextActive,
         is_blocked: isBlocked,
         rejection_reason: status === "rejected" ? (rejectionReason.trim() || null) : null,
       } as any)

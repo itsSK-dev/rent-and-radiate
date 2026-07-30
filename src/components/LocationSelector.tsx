@@ -8,7 +8,6 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   SERVICE_CITY,
-  SERVICE_CITY_LABEL,
   isServiceableCity,
   readSavedCity,
   setSavedCity,
@@ -22,8 +21,7 @@ const PINNED_SUGGESTIONS = [
   "Darbhanga", "Gaya", "Siliguri", "Kolkata", "Delhi",
 ];
 
-/** City picker — free-text search across India, but only Purnea is
- * actively served right now. Persists in localStorage and broadcasts
+/** City picker — free-text search across India. Persists in localStorage and broadcasts
  * a `rr:location-change` event so feature pages can react instantly. */
 export function LocationSelector({ compact = false }: { compact?: boolean }) {
   const [city, setCity] = useState<string>(SERVICE_CITY);
@@ -111,9 +109,7 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
           <p className="mt-2 text-[11px] text-muted-foreground flex items-start gap-1.5">
             <Sparkles className="h-3 w-3 mt-0.5 text-rose-deep shrink-0" />
             <span>
-              Launch phase — we currently serve only{" "}
-              <span className="font-medium text-foreground">{SERVICE_CITY_LABEL}</span>. You can still
-              pick any city to join the waitlist.
+              Pick your city to see live shops and products listed there.
             </span>
           </p>
         </div>
