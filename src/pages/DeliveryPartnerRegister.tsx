@@ -27,7 +27,7 @@ const DOC_LABELS: Record<DocKey, string> = {
 };
 
 export default function DeliveryPartnerRegister() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshRoles } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -125,6 +125,7 @@ export default function DeliveryPartnerRegister() {
 
       toast.success("Application submitted — awaiting admin verification.");
       setSubmitted(true);
+      await refreshRoles();
     } catch (err: any) {
       toast.error(err.message ?? "Submission failed");
     } finally { setBusy(false); }
