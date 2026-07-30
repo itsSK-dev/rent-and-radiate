@@ -244,14 +244,8 @@ const Index = () => {
     return () => { supabase.removeChannel(ch); };
   }, []);
 
-  // Enable scroll-snap priority on the home page only: the hero locks
-  // into view first; the rest of the page scrolls after. Removed on
-  // unmount so other routes keep normal document scrolling.
-  useEffect(() => {
-    const el = document.documentElement;
-    el.classList.add("home-snap");
-    return () => { el.classList.remove("home-snap"); };
-  }, []);
+
+
 
   function pushRecent(text: string) {
     try {
