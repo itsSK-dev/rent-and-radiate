@@ -29,7 +29,7 @@ const phoneSchema = z
 const Auth = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { user, roles } = useAuth();
+  const { user, roles, deliveryApplication, ready } = useAuth();
   const intentParam = params.get("intent");
   const intent: "customer" | "shop_owner" | "delivery_partner" =
     intentParam === "shop_owner" ? "shop_owner"
@@ -54,36 +54,37 @@ const Auth = () => {
   const [phoneFullName, setPhoneFullName] = useState("");
 
   const [busy, setBusy] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   useEffect(() => {
-    try { localStorage.setItem("rr_auth_intent", intent); } catch { /* noop */ }
-  }, [intent]);
+    if (intentParam) saveIntent(intent);
+  }, [intent, intentParam]);
 
   useEffect(() => {
     document.title = `${mode === "signup" ? "Create your account" : "Sign in"} · Rent & Radiate`;
   }, [mode]);
 
+  // Single source of truth for post-login routing (roles + delivery application + intent).
   useEffect(() => {
-    if (!user) return;
-    const next = params.get("next");
-    if (next) { navigate(next, { replace: true }); return; }
-    const savedIntent = (() => {
-      try { return localStorage.getItem("rr_auth_intent"); } catch { return null; }
-    })();
-    const effectiveIntent = savedIntent === "shop_owner" ? "shop_owner"
-                          : savedIntent === "delivery_partner" ? "delivery_partner"
-                          : intent;
-    if (roles.includes("admin")) { navigate("/admin", { replace: true }); return; }
-    if (effectiveIntent === "shop_owner") {
-      navigate(roles.includes("store_owner") ? "/vendor" : "/become-vendor", { replace: true });
-      return;
-    }
-    if (effectiveIntent === "delivery_partner") {
-      navigate(roles.includes("delivery_partner") ? "/delivery" : "/delivery/register", { replace: true });
-      return;
-    }
-    navigate("/", { replace: true });
-  }, [user, roles, navigate, params, intent]);
+    if (!ready || !user) return;
+    const target = resolvePostLoginPath({
+      roles,
+      deliveryApplication,
+      intent: readIntent() ?? intent,
+      next: params.get("next"),
+    });
+    navigate(target, { replace: true });
+  }, [user, ready, roles, deliveryApplication, navigate, params, intent]);
+
+  async function resendConfirmation(target: string) {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: target,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Confirmation email sent. Check your inbox (and spam).");
+  }
 
   async function submitEmail(e: React.FormEvent) {
     e.preventDefault();
@@ -93,10 +94,12 @@ const Auth = () => {
       referralCode: mode === "signup" ? referralCode : undefined,
     });
     if (!parsed.success) return toast.error(parsed.error.issues[0].message);
+    const cleanEmail = email.trim().toLowerCase();
     setBusy(true);
     if (mode === "signup") {
-      const { error } = await supabase.auth.signUp({
-        email, password,
+      authLog("signup", { email: cleanEmail, intent });
+      const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail, password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
@@ -106,20 +109,50 @@ const Auth = () => {
         },
       });
       setBusy(false);
-      if (error) return toast.error(error.message);
+      if (error) {
+        authLog("signup:error", error.message);
+        if (/already registered|already exists/i.test(error.message)) {
+          setMode("signin");
+          return toast.error("This email already has an account. Please sign in instead.");
+        }
+        return toast.error(error.message);
+      }
+      // Supabase returns a user with no identities when the email already exists.
+      if (data.user && (data.user.identities?.length ?? 0) === 0) {
+        setMode("signin");
+        return toast.error("This email already has an account. Please sign in instead.");
+      }
+      if (!data.session) {
+        setNeedsConfirmation(true);
+        setMode("signin");
+        return toast.success("Account created. Confirm your email, then sign in.", { duration: 8000 });
+      }
       toast.success(referralCode.trim() ? "Welcome! Bonus points credited." : "Welcome to Rent & Radiate!");
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      authLog("signin", { email: cleanEmail, intent });
+      const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
       setBusy(false);
       if (error) {
+        authLog("signin:error", error.message);
         const { recordFailedLogin } = await import("@/lib/securityLog");
-        recordFailedLogin(email, error.message);
+        recordFailedLogin(cleanEmail, error.message);
+        const msg = error.message.toLowerCase();
+        if (msg.includes("not confirmed")) {
+          setNeedsConfirmation(true);
+          return toast.error("Your email isn't confirmed yet. Use “Resend confirmation email” below.", {
+            duration: 9000,
+          });
+        }
+        if (msg.includes("invalid login credentials")) {
+          return toast.error("Incorrect email or password. If you signed up with Google, use “Continue with Google”.");
+        }
         return toast.error(error.message);
       }
       const { clearFailedLogins } = await import("@/lib/securityLog");
-      clearFailedLogins(email);
+      clearFailedLogins(cleanEmail);
     }
   }
+
 
   async function sendOtp(e: React.FormEvent) {
     e.preventDefault();
