@@ -16,14 +16,12 @@ const RoleSelect = () => {
     document.title = "Choose how to continue · Rent & Radiate";
   }, []);
 
-  // Already signed in? Send them to their appropriate landing page.
+  // Already signed in? Send them to their role's landing page (single resolver).
   useEffect(() => {
-    if (loading || !user) return;
-    if (next) { navigate(next, { replace: true }); return; }
-    if (roles.includes("admin")) { navigate("/admin", { replace: true }); return; }
-    if (roles.includes("store_owner")) { navigate("/vendor", { replace: true }); return; }
-    navigate("/", { replace: true });
-  }, [user, roles, loading, navigate, next]);
+    if (loading || !ready || !user) return;
+    navigate(resolvePostLoginPath({ roles, deliveryApplication, intent: null, next }), { replace: true });
+  }, [user, roles, deliveryApplication, ready, loading, navigate, next]);
+
 
   const buildLink = (intent: "customer" | "shop_owner" | "delivery_partner", mode: "signin" | "signup") => {
     const qs = new URLSearchParams();
