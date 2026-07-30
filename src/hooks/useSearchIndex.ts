@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Fuse from "fuse.js";
 import { supabase } from "@/integrations/supabase/client";
 import { useServiceCity, cityOrExpr } from "@/lib/serviceArea";
+import { catalogLog } from "@/lib/catalogDebug";
 
 export type SearchProduct = {
   id: string;
@@ -39,9 +40,17 @@ type CacheEntry = { at: number; products: SearchProduct[]; shops: SearchShop[] }
 const CACHE = new Map<string, CacheEntry>();
 const TTL_MS = 60_000;
 
+export function clearSearchIndexCache() {
+  CACHE.clear();
+  catalogLog("search-cache-cleared");
+}
+
 async function fetchIndex(city: string): Promise<{ products: SearchProduct[]; shops: SearchShop[] }> {
   const cached = CACHE.get(city);
-  if (cached && Date.now() - cached.at < TTL_MS) return { products: cached.products, shops: cached.shops };
+  if (cached && Date.now() - cached.at < TTL_MS) {
+    catalogLog("search-cache-hit", { city, products: cached.products.length, shops: cached.shops.length });
+    return { products: cached.products, shops: cached.shops };
+  }
 
   const [productsRes, storesRes] = await Promise.all([
     supabase
@@ -83,6 +92,15 @@ async function fetchIndex(city: string): Promise<{ products: SearchProduct[]; sh
 
   const shops: SearchShop[] = (storesRes.data as SearchShop[]) ?? [];
   CACHE.set(city, { at: Date.now(), products, shops });
+  catalogLog("search-fetch", {
+    city,
+    productRows: productsRes.data?.length ?? 0,
+    shopRows: storesRes.data?.length ?? 0,
+    products: products.length,
+    shops: shops.length,
+    productError: productsRes.error?.message,
+    shopError: storesRes.error?.message,
+  });
   return { products, shops };
 }
 
@@ -104,6 +122,31 @@ export function useSearchIndex(enabled: boolean) {
       })
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
+  }, [enabled, isServiceable, city]);
+
+  useEffect(() => {
+    if (!enabled || !isServiceable) return;
+    let cancelled = false;
+    const refresh = () => {
+      clearSearchIndexCache();
+      setLoading(true);
+      void fetchIndex(city)
+        .then((r) => {
+          if (cancelled) return;
+          setProducts(r.products);
+          setShops(r.shops);
+        })
+        .finally(() => !cancelled && setLoading(false));
+    };
+    const ch = supabase
+      .channel(`search-index-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, refresh)
+      .subscribe();
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(ch);
+    };
   }, [enabled, isServiceable, city]);
 
   const productFuse = useMemo(
