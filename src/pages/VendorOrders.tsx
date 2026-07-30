@@ -37,10 +37,10 @@ type Row = {
 
 const STATUS_GROUPS: { key: string; label: string; statuses: string[] }[] = [
   { key: "all", label: "All", statuses: [] },
-  { key: "new", label: "New", statuses: ["pending"] },
-  { key: "active", label: "In Progress", statuses: ["accepted", "confirmed", "packing", "ready_for_pickup"] },
-  { key: "shipped", label: "Shipped", statuses: ["shipped"] },
-  { key: "delivered", label: "Delivered", statuses: ["delivered", "returned"] },
+  { key: "new", label: "New", statuses: ["pending", "confirmed"] },
+  { key: "active", label: "In Progress", statuses: ["accepted", "packing", "ready_for_pickup", "assigned", "picked_up"] },
+  { key: "shipped", label: "Shipped", statuses: ["shipped", "out_for_delivery"] },
+  { key: "delivered", label: "Delivered", statuses: ["delivered", "returned", "completed"] },
   { key: "cancelled", label: "Cancelled", statuses: ["cancelled", "rejected"] },
 ];
 

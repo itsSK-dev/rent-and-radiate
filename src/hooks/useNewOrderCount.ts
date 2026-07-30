@@ -32,7 +32,8 @@ export function useNewOrderCount() {
           .from("rentals")
           .select("id", { count: "exact", head: true })
           .in("store_id", storeIds)
-          .eq("status", "pending");
+          // 'confirmed' = paid order awaiting vendor action, 'pending' = COD/unpaid awaiting action
+          .in("status", ["pending", "confirmed"]);
         if (!cancelled) setCount(c ?? 0);
       };
 
