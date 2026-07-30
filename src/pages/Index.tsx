@@ -105,6 +105,8 @@ const Index = () => {
   const [focused, setFocused] = useState(false);
   const [recent, setRecent] = useState<string[]>([]);
   const [nearbyCity, setNearbyCity] = useState<string | null>(null);
+  const [catalogLoaded, setCatalogLoaded] = useState(false);
+  const coords = useUserCoords();
   const recogRef = useRef<any>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const searchWrapRef = useRef<HTMLDivElement>(null);
@@ -118,98 +120,6 @@ const Index = () => {
         "content",
         "Shop the look: rent or buy designer dresses, jewellery and accessories from boutiques near you. Tap any piece on the model to view, rent, or buy.",
       );
-
-    (async () => {
-      // Skip catalog fetches entirely when the user is outside the service area.
-      if (!isServiceable) {
-        setProducts([]);
-        setStores([]);
-        return;
-      }
-      const cityOr = cityOrExprFor(serviceCity);
-
-      // Product catalogue is fully DB-driven via vendor uploads + admin approval.
-      // Only approved + verified + active + not-blocked stores surface products
-      // — same predicate used by Browse and Universal Search for consistency.
-      const { data } = await supabase
-        .from("products")
-        .select(
-          "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,status,is_verified,is_active,is_blocked,rating)",
-        )
-        .eq("available", true)
-        .eq("stores.status", "approved")
-        .eq("stores.is_verified", true)
-        .eq("stores.is_active", true)
-        .eq("stores.is_blocked", false)
-        .or(cityOr, { foreignTable: "stores" })
-        .order("created_at", { ascending: false })
-        .limit(6);
-      setProducts((data as any) ?? []);
-      const { data: s } = await supabase
-        .from("stores")
-        .select("id,name,city,rating,rating_count,logo_url,lat,lng")
-        .eq("status", "approved")
-        .eq("is_verified", true)
-        .eq("is_active", true)
-        .eq("is_blocked", false)
-        .or(cityOr)
-        .limit(20);
-      const rawStores = (s ?? []) as Array<{
-        id: string;
-        name: string;
-        city: string | null;
-        rating: number;
-        rating_count: number;
-        logo_url: string | null;
-        lat: number | null;
-        lng: number | null;
-      }>;
-
-      // Per-shop available product counts (small N, parallel and cheap).
-      const counts = await Promise.all(
-        rawStores.map(async (st) => {
-          const { count } = await supabase
-            .from("products")
-            .select("id", { count: "exact", head: true })
-            .eq("store_id", st.id)
-            .eq("available", true);
-          return count ?? 0;
-        }),
-      );
-
-      // Distance is only calculated after the user explicitly taps "Use my
-      // location" via the Nearby button — never on page load. Lighthouse Best
-      // Practices flags automatic geolocation prompts, and it's poor UX to ask
-      // for a permission the visitor didn't request.
-      const enriched: NearbyShop[] = rawStores.map((st, i) => ({
-        ...st,
-        product_count: counts[i],
-        distance_km: null,
-      }));
-
-      // Top rated ranking: avg rating × total ratings. Ties broken by rating,
-      // then by number of listed products so newly-launched shops with 0
-      // ratings still get a fair, deterministic order.
-      const ranked = [...enriched]
-        .sort((a, b) => {
-          const sa = (a.rating || 0) * (a.rating_count || 0);
-          const sb = (b.rating || 0) * (b.rating_count || 0);
-          if (sb !== sa) return sb - sa;
-          if ((b.rating || 0) !== (a.rating || 0)) return (b.rating || 0) - (a.rating || 0);
-          return (b.product_count || 0) - (a.product_count || 0);
-        })
-        .slice(0, 5);
-      setTopRated(ranked);
-
-      const nearby = enriched.slice().sort((a, b) => {
-        if (a.distance_km != null && b.distance_km != null) return a.distance_km - b.distance_km;
-        if (a.distance_km != null) return -1;
-        if (b.distance_km != null) return 1;
-        return b.rating - a.rating;
-      });
-      setStores(nearby.slice(0, 8));
-    })();
-
 
     try {
       const r = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
@@ -225,7 +135,128 @@ const Index = () => {
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
-  }, [isServiceable, serviceCity, ratingsTick]);
+  }, []);
+
+  const fetchCatalog = useCallback(async () => {
+    // Skip catalog fetches entirely when the user is outside the service area.
+    if (!isServiceable) {
+      setProducts([]);
+      setStores([]);
+      setTopRated([]);
+      setCatalogLoaded(true);
+      return;
+    }
+    const cityOr = cityOrExprFor(serviceCity);
+
+    // Product catalogue is fully DB-driven via vendor uploads + admin approval.
+    // Only approved + verified + active + not-blocked stores surface products
+    // — same predicate used by Browse and Universal Search for consistency.
+    const { data } = await supabase
+      .from("products")
+      .select(
+        "id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,status,is_verified,is_active,is_blocked,rating)",
+      )
+      .eq("available", true)
+      .eq("stores.status", "approved")
+      .eq("stores.is_verified", true)
+      .eq("stores.is_active", true)
+      .eq("stores.is_blocked", false)
+      .or(cityOr, { foreignTable: "stores" })
+      .order("created_at", { ascending: false })
+      .limit(6);
+    setProducts((data as any) ?? []);
+
+    const { data: s } = await supabase
+      .from("stores")
+      .select("id,name,city,rating,rating_count,logo_url,lat,lng")
+      .eq("status", "approved")
+      .eq("is_verified", true)
+      .eq("is_active", true)
+      .eq("is_blocked", false)
+      .or(cityOr)
+      .limit(20);
+    const rawStores = (s ?? []) as Array<{
+      id: string;
+      name: string;
+      city: string | null;
+      rating: number;
+      rating_count: number;
+      logo_url: string | null;
+      lat: number | null;
+      lng: number | null;
+    }>;
+
+    // Per-shop available product counts (small N, parallel and cheap).
+    const counts = await Promise.all(
+      rawStores.map(async (st) => {
+        const { count } = await supabase
+          .from("products")
+          .select("id", { count: "exact", head: true })
+          .eq("store_id", st.id)
+          .eq("available", true);
+        return count ?? 0;
+      }),
+    );
+
+    // Distance is only calculated after the user explicitly taps "Use my
+    // location" via the Nearby button — never on page load. Lighthouse Best
+    // Practices flags automatic geolocation prompts, and it's poor UX to ask
+    // for a permission the visitor didn't request.
+    const enriched: NearbyShop[] = rawStores.map((st, i) => ({
+      ...st,
+      product_count: counts[i],
+      distance_km:
+        coords && st.lat != null && st.lng != null
+          ? haversineKm(coords, { lat: st.lat, lng: st.lng })
+          : null,
+    }));
+
+    // Top rated ranking: avg rating × total ratings. Ties broken by rating,
+    // then by number of listed products so newly-launched shops with 0
+    // ratings still get a fair, deterministic order.
+    const ranked = [...enriched]
+      .sort((a, b) => {
+        const sa = (a.rating || 0) * (a.rating_count || 0);
+        const sb = (b.rating || 0) * (b.rating_count || 0);
+        if (sb !== sa) return sb - sa;
+        if ((b.rating || 0) !== (a.rating || 0)) return (b.rating || 0) - (a.rating || 0);
+        return (b.product_count || 0) - (a.product_count || 0);
+      })
+      .slice(0, 5);
+    setTopRated(ranked);
+
+    // Nearby = verified shops within NEARBY_RADIUS_KM of the visitor's shared
+    // location. Without a shared location we fall back to the service-city
+    // shops (never random out-of-area shops).
+    const nearby = (coords ? enriched.filter((st) => st.distance_km != null && st.distance_km <= NEARBY_RADIUS_KM) : enriched)
+      .slice()
+      .sort((a, b) => {
+        if (a.distance_km != null && b.distance_km != null) return a.distance_km - b.distance_km;
+        if (a.distance_km != null) return -1;
+        if (b.distance_km != null) return 1;
+        return b.rating - a.rating;
+      });
+    setStores(nearby.slice(0, 8));
+    setCatalogLoaded(true);
+  }, [isServiceable, serviceCity, coords]);
+
+  useEffect(() => {
+    void fetchCatalog();
+  }, [fetchCatalog, ratingsTick]);
+
+  // Live sync: any product insert/update/delete, or any store change (new
+  // shop, admin verification, disable/block) refreshes the home catalogue.
+  useEffect(() => {
+    const ch = supabase
+      .channel(`home-catalog-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => { void fetchCatalog(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => { void fetchCatalog(); })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [fetchCatalog]);
+
 
   // Realtime: re-rank Top Rated when any rating is added, edited or removed,
   // or when a store row itself updates (rating/rating_count refresh).
