@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.create_notification(uuid, notification_type, text, text, text, text, jsonb) FROM authenticated, anon, PUBLIC;
+GRANT EXECUTE ON FUNCTION public.create_notification(uuid, notification_type, text, text, text, text, jsonb) TO service_role;
