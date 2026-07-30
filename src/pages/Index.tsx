@@ -15,6 +15,8 @@ import { toast } from "@/components/ui/sonner";
 import { useServiceCity, cityOrExpr as cityOrExprFor } from "@/lib/serviceArea";
 import { ServiceUnavailable } from "@/components/ServiceUnavailable";
 import { useCategories, getCategoryIcon } from "@/hooks/useCategories";
+import { NEARBY_RADIUS_KM, haversineKm, setSavedCoords, useUserCoords } from "@/lib/geo";
+
 // NOTE: We intentionally do NOT seed demo products from the client.
 // Client-side seeding only works for the user who owns the target store
 // (RLS blocks everyone else), which produced "I see it but others don't"
