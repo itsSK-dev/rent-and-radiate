@@ -80,6 +80,8 @@ const App = () => (
           <AuthProvider>
             <WishlistProvider>
               <ScrollToTop />
+              <PostLoginRouter />
+
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
