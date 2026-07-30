@@ -68,14 +68,7 @@ type NearbyShop = {
 // moment it's activated. See `useCategories()` in `src/hooks/useCategories.ts`.
 
 
-function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
-  const R = 6371;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
-  const x = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(x));
-}
+
 
 // Shops on the marketplace are open 10:00 – 21:00 IST by convention (no per-shop hours stored).
 function isShopOpenNow() {
