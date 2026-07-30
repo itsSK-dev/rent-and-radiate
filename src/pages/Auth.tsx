@@ -201,14 +201,22 @@ const Auth = () => {
 
   async function signInWithGoogle() {
     setBusy(true);
+    // Persist the chosen role + return path so the post-OAuth landing can route correctly.
+    saveIntent(intent);
+    markOAuthPending(params.get("next"));
+    authLog("google:start", { intent, next: params.get("next") });
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
       if (result.error) {
+        authLog("google:error", result.error);
         toast.error(result.error.message || "Google sign-in failed");
+        return;
       }
       if (result.redirected) return;
+      authLog("google:session-set");
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Google sign-in failed");
     } finally {
