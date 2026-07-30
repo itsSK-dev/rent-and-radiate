@@ -111,7 +111,7 @@ export function ShopTheLook() {
     );
   }
 
-  const current = looks[index];
+  const current = looks[Math.min(index, looks.length - 1)];
   // hotspot positions for up to 4 picks
   const hotspots = [
     { top: "18%", left: "14%" },
