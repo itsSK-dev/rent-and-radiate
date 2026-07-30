@@ -723,8 +723,8 @@ const Index = () => {
           )}
 
           {/* Nearby Verified Shops */}
-          {stores.length > 0 && (
-            <section className="container pb-16 md:pb-24">
+          {(stores.length > 0 || catalogLoaded) && (
+            <section id="nearby-shops" className="container pb-16 md:pb-24 scroll-mt-24">
               <div className="flex items-end justify-between mb-6 md:mb-8">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
@@ -739,13 +739,26 @@ const Index = () => {
                   See all <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-                {stores.map((s) => (
-                  <NearbyShopCard key={s.id} shop={s} open={shopsOpen} />
-                ))}
-              </div>
+              {stores.length === 0 ? (
+                <div className="rounded-3xl border border-border bg-card px-6 py-12 text-center">
+                  <MapPin className="h-6 w-6 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-muted-foreground">No nearby shops found in your area.</p>
+                  {coords && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      We looked within {NEARBY_RADIUS_KM} km of your location.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                  {stores.map((s) => (
+                    <NearbyShopCard key={s.id} shop={s} open={shopsOpen} />
+                  ))}
+                </div>
+              )}
             </section>
           )}
+
         </>
       )}
 
