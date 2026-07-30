@@ -30,7 +30,7 @@ function similarity(productText: string, queryTokens: string[]): number {
 const Browse = () => {
   const { city: serviceCity, isServiceable } = useServiceCity();
   const [params, setParams] = useSearchParams();
-  const { categories: activeCats } = useCategories(false);
+  const { categories: allCats } = useCategories(true);
 
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [loading, setLoading] = useState(true);
