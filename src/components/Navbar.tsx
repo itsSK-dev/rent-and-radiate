@@ -9,6 +9,14 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useNewOrderCount } from "@/hooks/useNewOrderCount";
 import { UniversalSearchDialog } from "@/components/UniversalSearchDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 
 export function Navbar() {
   const { user, roles, deliveryApplication, signOut } = useAuth();
@@ -24,21 +32,23 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/85 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
-      <div className="container flex h-16 items-center justify-between gap-2 md:gap-4">
-        <div className="flex items-center gap-3 md:gap-5 min-w-0 flex-1">
+      <div className="container flex h-16 items-center justify-between gap-2 lg:gap-4">
+        <div className="flex items-center gap-3 lg:gap-5 min-w-0 flex-1">
           <Link to="/" className="flex items-center gap-2 group shrink-0 min-w-0">
             <Flower2 className="h-6 w-6 text-primary group-hover:rotate-12 transition-smooth shrink-0" strokeWidth={1.5} />
-            <span className="font-display text-lg sm:text-xl md:text-2xl tracking-tight truncate">
+            <span className="font-display text-lg sm:text-xl xl:text-2xl tracking-tight truncate">
               <span className="hidden xs:inline">Rent &amp; Radiate</span>
               <span className="xs:hidden">R&amp;R</span>
             </span>
           </Link>
-          <div className="hidden sm:block">
+          <div className="hidden sm:block min-w-0 shrink basis-auto">
             <LocationSelector />
           </div>
         </div>
 
-        <nav className="hidden md:flex items-center gap-8 text-sm">
+        {/* Primary nav — only from lg up; below that everything lives in the
+            hamburger sheet so the row can never overflow the viewport. */}
+        <nav className="hidden lg:flex items-center gap-4 xl:gap-8 text-sm shrink-0">
           {showShopping && (
             <>
               <NavItem to="/browse?category=dress">Dresses</NavItem>
@@ -59,10 +69,10 @@ export function Navbar() {
             </>
           )}
           <NavItem to="/how-it-works">How it works</NavItem>
-          {showShopping && <NavItem to="/advertise">Advertise</NavItem>}
+          {showShopping && <span className="hidden xl:inline"><NavItem to="/advertise">Advertise</NavItem></span>}
         </nav>
 
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-1 xl:gap-2 shrink-0">
           {showShopping && (
             <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} aria-label="Search">
               <Search className="h-4 w-4" />
@@ -87,16 +97,12 @@ export function Navbar() {
             <>
               {showShopping && (
                 <>
-                  <Button variant="ghost" size="sm" onClick={() => navigate("/my-rentals")}>
+                  {/* Wide screens keep the full label row; narrower desktops fold
+                      these into the account menu so nothing collides. */}
+                  <Button variant="ghost" size="sm" className="hidden xl:inline-flex" onClick={() => navigate("/my-rentals")}>
                     <ShoppingBag className="h-4 w-4 mr-2" /> My orders
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => navigate("/my-payments")}>
-                    My payments
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => navigate("/rewards")}>
-                    Rewards
-                  </Button>
-                  <Button variant="soft" size="sm" onClick={() => navigate("/become-vendor")}>
+                  <Button variant="soft" size="sm" className="hidden xl:inline-flex" onClick={() => navigate("/become-vendor")}>
                     <Store className="h-4 w-4 mr-2" /> Open a store
                   </Button>
                 </>
@@ -121,9 +127,30 @@ export function Navbar() {
                   <Truck className="h-4 w-4 mr-2" /> Delivery
                 </Button>
               )}
-              <Button variant="ghost" size="icon" onClick={() => signOut()} aria-label="Sign out">
-                <LogOut className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label="Account menu">
+                    <UserIcon className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 max-w-[calc(100vw-2rem)]">
+                  <DropdownMenuItem onSelect={() => navigate("/profile")}>Profile</DropdownMenuItem>
+                  {showShopping && (
+                    <>
+                      <DropdownMenuItem className="xl:hidden" onSelect={() => navigate("/my-rentals")}>My orders</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => navigate("/my-payments")}>My payments</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => navigate("/rewards")}>Rewards</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => navigate("/refer")}>Refer a friend</DropdownMenuItem>
+                      <DropdownMenuItem className="xl:hidden" onSelect={() => navigate("/become-vendor")}>Open a store</DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuItem onSelect={() => navigate("/settings")}>Settings</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => signOut()}>
+                    <LogOut className="h-4 w-4 mr-2" /> Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <>
@@ -137,7 +164,7 @@ export function Navbar() {
           )}
         </div>
 
-        <div className="flex md:hidden items-center gap-0 shrink-0">
+        <div className="flex lg:hidden items-center gap-0 shrink-0">
           {showShopping && (
             <Button variant="ghost" size="icon" onClick={() => setSearchOpen(true)} aria-label="Search" className="h-11 w-11">
               <Search className="h-[18px] w-[18px]" />
@@ -163,10 +190,11 @@ export function Navbar() {
           </button>
         </div>
 
+
       </div>
 
       {open && (
-        <div className="md:hidden border-t border-border bg-background animate-fade-in">
+        <div className="lg:hidden border-t border-border bg-background animate-fade-in max-h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="container flex flex-col py-4 gap-2 text-sm">
             <div className="pb-2 sm:hidden">
               <LocationSelector />

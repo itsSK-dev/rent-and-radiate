@@ -69,8 +69,8 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        className={`group inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs transition-colors ${
-          compact ? "" : "md:px-3 md:py-2 md:text-sm"
+        className={`group inline-flex min-w-0 w-full max-w-[190px] lg:min-w-[104px] shrink items-center overflow-hidden gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1.5 text-xs transition-colors ${
+          compact ? "" : "lg:px-3 lg:py-2 lg:text-sm"
         } ${
           serviceable
             ? "border-border/60 bg-card/60 hover:border-primary/40 hover:bg-blossom/40"
@@ -78,15 +78,16 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
         }`}
         aria-label="Choose location"
       >
-        <MapPin className={`h-3.5 w-3.5 ${serviceable ? "text-rose-deep" : "text-amber-600"}`} />
-        <span className="hidden xs:inline opacity-70">Deliver to</span>
-        <span className="font-medium">{city}</span>
+        <MapPin className={`h-3.5 w-3.5 shrink-0 ${serviceable ? "text-rose-deep" : "text-amber-600"}`} />
+        <span className="hidden xs:inline xl:inline lg:hidden opacity-70 shrink-0">Deliver to</span>
+        <span className="font-medium truncate">{city}</span>
+
         {!serviceable && (
           <span className="hidden sm:inline ml-1 text-[10px] uppercase tracking-wider font-semibold bg-amber-500/15 text-amber-700 px-1.5 py-0.5 rounded">
             soon
           </span>
         )}
-        <ChevronDown className="h-3 w-3 opacity-70 group-data-[state=open]:rotate-180 transition-transform" />
+        <ChevronDown className="h-3 w-3 shrink-0 opacity-70 group-data-[state=open]:rotate-180 transition-transform" />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 p-0 overflow-hidden">
         <div className="p-2 border-b border-border bg-card">
