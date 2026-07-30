@@ -55,38 +55,52 @@ const Browse = () => {
     document.title = `Browse ${category === "all" ? "all" : category} · Rent & Radiate`;
   }, [category]);
 
-  useEffect(() => {
+  const fetchProducts = useCallback(async () => {
     if (!isServiceable) {
       setProducts([]);
       setLoading(false);
       return;
     }
-    (async () => {
-      setLoading(true);
-      let query = supabase
-        .from("products")
-        .select("id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,status,is_verified,is_active,is_blocked,rating)")
-        .eq("available", true)
-        .or(cityOrExpr(serviceCity), { foreignTable: "stores" });
-      if (category !== "all") query = query.eq("category", category as any);
-      if (storeId) query = query.eq("store_id", storeId);
-      if (q) query = query.ilike("title", `%${q}%`);
-      if (purpose === "rent") query = query.in("purpose", ["rent", "both"] as any);
-      else if (purpose === "buy") query = query.in("purpose", ["buy", "both"] as any);
-      if (sort === "price_asc") query = query.order("price_per_day", { ascending: true });
-      else if (sort === "price_desc") query = query.order("price_per_day", { ascending: false });
-      else query = query.order("created_at", { ascending: false });
-      const { data } = await query;
-      const filtered = (data ?? []).filter((p: any) =>
-        p.store?.status === "approved" &&
-        p.store?.is_verified === true &&
-        p.store?.is_active === true &&
-        p.store?.is_blocked === false,
-      );
-      setProducts(filtered as any);
-      setLoading(false);
-    })();
+    setLoading(true);
+    let query = supabase
+      .from("products")
+      .select("id,title,category,price_per_day,security_deposit,images,actual_price,discount_percent,discount_flat,purpose,quantity,store:stores!inner(name,city,status,is_verified,is_active,is_blocked,rating)")
+      .eq("available", true)
+      .eq("stores.status", "approved")
+      .eq("stores.is_verified", true)
+      .eq("stores.is_active", true)
+      .eq("stores.is_blocked", false)
+      .or(cityOrExpr(serviceCity), { foreignTable: "stores" });
+    if (category !== "all") query = query.eq("category", category as any);
+    if (storeId) query = query.eq("store_id", storeId);
+    if (q) query = query.ilike("title", `%${q}%`);
+    if (purpose === "rent") query = query.in("purpose", ["rent", "both"] as any);
+    else if (purpose === "buy") query = query.in("purpose", ["buy", "both"] as any);
+    if (sort === "price_asc") query = query.order("price_per_day", { ascending: true });
+    else if (sort === "price_desc") query = query.order("price_per_day", { ascending: false });
+    else query = query.order("created_at", { ascending: false });
+    const { data } = await query;
+    setProducts((data ?? []) as any);
+    setLoading(false);
   }, [category, q, sort, storeId, purpose, isServiceable, serviceCity]);
+
+  useEffect(() => {
+    void fetchProducts();
+  }, [fetchProducts]);
+
+  // Live sync: product uploads/edits/deletions and store verification changes
+  // are reflected without a manual refresh.
+  useEffect(() => {
+    const ch = supabase
+      .channel(`browse-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => { void fetchProducts(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => { void fetchProducts(); })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [fetchProducts]);
+
 
   function update(key: string, value: string) {
     const next = new URLSearchParams(params);
