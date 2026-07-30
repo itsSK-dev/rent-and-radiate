@@ -43,6 +43,16 @@ const Browse = () => {
   const match = params.get("match") ?? "";
   const matchTokens = useMemo(() => tokenize(match), [match]);
 
+  // Active categories, plus the currently selected one even if it isn't
+  // launched yet — otherwise the Select renders blank for a "coming soon"
+  // slug arrived at via a direct link.
+  const activeCats = useMemo(() => {
+    const active = allCats.filter((c) => c.is_active);
+    const selected = allCats.find((c) => c.slug === category);
+    return selected && !selected.is_active ? [...active, selected] : active;
+  }, [allCats, category]);
+
+
   const scoredProducts = useMemo(() => {
     if (matchTokens.length === 0) return products.map(p => ({ p, score: 0 }));
     return products
