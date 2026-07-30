@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, ArrowUpRight } from "lucide-react";
 import { inr } from "@/lib/pricing";
 import { Badge } from "@/components/ui/badge";
+import { useServiceCity, cityOrExpr } from "@/lib/serviceArea";
 
 interface Look {
   id: string;
@@ -17,41 +18,65 @@ interface Look {
 }
 
 export function ShopTheLook() {
+  const { city: serviceCity, isServiceable } = useServiceCity();
   const [items, setItems] = useState<Look[]>([]);
   const [index, setIndex] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
+  const fetchLooks = useCallback(async () => {
+    if (!isServiceable) {
+      setItems([]);
+      setLoaded(true);
+      return;
+    }
+    // Same visibility predicate as Home/Browse: approved + verified + active
+    // store INSIDE the visitor's service city. Without the city scope this rail
+    // rotated in products from out-of-area shops, which looked like a freshly
+    // uploaded local product being "replaced" by an older one.
+    const { data } = await supabase
+      .from("products")
+      .select(
+        "id,title,category,price_per_day,actual_price,purpose,images,quantity,available,store:stores!inner(name,city,status,is_verified,is_active,is_blocked)",
+      )
+      .eq("available", true)
+      .gt("quantity", 0)
+      .eq("stores.status", "approved")
+      .eq("stores.is_verified", true)
+      .eq("stores.is_active", true)
+      .eq("stores.is_blocked", false)
+      .or(cityOrExpr(serviceCity), { foreignTable: "stores" })
+      .order("created_at", { ascending: false })
+      .limit(40);
+
+    const ok = (data ?? []).filter((p: any) => (p.images?.length ?? 0) > 0) as any as Look[];
+    setItems(ok);
+    setLoaded(true);
+  }, [isServiceable, serviceCity]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
-        .from("products")
-        .select(
-          "id,title,category,price_per_day,actual_price,purpose,images,quantity,available,store:stores!inner(name,status,is_verified,is_active,is_blocked)",
-        )
-        .eq("available", true)
-        .gt("quantity", 0)
-        .order("created_at", { ascending: false })
-        .limit(40);
-
-      const ok = (data ?? []).filter(
-        (p: any) =>
-          (p.images?.length ?? 0) > 0 &&
-          p.store?.status === "approved" &&
-          p.store?.is_verified === true &&
-          p.store?.is_active === true &&
-          p.store?.is_blocked === false,
-      ) as any as Look[];
-
-      if (!cancelled) {
-        setItems(ok);
-        setLoaded(true);
-      }
+      await fetchLooks();
+      if (cancelled) return;
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fetchLooks]);
+
+  // Live sync: new/updated/deleted products and store verification changes
+  // are reflected without a manual refresh.
+  useEffect(() => {
+    const ch = supabase
+      .channel(`shop-the-look-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => { void fetchLooks(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => { void fetchLooks(); })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [fetchLooks]);
+
 
   // Build looks: pair a dress as the hero with up to 4 accessories.
   const looks = useMemo(() => {
@@ -86,7 +111,7 @@ export function ShopTheLook() {
     );
   }
 
-  const current = looks[index];
+  const current = looks[Math.min(index, looks.length - 1)];
   // hotspot positions for up to 4 picks
   const hotspots = [
     { top: "18%", left: "14%" },
