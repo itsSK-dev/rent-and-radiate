@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WishlistProvider } from "@/hooks/useWishlist";
 import ScrollToTop from "./components/ScrollToTop";
+import { PostLoginRouter } from "./components/PostLoginRouter";
 import { ThemeProvider } from "./hooks/useTheme";
 
 // Home is eager for fastest FCP/LCP on the landing route; everything else is code-split.
@@ -79,6 +80,8 @@ const App = () => (
           <AuthProvider>
             <WishlistProvider>
               <ScrollToTop />
+              <PostLoginRouter />
+
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
