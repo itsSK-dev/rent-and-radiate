@@ -127,7 +127,7 @@ export function HeroCarousel() {
                 fetchPriority={i === 0 ? "high" : "low"}
                 decoding="async"
                 draggable={false}
-                className="absolute inset-0 h-full w-full object-cover object-center select-none pointer-events-none"
+                className="absolute inset-0 h-full w-full object-cover object-[50%_15%] sm:object-[50%_20%] md:object-center select-none pointer-events-none"
               />
               {/* Soft pink / white overlay for legibility */}
               <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-background/10 md:from-background/90 md:via-background/55 md:to-transparent" />
