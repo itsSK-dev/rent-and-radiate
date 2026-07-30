@@ -19,12 +19,21 @@ interface Action {
   statusLine: string;
 }
 
+// NOTE: these must stay inside the DB transition whitelist enforced by
+// public.enforce_rental_status_transition(), otherwise the update is rejected.
 const TRANSITIONS: Record<string, Action[]> = {
   pending: [
-    { label: "Accept", next: "accepted", variant: "default", icon: CheckCircle2,
+    { label: "Accept", next: "confirmed", variant: "default", icon: CheckCircle2,
       headline: "Order accepted", statusLine: "Your order has been accepted by the store." },
-    { label: "Reject", next: "rejected", variant: "destructive", icon: XCircle,
+    { label: "Reject", next: "cancelled", variant: "destructive", icon: XCircle,
       headline: "Order rejected", statusLine: "Unfortunately the store could not accept your order." },
+  ],
+  // Paid orders land here straight from payment verification.
+  confirmed: [
+    { label: "Accept & Pack", next: "packing", variant: "default", icon: Package,
+      headline: "Order is being packed", statusLine: "Your order is now being packed." },
+    { label: "Cancel", next: "cancelled", variant: "destructive", icon: XCircle,
+      headline: "Order cancelled", statusLine: "This order has been cancelled." },
   ],
   accepted: [
     { label: "Mark Packing", next: "packing", variant: "default", icon: Package,
@@ -33,23 +42,16 @@ const TRANSITIONS: Record<string, Action[]> = {
       headline: "Order cancelled", statusLine: "This order has been cancelled." },
   ],
   packing: [
-    { label: "Mark Ready", next: "ready_for_pickup", variant: "default", icon: PackageCheck,
-      headline: "Ready for pickup / shipping", statusLine: "Your order is ready for pickup or shipping." },
+    { label: "Mark Packed", next: "ready_for_pickup", variant: "default", icon: PackageCheck,
+      headline: "Ready for pickup / shipping", statusLine: "Your order is packed and ready for pickup." },
   ],
   ready_for_pickup: [
     { label: "Mark Shipped", next: "shipped", variant: "default", icon: Truck,
       headline: "Order shipped", statusLine: "Your order is on its way." },
-    { label: "Mark Delivered", next: "delivered", variant: "outline", icon: PackageOpen,
-      headline: "Order delivered", statusLine: "Your order has been delivered. Enjoy!" },
   ],
   shipped: [
     { label: "Mark Delivered", next: "delivered", variant: "default", icon: PackageOpen,
       headline: "Order delivered", statusLine: "Your order has been delivered. Enjoy!" },
-  ],
-  // Legacy / rental path
-  confirmed: [
-    { label: "Mark Packing", next: "packing", variant: "default", icon: Package,
-      headline: "Being prepared", statusLine: "Your rental is being prepared." },
   ],
 };
 
