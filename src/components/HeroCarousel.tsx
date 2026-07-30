@@ -88,7 +88,6 @@ export function HeroCarousel() {
 
   return (
     <section
-      data-home-snap="hero"
       className="relative w-full overflow-hidden bg-gradient-to-b from-blossom/40 via-background to-background"
       aria-roledescription="carousel"
       aria-label="Featured collections"
@@ -128,13 +127,14 @@ export function HeroCarousel() {
                 fetchPriority={i === 0 ? "high" : "low"}
                 decoding="async"
                 draggable={false}
-                className="absolute inset-0 h-full w-full object-cover object-center select-none pointer-events-none"
+                className="absolute inset-0 h-full w-full object-cover object-[50%_15%] sm:object-[50%_20%] md:object-center select-none pointer-events-none"
               />
               {/* Soft pink / white overlay for legibility */}
-              <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-background/10 md:from-background/90 md:via-background/55 md:to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/40 to-background/10 md:from-background/90 md:via-background/55 md:to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent md:from-background/40 md:via-transparent" />
 
-              <div className="relative h-full container flex items-center">
+              <div className="relative h-full container flex items-end pb-12 md:items-center md:pb-0">
+
                 <div
                   className={`max-w-xl transition-all duration-700 ${
                     active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
