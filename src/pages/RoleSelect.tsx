@@ -5,11 +5,12 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Store, Truck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { resolvePostLoginPath } from "@/lib/authRouting";
 
 const RoleSelect = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { user, roles, loading } = useAuth();
+  const { user, roles, deliveryApplication, ready, loading } = useAuth();
   const next = params.get("next") || "";
 
   useEffect(() => {
