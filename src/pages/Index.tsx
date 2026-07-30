@@ -330,9 +330,12 @@ const Index = () => {
     }
     toast.message("Finding shops near you…");
     navigator.geolocation.getCurrentPosition(
-      () => {
-        const target = nearbyCity ?? "";
-        navigate(target ? `/browse?city=${encodeURIComponent(target)}` : "/browse");
+      (pos) => {
+        // Persist coordinates so the Nearby rail can filter shops by real
+        // distance (within NEARBY_RADIUS_KM) instead of city name alone.
+        setSavedCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        toast.success(`Showing verified shops within ${NEARBY_RADIUS_KM} km`);
+        document.getElementById("nearby-shops")?.scrollIntoView({ behavior: "smooth", block: "start" });
       },
       () => {
         if (nearbyCity) navigate(`/browse?city=${encodeURIComponent(nearbyCity)}`);
@@ -341,6 +344,7 @@ const Index = () => {
       { timeout: 6000 },
     );
   }
+
 
 
   function toggleVoice() {
