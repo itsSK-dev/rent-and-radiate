@@ -258,17 +258,17 @@ const Index = () => {
   }, [fetchCatalog]);
 
 
-  // Realtime: re-rank Top Rated when any rating is added, edited or removed,
-  // or when a store row itself updates (rating/rating_count refresh).
+  // Realtime: re-rank Top Rated when any rating is added, edited or removed.
+  // (Store row changes are already handled by the catalog channel above.)
   useEffect(() => {
     const bump = () => setRatingsTick((n) => n + 1);
     const ch = supabase
       .channel(`home-ratings-${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "ratings" }, bump)
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "stores" }, bump)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, []);
+
 
 
 
