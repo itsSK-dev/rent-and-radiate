@@ -318,7 +318,17 @@ const Auth = () => {
                   <Button type="submit" variant="hero" size="lg" className="w-full" disabled={busy}>
                     {busy ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
                   </Button>
+                  {needsConfirmation && (
+                    <button
+                      type="button"
+                      className="text-xs text-primary hover:underline w-full text-center"
+                      onClick={() => resendConfirmation(email.trim().toLowerCase())}
+                    >
+                      Resend confirmation email
+                    </button>
+                  )}
                 </form>
+
               </TabsContent>
 
               {PHONE_AUTH_ENABLED && <TabsContent value="phone" className="mt-4">
