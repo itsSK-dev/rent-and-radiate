@@ -99,7 +99,7 @@ export function HeroCarousel() {
     >
       {/* Fluid height: scales with viewport instead of snapping between fixed
           pixel heights, so browser zoom never crops or letterboxes the hero. */}
-      <div className="relative h-[clamp(24rem,58vh+7rem,40rem)]">
+      <div className="relative h-[clamp(15rem,32vh+5rem,22rem)]">
 
         {SLIDES.map((slide, i) => {
           const active = i === index;
