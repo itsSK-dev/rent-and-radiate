@@ -465,19 +465,38 @@ const Index = () => {
 
 
 
+  // Derived rails — one fetch, several views, so the first screen is dense
+  // without extra network round-trips.
+  const newArrivals = products.slice(0, 12);
+  const trending = useMemo(
+    () =>
+      [...products]
+        .sort((a, b) => {
+          const da = Number(a.actual_price ?? 0) - discountedUnitPrice(Number(a.actual_price ?? 0), a.discount_percent ?? 0, a.discount_flat ?? 0);
+          const db = Number(b.actual_price ?? 0) - discountedUnitPrice(Number(b.actual_price ?? 0), b.discount_percent ?? 0, b.discount_flat ?? 0);
+          return db - da;
+        })
+        .slice(0, 12),
+    [products],
+  );
+  const topRatedProducts = useMemo(
+    () =>
+      [...products]
+        .sort((a, b) => Number(b.store?.rating ?? 0) - Number(a.store?.rating ?? 0))
+        .slice(0, 12),
+    [products],
+  );
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main id="main-content" className="flex-1">
 
-      {/* Premium branding-only hero carousel (no product actions) */}
-      <HeroCarousel />
+      {/* Sticky smart search + quick filters */}
+      <section className="sticky top-16 z-30 bg-background/95 backdrop-blur-xl border-b border-border/60">
+        <div className="container pt-2.5 pb-2">
+          <div ref={searchWrapRef} className="relative">
 
-
-      {/* Smart floating search bar */}
-      <section className="relative">
-        <div className="container pt-8 md:pt-10 pb-4">
-          <div ref={searchWrapRef} className="relative max-w-3xl mx-auto md:mx-0">
             <form
               onSubmit={onSearch}
               className={`group flex items-center gap-1.5 md:gap-2 bg-card/95 backdrop-blur rounded-full pl-4 md:pl-5 pr-1.5 md:pr-2 py-1.5 md:py-2 border border-border shadow-petal transition-all duration-300 ${
