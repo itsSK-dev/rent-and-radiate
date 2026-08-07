@@ -613,67 +613,37 @@ const Index = () => {
               </div>
             )}
 
-            <p className="text-[11px] text-muted-foreground mt-2 ml-5 flex items-center gap-1">
-              <Sparkles className="h-3 w-3" /> AI understands text, voice & images
-            </p>
+          </div>
+
+          {/* Quick filters — always one tap away */}
+          <div className="mt-2 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {[
+              { label: "Rent", to: "/browse?purpose=rent", icon: Sparkles },
+              { label: "Buy", to: "/browse?purpose=buy", icon: ShoppingBag },
+              { label: "Nearby", to: nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse", icon: StoreIcon },
+              { label: "Trending", to: "/browse?sort=popular", icon: Flame },
+              { label: "Offers", to: "/browse?sort=discount", icon: Gift },
+              { label: "All categories", to: "/browse", icon: LayoutGrid },
+            ].map((f) => {
+              const Icon = f.icon;
+              return (
+                <Link
+                  key={f.label}
+                  to={f.to}
+                  className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary/50 hover:text-primary transition-colors"
+                >
+                  <Icon className="h-3.5 w-3.5 text-primary" />
+                  {f.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Quick action cards */}
-      <section className="container pt-2 pb-10 md:pb-14">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
-          <QuickActionCard
-            to="/browse?purpose=rent"
-            label="Rent Products"
-            icon={<Sparkles className="h-5 w-5" />}
-            gradient="from-rose-400 to-pink-500"
-          />
-          <QuickActionCard
-            to="/browse?purpose=buy"
-            label="Buy Products"
-            icon={<ShoppingBag className="h-5 w-5" />}
-            gradient="from-amber-400 to-orange-500"
-          />
-          <QuickActionCard
-            to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
-            label="Nearby Shops"
-            icon={<StoreIcon className="h-5 w-5" />}
-            gradient="from-emerald-400 to-teal-500"
-          />
-          <QuickActionCard
-            to="/browse?sort=popular"
-            label="Trending"
-            icon={<Flame className="h-5 w-5" />}
-            gradient="from-fuchsia-500 to-purple-600"
-          />
-          <QuickActionCard
-            to="/browse?sort=discount"
-            label="Offers"
-            icon={<Gift className="h-5 w-5" />}
-            gradient="from-red-400 to-rose-600"
-          />
-          <QuickActionCard
-            to="/browse"
-            label="Categories"
-            icon={<LayoutGrid className="h-5 w-5" />}
-            gradient="from-sky-400 to-indigo-500"
-          />
-        </div>
-      </section>
-
-      {/* Shop by category — premium circular icons */}
-      <section className="container pb-12 md:pb-16">
-        <div className="flex items-end justify-between mb-6 md:mb-8">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Shop by category</p>
-            <h2 className="font-display text-3xl md:text-5xl">Browse categories</h2>
-          </div>
-          <Link to="/browse" className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1">
-            View all <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-4 md:gap-6">
+      {/* Categories — horizontal rail right under the search bar */}
+      <section className="container pt-3 pb-2">
+        <div className="flex gap-4 md:gap-6 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {categoryConfigs.map((c) => {
             const Icon = getCategoryIcon(c.icon_name);
             const active = c.is_active;
@@ -682,20 +652,16 @@ const Index = () => {
               <>
                 <span className="relative inline-flex items-center justify-center">
                   <span
-                    className={`absolute inset-0 rounded-full bg-gradient-to-br ${c.gradient} opacity-30 blur-xl ${active ? "group-hover:opacity-60" : ""} transition-opacity duration-500`}
-                  />
-                  <span
-                    className={`relative inline-flex items-center justify-center h-16 w-16 md:h-20 md:w-20 rounded-full bg-gradient-to-br ${c.gradient} text-white shadow-[0_12px_30px_-10px_rgba(0,0,0,0.35)] ring-1 ring-white/30 ${active ? "group-hover:scale-110 group-hover:-rotate-3" : ""} transition-transform duration-300`}
+                    className={`relative inline-flex items-center justify-center h-12 w-12 md:h-14 md:w-14 rounded-full bg-gradient-to-br ${c.gradient} text-white shadow-[0_10px_24px_-12px_rgba(0,0,0,0.4)] ring-1 ring-white/30 ${active ? "group-hover:scale-110" : "opacity-70"} transition-transform duration-300`}
                   >
-                    <Icon className="h-7 w-7 md:h-9 md:w-9" />
+                    <Icon className="h-5 w-5 md:h-6 md:w-6" />
                   </span>
-                  {!active && (
-                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-foreground text-[9px] md:text-[10px] font-medium text-background px-2 py-0.5 shadow">
-                      Coming soon
-                    </span>
-                  )}
                 </span>
-                <span className={`text-xs md:text-sm font-medium transition-colors ${active ? "text-foreground group-hover:text-rose-deep" : "text-foreground/80"}`}>
+                <span
+                  className={`text-[11px] md:text-xs font-medium leading-tight text-center line-clamp-2 transition-colors ${
+                    active ? "text-foreground group-hover:text-primary" : "text-muted-foreground"
+                  }`}
+                >
                   {c.label}
                 </span>
               </>
@@ -704,7 +670,7 @@ const Index = () => {
               <Link
                 key={c.slug}
                 to={`/browse?category=${encodeURIComponent(c.slug)}`}
-                className="group flex flex-col items-center gap-2.5 text-center"
+                className="group shrink-0 w-[68px] md:w-[78px] flex flex-col items-center gap-1.5"
               >
                 {inner}
               </Link>
@@ -714,7 +680,7 @@ const Index = () => {
                 type="button"
                 aria-disabled="true"
                 onClick={() => toast.info(`${c.label} launches soon — stay tuned!`)}
-                className="group flex flex-col items-center gap-2.5 text-center cursor-not-allowed"
+                className="group shrink-0 w-[68px] md:w-[78px] flex flex-col items-center gap-1.5 cursor-not-allowed"
                 title="Coming soon"
               >
                 {inner}
@@ -724,129 +690,155 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Compact branding hero (no product actions) */}
+      <div className="pb-3">
+        <HeroCarousel />
+      </div>
 
-
+      {/* Trust badges */}
+      <TrustBadges />
 
       {!isServiceable ? (
         <ServiceUnavailable city={serviceCity} source="home" />
       ) : (
         <>
-          {/* Interactive Shop the Look */}
-          <section className="container pb-16 md:pb-24">
-            <div className="flex items-end justify-between mb-6">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Interactive showcase</p>
-                <h2 className="font-display text-3xl md:text-5xl">The fitting room</h2>
+          {/* Featured / verified stores right near the top */}
+          {stores.length > 0 && (
+            <HomeRail
+              id="nearby-shops"
+              eyebrow={<><BadgeCheck className="h-3 w-3" /> Verified boutiques</>}
+              title="Featured Stores Near You"
+              to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
+            >
+              {stores.map((s) => (
+                <RailItem key={s.id} wide>
+                  <CompactShopCard shop={s} open={shopsOpen} />
+                </RailItem>
+              ))}
+            </HomeRail>
+          )}
+
+          {trending.length > 0 && (
+            <HomeRail
+              eyebrow={<><Flame className="h-3 w-3" /> Best value today</>}
+              title="Trending Rentals"
+              to="/browse?sort=popular"
+            >
+              {trending.map((p) => (
+                <RailItem key={p.id}>
+                  <ProductCard p={p} />
+                </RailItem>
+              ))}
+            </HomeRail>
+          )}
+
+          {newArrivals.length > 0 && (
+            <HomeRail
+              eyebrow={<><Sparkles className="h-3 w-3" /> Fresh in this week</>}
+              title="New Arrivals"
+              to="/browse?sort=newest"
+            >
+              {newArrivals.map((p) => (
+                <RailItem key={p.id}>
+                  <ProductCard p={p} />
+                </RailItem>
+              ))}
+            </HomeRail>
+          )}
+
+          {topRatedProducts.length > 0 && (
+            <HomeRail
+              eyebrow={<><Star className="h-3 w-3" /> Loved by customers</>}
+              title="Top Rated"
+              to="/browse?sort=rating"
+            >
+              {topRatedProducts.map((p) => (
+                <RailItem key={p.id}>
+                  <ProductCard p={p} />
+                </RailItem>
+              ))}
+            </HomeRail>
+          )}
+
+          {recentlyViewed.length > 0 && (
+            <HomeRail
+              eyebrow={<><Package className="h-3 w-3" /> Pick up where you left off</>}
+              title="Recently Viewed"
+              to="/browse"
+            >
+              {recentlyViewed.map((p) => (
+                <RailItem key={p.id}>
+                  <ProductCard p={p} />
+                </RailItem>
+              ))}
+            </HomeRail>
+          )}
+
+          {/* Top rated shops */}
+          {topRated.length > 0 && (
+            <HomeRail
+              eyebrow={<><Star className="h-3 w-3" /> Rated by real customers</>}
+              title="Top Rated Stores"
+              to="/browse"
+            >
+              {topRated.map((s, i) => (
+                <RailItem key={s.id} wide>
+                  <CompactShopCard shop={s} open={shopsOpen} rank={i + 1} />
+                </RailItem>
+              ))}
+            </HomeRail>
+          )}
+
+          {stores.length === 0 && catalogLoaded && (
+            <section className="container pb-6">
+              <div className="rounded-2xl border border-border bg-card px-6 py-8 text-center">
+                <MapPin className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">No nearby shops found in your area.</p>
+                {coords && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    We looked within {NEARBY_RADIUS_KM} km of your location.
+                  </p>
+                )}
               </div>
-              <Link to="/browse" className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1">
+            </section>
+          )}
+
+          {/* Interactive Shop the Look */}
+          <section className="container pb-8">
+            <div className="flex items-end justify-between mb-3">
+              <div>
+                <p className="text-[10px] md:text-[11px] uppercase tracking-[0.18em] text-primary">Interactive showcase</p>
+                <h2 className="font-display text-xl md:text-2xl">The fitting room</h2>
+              </div>
+              <Link to="/browse" className="text-xs md:text-sm text-primary hover:underline hidden sm:flex items-center gap-1">
                 See everything <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
-            <ShopTheLook />
+            <Suspense fallback={<div className="h-48 rounded-2xl bg-muted/50 animate-pulse" />}>
+              <ShopTheLook />
+            </Suspense>
           </section>
-
-          {/* Featured products */}
-          {products.length > 0 && (
-            <section className="container pb-16">
-              <div className="flex items-end justify-between mb-8">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">In bloom this week</p>
-                  <h2 className="font-display text-3xl md:text-5xl">Featured pieces</h2>
-                </div>
-                <Link to="/browse" className="text-sm text-primary hover:underline flex items-center gap-1">
-                  See all <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
-                {products.map((p) => (
-                  <ProductCard key={p.id} p={p} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Top Rated Stores — ranked by (average rating × total ratings) */}
-          {topRated.length > 0 && (
-            <section className="container pb-16 md:pb-20">
-              <div className="flex items-end justify-between mb-6 md:mb-8">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
-                    <Star className="h-3.5 w-3.5" /> Rated by real customers
-                  </p>
-                  <h2 className="font-display text-3xl md:text-5xl">Top Rated Stores</h2>
-                </div>
-                <Link
-                  to="/browse"
-                  className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1"
-                >
-                  See all <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-                {topRated.map((s, i) => (
-                  <NearbyShopCard key={s.id} shop={s} open={shopsOpen} rank={i + 1} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Nearby Verified Shops */}
-          {(stores.length > 0 || catalogLoaded) && (
-            <section id="nearby-shops" className="container pb-16 md:pb-24 scroll-mt-24">
-              <div className="flex items-end justify-between mb-6 md:mb-8">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
-                    <BadgeCheck className="h-3.5 w-3.5" /> Verified boutiques
-                  </p>
-                  <h2 className="font-display text-3xl md:text-5xl">Nearby Verified Shops</h2>
-                </div>
-                <Link
-                  to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
-                  className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1"
-                >
-                  See all <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-              {stores.length === 0 ? (
-                <div className="rounded-3xl border border-border bg-card px-6 py-12 text-center">
-                  <MapPin className="h-6 w-6 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-muted-foreground">No nearby shops found in your area.</p>
-                  {coords && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      We looked within {NEARBY_RADIUS_KM} km of your location.
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-                  {stores.map((s) => (
-                    <NearbyShopCard key={s.id} shop={s} open={shopsOpen} />
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
-
         </>
       )}
 
+      <Suspense fallback={<div className="container pb-8"><div className="h-40 rounded-2xl bg-muted/40 animate-pulse" /></div>}>
+        {/* Offers */}
+        <PromoBanners />
 
+        {/* Why choose Rent & Radiate */}
+        <WhyChooseSection />
 
-      {/* Why choose Rent & Radiate */}
-      <WhyChooseSection />
+        {/* Refer & share app */}
+        <ShareAppSection />
 
-      {/* Promotional banners */}
-      <PromoBanners />
-
-      {/* Refer & share app */}
-      <ShareAppSection />
-
-      {/* Become a seller */}
-      <BecomeSellerSection />
+        {/* Become a seller */}
+        <BecomeSellerSection />
+      </Suspense>
       </main>
       <Footer />
     </div>
   );
+
 };
 
 
