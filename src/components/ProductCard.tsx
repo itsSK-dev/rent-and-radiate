@@ -51,7 +51,11 @@ export function ProductCard({ p, matchScore }: { p: ProductCardData; matchScore?
   const distance = formatDistance(p.store?.distance_km, p.store?.city ?? null);
 
   return (
-    <div className="group relative flex flex-col rounded-2xl bg-card border border-border/60 shadow-soft hover:shadow-[0_22px_50px_-22px_hsl(var(--rose-deep)/0.45)] hover:-translate-y-1 transition-all duration-300 overflow-hidden animate-fade-up">
+    <div
+      onClickCapture={() => pushRecentlyViewed(p)}
+      className="group relative flex flex-col rounded-2xl bg-card border border-border/60 shadow-soft hover:shadow-[0_22px_50px_-22px_hsl(var(--rose-deep)/0.45)] hover:-translate-y-1 transition-all duration-300 overflow-hidden animate-fade-up"
+    >
+
       {/* Image — large, the hero of the card */}
       <Link
         to={`/product/${p.id}`}
