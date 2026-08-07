@@ -132,6 +132,8 @@ const Index = () => {
         "Shop the look: rent or buy designer dresses, jewellery and accessories from boutiques near you. Tap any piece on the model to view, rent, or buy.",
       );
 
+    setRecentlyViewed(readRecentlyViewed());
+
     try {
       const r = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
       if (Array.isArray(r)) setRecent(r.slice(0, 5));
@@ -140,6 +142,7 @@ const Index = () => {
     } catch {
       /* ignore */
     }
+
 
     function onDocClick(ev: MouseEvent) {
       if (!searchWrapRef.current?.contains(ev.target as Node)) setFocused(false);
