@@ -9,105 +9,116 @@
 
 @layer base {
   :root {
-    --background: 350 100% 99%;
-    --foreground: 340 35% 14%;
+    /* Luxury gold theme — metallic gold, champagne, rose gold on cream/white. */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 17%;              /* charcoal #2C2C2C */
 
     --card: 0 0% 100%;
-    --card-foreground: 340 35% 14%;
+    --card-foreground: 0 0% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 340 35% 14%;
+    --popover-foreground: 0 0% 17%;
 
-    /* Cherry blossom rose */
-    --primary: 340 70% 56%;
-    --primary-foreground: 350 100% 99%;
-    --primary-soft: 340 80% 90%;
+    /* Metallic gold #D4AF37 */
+    --primary: 46 65% 52%;
+    --primary-foreground: 0 0% 13%;
+    --primary-soft: 46 80% 90%;
 
-    --secondary: 350 60% 96%;
-    --secondary-foreground: 340 40% 22%;
+    /* Champagne gold #F7E7B4 */
+    --secondary: 46 80% 94%;
+    --secondary-foreground: 40 45% 24%;
 
-    --muted: 350 30% 95%;
-    --muted-foreground: 340 12% 45%;
+    --muted: 43 41% 96%;                  /* cream #FAF8F3 */
+    --muted-foreground: 40 8% 42%;
 
-    --accent: 28 60% 62%;             /* warm rose-gold accent */
-    --accent-foreground: 350 100% 99%;
+    /* Rose gold #B76E79 */
+    --accent: 351 34% 57%;
+    --accent-foreground: 0 0% 100%;
 
-    --blossom: 345 85% 88%;
-    --petal: 350 100% 96%;
-    --rose-deep: 340 60% 38%;
-    --gold: 36 70% 58%;
+    --blossom: 46 80% 84%;                /* champagne */
+    --petal: 43 55% 97%;                  /* light cream */
+    --rose-deep: 40 55% 30%;              /* deep bronze-gold for eyebrow text */
+    --gold: 46 65% 52%;
+    --rose-gold: 351 34% 57%;
 
-    --success: 150 60% 45%;
+    --success: 152 58% 34%;               /* emerald */
     --success-foreground: 0 0% 100%;
-    --info: 200 80% 55%;
+    --info: 205 55% 42%;
     --info-foreground: 0 0% 100%;
-    --warning: 35 90% 55%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 38 85% 50%;
+    --warning-foreground: 0 0% 13%;
 
-    --destructive: 0 70% 52%;
+    --destructive: 0 62% 55%;             /* soft red */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 345 35% 90%;
-    --input: 345 35% 90%;
-    --ring: 340 70% 56%;
+    --border: 44 32% 88%;
+    --input: 44 32% 88%;
+    --ring: 46 65% 52%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    --gradient-blossom: linear-gradient(135deg, hsl(350 100% 96%) 0%, hsl(345 85% 90%) 50%, hsl(340 75% 85%) 100%);
-    --gradient-rose: linear-gradient(135deg, hsl(340 70% 56%) 0%, hsl(345 80% 65%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(350 100% 99%) 0%, hsl(350 80% 96%) 100%);
+    --gradient-blossom: linear-gradient(135deg, hsl(43 55% 98%) 0%, hsl(46 80% 92%) 55%, hsl(46 70% 84%) 100%);
+    --gradient-rose: linear-gradient(135deg, hsl(42 62% 46%) 0%, hsl(46 70% 58%) 45%, hsl(48 82% 70%) 100%);
+    --gradient-gold: var(--gradient-rose);
+    --gradient-soft: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(43 41% 97%) 100%);
 
-    --shadow-petal: 0 20px 60px -20px hsl(340 70% 56% / 0.25);
-    --shadow-soft: 0 8px 30px -10px hsl(340 50% 50% / 0.12);
-    --shadow-card: 0 2px 12px -4px hsl(340 30% 40% / 0.08);
+    --shadow-petal: 0 18px 45px -18px hsl(46 65% 40% / 0.35);
+    --shadow-soft: 0 10px 32px -12px hsl(40 30% 30% / 0.18);
+    --shadow-card: 0 2px 14px -6px hsl(40 25% 25% / 0.10);
 
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 
-    --sidebar-background: 350 100% 99%;
-    --sidebar-foreground: 340 35% 14%;
-    --sidebar-primary: 340 70% 56%;
-    --sidebar-primary-foreground: 350 100% 99%;
-    --sidebar-accent: 350 60% 96%;
-    --sidebar-accent-foreground: 340 40% 22%;
-    --sidebar-border: 345 35% 90%;
-    --sidebar-ring: 340 70% 56%;
+    --sidebar-background: 43 41% 97%;
+    --sidebar-foreground: 0 0% 17%;
+    --sidebar-primary: 46 65% 52%;
+    --sidebar-primary-foreground: 0 0% 13%;
+    --sidebar-accent: 46 80% 94%;
+    --sidebar-accent-foreground: 40 45% 24%;
+    --sidebar-border: 44 32% 88%;
+    --sidebar-ring: 46 65% 52%;
   }
 
   .dark {
-    --background: 340 25% 8%;
-    --foreground: 350 30% 96%;
-    --card: 340 25% 11%;
-    --card-foreground: 350 30% 96%;
-    --popover: 340 25% 11%;
-    --popover-foreground: 350 30% 96%;
-    --primary: 340 75% 65%;
-    --primary-foreground: 340 25% 8%;
-    --secondary: 340 20% 16%;
-    --secondary-foreground: 350 30% 96%;
-    --muted: 340 20% 16%;
-    --muted-foreground: 340 15% 65%;
-    --accent: 28 60% 62%;
-    --accent-foreground: 340 25% 8%;
+    --background: 40 12% 8%;
+    --foreground: 44 30% 94%;
+    --card: 40 12% 11%;
+    --card-foreground: 44 30% 94%;
+    --popover: 40 12% 11%;
+    --popover-foreground: 44 30% 94%;
+    --primary: 46 70% 58%;
+    --primary-foreground: 40 20% 10%;
+    --primary-soft: 44 25% 22%;
+    --secondary: 40 12% 17%;
+    --secondary-foreground: 44 30% 94%;
+    --muted: 40 12% 17%;
+    --muted-foreground: 44 12% 66%;
+    --accent: 351 36% 62%;
+    --accent-foreground: 40 20% 10%;
 
-    --success: 150 65% 55%;
+    --blossom: 44 25% 24%;
+    --petal: 40 12% 14%;
+    --rose-deep: 46 65% 65%;
+    --gold: 46 70% 58%;
+
+    --success: 152 52% 44%;
     --success-foreground: 0 0% 100%;
-    --info: 200 85% 65%;
+    --info: 205 60% 58%;
     --info-foreground: 0 0% 100%;
-    --warning: 35 95% 65%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 38 85% 60%;
+    --warning-foreground: 40 20% 10%;
 
-    --destructive: 0 60% 45%;
+    --destructive: 0 58% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 340 20% 20%;
-    --input: 340 20% 20%;
-    --ring: 340 75% 65%;
+    --border: 42 14% 22%;
+    --input: 42 14% 22%;
+    --ring: 46 70% 58%;
   }
 }
 
 @layer base {
   * { @apply border-border; }
   html {
-    font-family: 'Karla', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     /* Zoom-safe: never let a stray wide child create a horizontal scrollbar,
      * while still allowing intentional inner scroll containers (tables etc.). */
     overflow-x: hidden;
@@ -122,8 +133,8 @@
     overflow-x: hidden;
   }
   h1, h2, h3, h4, h5 {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-weight: 500;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 600;
     letter-spacing: -0.01em;
     /* Long words / IDs must wrap instead of pushing the layout wider at zoom. */
     overflow-wrap: anywhere;
@@ -143,10 +154,36 @@
 
 
 @layer utilities {
-  .font-display { font-family: 'Cormorant Garamond', Georgia, serif; }
-  .font-body { font-family: 'Karla', system-ui, sans-serif; }
+  .font-display { font-family: 'Playfair Display', Georgia, serif; }
+  .font-body { font-family: 'Inter', system-ui, sans-serif; }
   .bg-gradient-blossom { background: var(--gradient-blossom); }
   .bg-gradient-rose { background: var(--gradient-rose); }
+  .bg-gradient-gold { background: var(--gradient-gold); }
+  .text-gradient-gold {
+    background: var(--gradient-rose);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  /* Hairline gold divider used under headers and around premium surfaces. */
+  .border-gold-hairline { border-color: hsl(46 55% 78% / 0.7); }
+  .card-luxe {
+    border-color: hsl(46 55% 80% / 0.6);
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-smooth);
+  }
+  .card-luxe:hover {
+    box-shadow: var(--shadow-soft);
+    border-color: hsl(46 60% 62% / 0.8);
+    transform: translateY(-2px);
+  }
+  /* Premium shimmer skeleton */
+  .skeleton-luxe {
+    background: linear-gradient(90deg, hsl(43 41% 95%) 25%, hsl(46 70% 90%) 37%, hsl(43 41% 95%) 63%);
+    background-size: 400% 100%;
+    animation: shimmer-gold 1.6s ease-in-out infinite;
+  }
+  @keyframes shimmer-gold { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
   .bg-gradient-soft { background: var(--gradient-soft); }
   .shadow-petal { box-shadow: var(--shadow-petal); }
   .shadow-soft { box-shadow: var(--shadow-soft); }

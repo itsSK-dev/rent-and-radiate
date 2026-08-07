@@ -36,13 +36,15 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['"Cormorant Garamond"', "Georgia", "serif"],
-        body: ['Karla', "system-ui", "sans-serif"],
+        display: ['"Playfair Display"', "Georgia", "serif"],
+        body: ['Inter', "system-ui", "sans-serif"],
+        ui: ['Poppins', "system-ui", "sans-serif"],
       },
       colors: {
         blossom: "hsl(var(--blossom))",
         petal: "hsl(var(--petal))",
         "rose-deep": "hsl(var(--rose-deep))",
+        "rose-gold": "hsl(var(--rose-gold))",
         gold: "hsl(var(--gold))",
         "primary-soft": "hsl(var(--primary-soft))",
         border: "hsl(var(--border))",

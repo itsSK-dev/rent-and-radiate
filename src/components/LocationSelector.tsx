@@ -67,7 +67,7 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        className={`group inline-flex min-w-0 w-full max-w-[190px] lg:min-w-[104px] shrink items-center overflow-hidden gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1.5 text-xs transition-colors ${
+        className={`group inline-flex min-w-0 w-full max-w-[230px] lg:min-w-[120px] shrink items-center overflow-hidden gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1.5 text-xs transition-colors ${
           compact ? "" : "lg:px-3 lg:py-2 lg:text-sm"
         } ${
           serviceable
