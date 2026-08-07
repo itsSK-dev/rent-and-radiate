@@ -146,7 +146,7 @@ export function HeroCarousel() {
                   <span className="inline-flex items-center gap-2 text-[11px] sm:text-xs uppercase tracking-[0.22em] text-rose-deep">
                     <Sparkles className="h-3.5 w-3.5" /> {slide.eyebrow}
                   </span>
-                  <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.02] mt-3 whitespace-pre-line text-foreground">
+                  <h1 className="font-display text-[clamp(2rem,4.4vw+0.5rem,4rem)] leading-[1.08] mt-3 whitespace-pre-line text-foreground">
                     {slide.title}
                   </h1>
                   <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-4 max-w-md">
