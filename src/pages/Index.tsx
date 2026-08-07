@@ -114,6 +114,8 @@ const Index = () => {
   const [recent, setRecent] = useState<string[]>([]);
   const [nearbyCity, setNearbyCity] = useState<string | null>(null);
   const [catalogLoaded, setCatalogLoaded] = useState(false);
+  const [recentlyViewed, setRecentlyViewed] = useState<ProductCardData[]>([]);
+
   const coords = useUserCoords();
   const recogRef = useRef<any>(null);
   const fileRef = useRef<HTMLInputElement>(null);
