@@ -80,14 +80,14 @@ export function ProductCard({ p, matchScore }: { p: ProductCardData; matchScore?
         {score !== null && (
           <Badge
             className={`absolute bottom-3 left-3 gap-1 ${
-              isTopMatch ? "bg-rose-deep text-white" : "bg-background/85 text-foreground backdrop-blur"
+              isTopMatch ? "bg-rose-deep text-primary-foreground" : "bg-background/85 text-foreground backdrop-blur"
             }`}
           >
             <Sparkles className="h-3 w-3" /> {score}% match
           </Badge>
         )}
         {hasDiscount && (
-          <Badge className="absolute top-3 right-12 bg-rose-deep text-white shadow-md">
+          <Badge className="absolute top-3 right-12 bg-rose-deep text-primary-foreground shadow-md">
             {discountPct > 0 ? `${discountPct}% OFF` : `${inr(p.discount_flat ?? 0)} OFF`}
           </Badge>
         )}
@@ -169,7 +169,7 @@ export function ProductCard({ p, matchScore }: { p: ProductCardData; matchScore?
             aria-label={`Rent ${p.title}`}
             className={`inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold py-2.5 transition-all shadow-md hover:shadow-lg active:scale-[0.98] ${
               showRent
-                ? "bg-gradient-to-r from-rose-deep to-pink-500 text-white hover:opacity-95"
+                ? "bg-gradient-rose text-primary-foreground hover:opacity-95"
                 : "bg-muted text-muted-foreground pointer-events-none opacity-60"
             }`}
           >
