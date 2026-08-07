@@ -842,38 +842,8 @@ const Index = () => {
 };
 
 
-function QuickActionCard({
-  to,
-  label,
-  icon,
-  gradient,
-}: {
-  to: string;
-  label: string;
-  icon: React.ReactNode;
-  gradient: string;
-}) {
-  return (
-    <Link
-      to={to}
-      className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-card border border-border p-4 md:p-5 flex flex-col items-center justify-center gap-3 text-center shadow-soft hover:shadow-[0_18px_40px_-18px_hsl(var(--rose-deep)/0.45)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300"
-    >
-      <span
-        className={`absolute inset-x-0 -top-12 h-24 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-500`}
-      />
-      <span
-        className={`relative inline-flex items-center justify-center h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-md group-hover:scale-110 group-hover:rotate-[-4deg] transition-transform duration-300`}
-      >
-        {icon}
-      </span>
-      <span className="relative text-xs md:text-sm font-medium text-foreground group-hover:text-rose-deep transition-colors">
-        {label}
-      </span>
-    </Link>
-  );
-}
-
-function NearbyShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean; rank?: number }) {
+/** Compact store card sized for horizontal rails. */
+function CompactShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean; rank?: number }) {
   const initials = shop.name
     .split(/\s+/)
     .map((w) => w[0])
@@ -886,14 +856,14 @@ function NearbyShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean;
       ? shop.distance_km < 1
         ? `${Math.round(shop.distance_km * 1000)} m away`
         : `${shop.distance_km.toFixed(1)} km away`
-      : shop.city
-        ? shop.city
-        : "Distance unavailable";
+      : shop.city ?? "Distance unavailable";
 
   return (
-    <div className="group relative flex flex-col rounded-3xl bg-card border border-border overflow-hidden shadow-soft hover:shadow-[0_22px_50px_-22px_hsl(var(--rose-deep)/0.45)] hover:-translate-y-1 transition-all duration-300">
-      {/* Shop image / logo */}
-      <div className="relative h-40 bg-gradient-to-br from-blossom via-card to-muted overflow-hidden">
+    <Link
+      to={`/browse?store=${shop.id}`}
+      className="group relative flex h-full flex-col rounded-2xl bg-card border border-border/60 overflow-hidden shadow-soft hover:shadow-[0_22px_50px_-22px_hsl(var(--primary)/0.4)] hover:-translate-y-1 transition-all duration-300"
+    >
+      <div className="relative h-24 bg-gradient-to-br from-secondary via-card to-muted overflow-hidden">
         {shop.logo_url ? (
           <img
             src={shop.logo_url}
@@ -903,69 +873,58 @@ function NearbyShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean;
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-display text-5xl text-rose-deep/70">{initials || <StoreIcon className="h-10 w-10" />}</span>
+            <span className="font-display text-3xl text-primary/70">
+              {initials || <StoreIcon className="h-8 w-8" />}
+            </span>
           </div>
         )}
-        {/* Open / closed pill */}
         <span
-          className={`absolute top-3 left-3 inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full backdrop-blur ${
-            open
-              ? "bg-emerald-500/90 text-white"
-              : "bg-slate-700/85 text-white"
+          className={`absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur ${
+            open ? "bg-emerald-500/90 text-white" : "bg-slate-700/85 text-white"
           }`}
         >
           <span className={`h-1.5 w-1.5 rounded-full ${open ? "bg-white animate-pulse" : "bg-white/70"}`} />
-          {open ? "Open now" : "Closed"}
-        </span>
-        {/* Verified badge */}
-        <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-card/95 text-rose-deep border border-rose-deep/20 shadow-sm">
-          <BadgeCheck className="h-3.5 w-3.5" />
-          Verified
+          {open ? "Open" : "Closed"}
         </span>
         {rank != null && (
-          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 text-white shadow-md">
-            #{rank} Top rated
+          <span className="absolute bottom-2 left-2 inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 text-white shadow">
+            #{rank}
           </span>
         )}
+        <span className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-card/95 text-primary border border-primary/20">
+          <BadgeCheck className="h-3 w-3" />
+          Verified
+        </span>
       </div>
 
-      {/* Body */}
-      <div className="p-5 flex flex-col gap-3 flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="font-display text-xl leading-tight group-hover:text-rose-deep transition-colors">
+      <div className="p-3 flex flex-col gap-1.5 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-display text-base leading-tight line-clamp-1 group-hover:text-primary transition-colors">
             {shop.name}
           </h3>
-          <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+          <span className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
             <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
             {Number(shop.rating ?? 0).toFixed(1)}
-            {shop.rating_count > 0 && (
-              <span className="text-amber-600/70 font-normal">({shop.rating_count})</span>
-            )}
           </span>
         </div>
-
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
           <span className="inline-flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5 text-rose-deep" />
+            <MapPin className="h-3 w-3 text-primary" />
             {distanceLabel}
           </span>
           <span className="inline-flex items-center gap-1">
-            <Package className="h-3.5 w-3.5 text-rose-deep" />
-            {shop.product_count} {shop.product_count === 1 ? "product" : "products"}
+            <Package className="h-3 w-3 text-primary" />
+            {shop.product_count}
           </span>
         </div>
-
-        <Link
-          to={`/browse?store=${shop.id}`}
-          className="mt-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-deep to-pink-500 text-white text-sm font-medium py-2.5 shadow-md hover:shadow-lg hover:opacity-95 active:opacity-90 transition-all"
-        >
-          View Shop
-          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+        <span className="mt-auto pt-1 inline-flex items-center gap-1 text-xs font-medium text-primary">
+          View shop <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+        </span>
       </div>
-    </div>
+    </Link>
   );
 }
+
 
 
 export default Index;
