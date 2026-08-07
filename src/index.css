@@ -106,17 +106,41 @@
 
 @layer base {
   * { @apply border-border; }
-  html { font-family: 'Karla', system-ui, sans-serif; }
+  html {
+    font-family: 'Karla', system-ui, sans-serif;
+    /* Zoom-safe: never let a stray wide child create a horizontal scrollbar,
+     * while still allowing intentional inner scroll containers (tables etc.). */
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "ss01", "ss02";
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
   }
   h1, h2, h3, h4, h5 {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-weight: 500;
     letter-spacing: -0.01em;
+    /* Long words / IDs must wrap instead of pushing the layout wider at zoom. */
+    overflow-wrap: anywhere;
   }
+  p, span, a, li, label, dd, dt, td, th, button { overflow-wrap: break-word; }
+
+  /* Media never exceeds its container at any zoom level. */
+  img, video, canvas, svg:not([class*="h-"]):not([class*="w-"]) {
+    max-width: 100%;
+  }
+  img, video { height: auto; }
+
+  /* Flex/grid children default to min-width:auto, which is the #1 cause of
+   * layouts "breaking" (overflowing) when the viewport shrinks under zoom. */
+  #root { width: 100%; max-width: 100%; }
 }
+
 
 @layer utilities {
   .font-display { font-family: 'Cormorant Garamond', Georgia, serif; }
