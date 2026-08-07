@@ -1,15 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { Footer } from "@/components/Footer";
-import { BecomeSellerSection } from "@/components/BecomeSellerSection";
 import { Button } from "@/components/ui/button";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
-import { ShopTheLook } from "@/components/ShopTheLook";
-import { WhyChooseSection } from "@/components/WhyChooseSection";
-import { PromoBanners } from "@/components/PromoBanners";
-import { ShareAppSection } from "@/components/ShareAppSection";
+import { HomeRail, RailItem } from "@/components/home/HomeRail";
+import { TrustBadges } from "@/components/home/TrustBadges";
+import { readRecentlyViewed } from "@/lib/recentlyViewed";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { useServiceCity, cityOrExpr as cityOrExprFor } from "@/lib/serviceArea";
@@ -17,6 +15,15 @@ import { ServiceUnavailable } from "@/components/ServiceUnavailable";
 import { useCategories, getCategoryIcon } from "@/hooks/useCategories";
 import { NEARBY_RADIUS_KM, haversineKm, setSavedCoords, useUserCoords } from "@/lib/geo";
 import { catalogLog } from "@/lib/catalogDebug";
+import { discountedUnitPrice } from "@/lib/pricing";
+
+// Below-the-fold sections are code-split so the first screen stays fast.
+const ShopTheLook = lazy(() => import("@/components/ShopTheLook").then((m) => ({ default: m.ShopTheLook })));
+const WhyChooseSection = lazy(() => import("@/components/WhyChooseSection").then((m) => ({ default: m.WhyChooseSection })));
+const PromoBanners = lazy(() => import("@/components/PromoBanners").then((m) => ({ default: m.PromoBanners })));
+const ShareAppSection = lazy(() => import("@/components/ShareAppSection").then((m) => ({ default: m.ShareAppSection })));
+const BecomeSellerSection = lazy(() => import("@/components/BecomeSellerSection").then((m) => ({ default: m.BecomeSellerSection })));
+
 
 // NOTE: We intentionally do NOT seed demo products from the client.
 // Client-side seeding only works for the user who owns the target store
@@ -107,6 +114,8 @@ const Index = () => {
   const [recent, setRecent] = useState<string[]>([]);
   const [nearbyCity, setNearbyCity] = useState<string | null>(null);
   const [catalogLoaded, setCatalogLoaded] = useState(false);
+  const [recentlyViewed, setRecentlyViewed] = useState<ProductCardData[]>([]);
+
   const coords = useUserCoords();
   const recogRef = useRef<any>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -123,6 +132,8 @@ const Index = () => {
         "Shop the look: rent or buy designer dresses, jewellery and accessories from boutiques near you. Tap any piece on the model to view, rent, or buy.",
       );
 
+    setRecentlyViewed(readRecentlyViewed());
+
     try {
       const r = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
       if (Array.isArray(r)) setRecent(r.slice(0, 5));
@@ -131,6 +142,7 @@ const Index = () => {
     } catch {
       /* ignore */
     }
+
 
     function onDocClick(ev: MouseEvent) {
       if (!searchWrapRef.current?.contains(ev.target as Node)) setFocused(false);
@@ -167,7 +179,7 @@ const Index = () => {
       .eq("stores.is_blocked", false)
       .or(cityOr, { foreignTable: "stores" })
       .order("created_at", { ascending: false })
-      .limit(6);
+      .limit(24);
     if (seq !== catalogRequestSeq.current) {
       catalogLog("home-products-stale-response", { seq, current: catalogRequestSeq.current });
       return;
@@ -453,19 +465,38 @@ const Index = () => {
 
 
 
+  // Derived rails — one fetch, several views, so the first screen is dense
+  // without extra network round-trips.
+  const newArrivals = products.slice(0, 12);
+  const trending = useMemo(
+    () =>
+      [...products]
+        .sort((a, b) => {
+          const da = Number(a.actual_price ?? 0) - discountedUnitPrice(Number(a.actual_price ?? 0), a.discount_percent ?? 0, a.discount_flat ?? 0);
+          const db = Number(b.actual_price ?? 0) - discountedUnitPrice(Number(b.actual_price ?? 0), b.discount_percent ?? 0, b.discount_flat ?? 0);
+          return db - da;
+        })
+        .slice(0, 12),
+    [products],
+  );
+  const topRatedProducts = useMemo(
+    () =>
+      [...products]
+        .sort((a, b) => Number(b.store?.rating ?? 0) - Number(a.store?.rating ?? 0))
+        .slice(0, 12),
+    [products],
+  );
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <main id="main-content" className="flex-1">
 
-      {/* Premium branding-only hero carousel (no product actions) */}
-      <HeroCarousel />
+      {/* Sticky smart search + quick filters */}
+      <section className="sticky top-16 z-30 bg-background/95 backdrop-blur-xl border-b border-border/60">
+        <div className="container pt-2.5 pb-2">
+          <div ref={searchWrapRef} className="relative">
 
-
-      {/* Smart floating search bar */}
-      <section className="relative">
-        <div className="container pt-8 md:pt-10 pb-4">
-          <div ref={searchWrapRef} className="relative max-w-3xl mx-auto md:mx-0">
             <form
               onSubmit={onSearch}
               className={`group flex items-center gap-1.5 md:gap-2 bg-card/95 backdrop-blur rounded-full pl-4 md:pl-5 pr-1.5 md:pr-2 py-1.5 md:py-2 border border-border shadow-petal transition-all duration-300 ${
@@ -582,67 +613,37 @@ const Index = () => {
               </div>
             )}
 
-            <p className="text-[11px] text-muted-foreground mt-2 ml-5 flex items-center gap-1">
-              <Sparkles className="h-3 w-3" /> AI understands text, voice & images
-            </p>
+          </div>
+
+          {/* Quick filters — always one tap away */}
+          <div className="mt-2 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {[
+              { label: "Rent", to: "/browse?purpose=rent", icon: Sparkles },
+              { label: "Buy", to: "/browse?purpose=buy", icon: ShoppingBag },
+              { label: "Nearby", to: nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse", icon: StoreIcon },
+              { label: "Trending", to: "/browse?sort=popular", icon: Flame },
+              { label: "Offers", to: "/browse?sort=discount", icon: Gift },
+              { label: "All categories", to: "/browse", icon: LayoutGrid },
+            ].map((f) => {
+              const Icon = f.icon;
+              return (
+                <Link
+                  key={f.label}
+                  to={f.to}
+                  className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary/50 hover:text-primary transition-colors"
+                >
+                  <Icon className="h-3.5 w-3.5 text-primary" />
+                  {f.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Quick action cards */}
-      <section className="container pt-2 pb-10 md:pb-14">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
-          <QuickActionCard
-            to="/browse?purpose=rent"
-            label="Rent Products"
-            icon={<Sparkles className="h-5 w-5" />}
-            gradient="from-rose-400 to-pink-500"
-          />
-          <QuickActionCard
-            to="/browse?purpose=buy"
-            label="Buy Products"
-            icon={<ShoppingBag className="h-5 w-5" />}
-            gradient="from-amber-400 to-orange-500"
-          />
-          <QuickActionCard
-            to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
-            label="Nearby Shops"
-            icon={<StoreIcon className="h-5 w-5" />}
-            gradient="from-emerald-400 to-teal-500"
-          />
-          <QuickActionCard
-            to="/browse?sort=popular"
-            label="Trending"
-            icon={<Flame className="h-5 w-5" />}
-            gradient="from-fuchsia-500 to-purple-600"
-          />
-          <QuickActionCard
-            to="/browse?sort=discount"
-            label="Offers"
-            icon={<Gift className="h-5 w-5" />}
-            gradient="from-red-400 to-rose-600"
-          />
-          <QuickActionCard
-            to="/browse"
-            label="Categories"
-            icon={<LayoutGrid className="h-5 w-5" />}
-            gradient="from-sky-400 to-indigo-500"
-          />
-        </div>
-      </section>
-
-      {/* Shop by category — premium circular icons */}
-      <section className="container pb-12 md:pb-16">
-        <div className="flex items-end justify-between mb-6 md:mb-8">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Shop by category</p>
-            <h2 className="font-display text-3xl md:text-5xl">Browse categories</h2>
-          </div>
-          <Link to="/browse" className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1">
-            View all <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-4 md:gap-6">
+      {/* Categories — horizontal rail right under the search bar */}
+      <section className="container pt-3 pb-2">
+        <div className="flex gap-4 md:gap-6 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {categoryConfigs.map((c) => {
             const Icon = getCategoryIcon(c.icon_name);
             const active = c.is_active;
@@ -651,20 +652,16 @@ const Index = () => {
               <>
                 <span className="relative inline-flex items-center justify-center">
                   <span
-                    className={`absolute inset-0 rounded-full bg-gradient-to-br ${c.gradient} opacity-30 blur-xl ${active ? "group-hover:opacity-60" : ""} transition-opacity duration-500`}
-                  />
-                  <span
-                    className={`relative inline-flex items-center justify-center h-16 w-16 md:h-20 md:w-20 rounded-full bg-gradient-to-br ${c.gradient} text-white shadow-[0_12px_30px_-10px_rgba(0,0,0,0.35)] ring-1 ring-white/30 ${active ? "group-hover:scale-110 group-hover:-rotate-3" : ""} transition-transform duration-300`}
+                    className={`relative inline-flex items-center justify-center h-12 w-12 md:h-14 md:w-14 rounded-full bg-gradient-to-br ${c.gradient} text-white shadow-[0_10px_24px_-12px_rgba(0,0,0,0.4)] ring-1 ring-white/30 ${active ? "group-hover:scale-110" : "opacity-70"} transition-transform duration-300`}
                   >
-                    <Icon className="h-7 w-7 md:h-9 md:w-9" />
+                    <Icon className="h-5 w-5 md:h-6 md:w-6" />
                   </span>
-                  {!active && (
-                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-foreground text-[9px] md:text-[10px] font-medium text-background px-2 py-0.5 shadow">
-                      Coming soon
-                    </span>
-                  )}
                 </span>
-                <span className={`text-xs md:text-sm font-medium transition-colors ${active ? "text-foreground group-hover:text-rose-deep" : "text-foreground/80"}`}>
+                <span
+                  className={`text-[11px] md:text-xs font-medium leading-tight text-center line-clamp-2 transition-colors ${
+                    active ? "text-foreground group-hover:text-primary" : "text-muted-foreground"
+                  }`}
+                >
                   {c.label}
                 </span>
               </>
@@ -673,7 +670,7 @@ const Index = () => {
               <Link
                 key={c.slug}
                 to={`/browse?category=${encodeURIComponent(c.slug)}`}
-                className="group flex flex-col items-center gap-2.5 text-center"
+                className="group shrink-0 w-[68px] md:w-[78px] flex flex-col items-center gap-1.5"
               >
                 {inner}
               </Link>
@@ -683,7 +680,7 @@ const Index = () => {
                 type="button"
                 aria-disabled="true"
                 onClick={() => toast.info(`${c.label} launches soon — stay tuned!`)}
-                className="group flex flex-col items-center gap-2.5 text-center cursor-not-allowed"
+                className="group shrink-0 w-[68px] md:w-[78px] flex flex-col items-center gap-1.5 cursor-not-allowed"
                 title="Coming soon"
               >
                 {inner}
@@ -693,164 +690,160 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Compact branding hero (no product actions) */}
+      <div className="pb-3">
+        <HeroCarousel />
+      </div>
 
-
+      {/* Trust badges */}
+      <TrustBadges />
 
       {!isServiceable ? (
         <ServiceUnavailable city={serviceCity} source="home" />
       ) : (
         <>
-          {/* Interactive Shop the Look */}
-          <section className="container pb-16 md:pb-24">
-            <div className="flex items-end justify-between mb-6">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">Interactive showcase</p>
-                <h2 className="font-display text-3xl md:text-5xl">The fitting room</h2>
+          {/* Featured / verified stores right near the top */}
+          {stores.length > 0 && (
+            <HomeRail
+              id="nearby-shops"
+              eyebrow={<><BadgeCheck className="h-3 w-3" /> Verified boutiques</>}
+              title="Featured Stores Near You"
+              to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
+            >
+              {stores.map((s) => (
+                <RailItem key={s.id} wide>
+                  <CompactShopCard shop={s} open={shopsOpen} />
+                </RailItem>
+              ))}
+            </HomeRail>
+          )}
+
+          {trending.length > 0 && (
+            <HomeRail
+              eyebrow={<><Flame className="h-3 w-3" /> Best value today</>}
+              title="Trending Rentals"
+              to="/browse?sort=popular"
+            >
+              {trending.map((p) => (
+                <RailItem key={p.id}>
+                  <ProductCard p={p} />
+                </RailItem>
+              ))}
+            </HomeRail>
+          )}
+
+          {newArrivals.length > 0 && (
+            <HomeRail
+              eyebrow={<><Sparkles className="h-3 w-3" /> Fresh in this week</>}
+              title="New Arrivals"
+              to="/browse?sort=newest"
+            >
+              {newArrivals.map((p) => (
+                <RailItem key={p.id}>
+                  <ProductCard p={p} />
+                </RailItem>
+              ))}
+            </HomeRail>
+          )}
+
+          {topRatedProducts.length > 0 && (
+            <HomeRail
+              eyebrow={<><Star className="h-3 w-3" /> Loved by customers</>}
+              title="Top Rated"
+              to="/browse?sort=rating"
+            >
+              {topRatedProducts.map((p) => (
+                <RailItem key={p.id}>
+                  <ProductCard p={p} />
+                </RailItem>
+              ))}
+            </HomeRail>
+          )}
+
+          {recentlyViewed.length > 0 && (
+            <HomeRail
+              eyebrow={<><Package className="h-3 w-3" /> Pick up where you left off</>}
+              title="Recently Viewed"
+              to="/browse"
+            >
+              {recentlyViewed.map((p) => (
+                <RailItem key={p.id}>
+                  <ProductCard p={p} />
+                </RailItem>
+              ))}
+            </HomeRail>
+          )}
+
+          {/* Top rated shops */}
+          {topRated.length > 0 && (
+            <HomeRail
+              eyebrow={<><Star className="h-3 w-3" /> Rated by real customers</>}
+              title="Top Rated Stores"
+              to="/browse"
+            >
+              {topRated.map((s, i) => (
+                <RailItem key={s.id} wide>
+                  <CompactShopCard shop={s} open={shopsOpen} rank={i + 1} />
+                </RailItem>
+              ))}
+            </HomeRail>
+          )}
+
+          {stores.length === 0 && catalogLoaded && (
+            <section className="container pb-6">
+              <div className="rounded-2xl border border-border bg-card px-6 py-8 text-center">
+                <MapPin className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">No nearby shops found in your area.</p>
+                {coords && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    We looked within {NEARBY_RADIUS_KM} km of your location.
+                  </p>
+                )}
               </div>
-              <Link to="/browse" className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1">
+            </section>
+          )}
+
+          {/* Interactive Shop the Look */}
+          <section className="container pb-8">
+            <div className="flex items-end justify-between mb-3">
+              <div>
+                <p className="text-[10px] md:text-[11px] uppercase tracking-[0.18em] text-primary">Interactive showcase</p>
+                <h2 className="font-display text-xl md:text-2xl">The fitting room</h2>
+              </div>
+              <Link to="/browse" className="text-xs md:text-sm text-primary hover:underline hidden sm:flex items-center gap-1">
                 See everything <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
-            <ShopTheLook />
+            <Suspense fallback={<div className="h-48 rounded-2xl bg-muted/50 animate-pulse" />}>
+              <ShopTheLook />
+            </Suspense>
           </section>
-
-          {/* Featured products */}
-          {products.length > 0 && (
-            <section className="container pb-16">
-              <div className="flex items-end justify-between mb-8">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">In bloom this week</p>
-                  <h2 className="font-display text-3xl md:text-5xl">Featured pieces</h2>
-                </div>
-                <Link to="/browse" className="text-sm text-primary hover:underline flex items-center gap-1">
-                  See all <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
-                {products.map((p) => (
-                  <ProductCard key={p.id} p={p} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Top Rated Stores — ranked by (average rating × total ratings) */}
-          {topRated.length > 0 && (
-            <section className="container pb-16 md:pb-20">
-              <div className="flex items-end justify-between mb-6 md:mb-8">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
-                    <Star className="h-3.5 w-3.5" /> Rated by real customers
-                  </p>
-                  <h2 className="font-display text-3xl md:text-5xl">Top Rated Stores</h2>
-                </div>
-                <Link
-                  to="/browse"
-                  className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1"
-                >
-                  See all <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-                {topRated.map((s, i) => (
-                  <NearbyShopCard key={s.id} shop={s} open={shopsOpen} rank={i + 1} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Nearby Verified Shops */}
-          {(stores.length > 0 || catalogLoaded) && (
-            <section id="nearby-shops" className="container pb-16 md:pb-24 scroll-mt-24">
-              <div className="flex items-end justify-between mb-6 md:mb-8">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2 flex items-center gap-1.5">
-                    <BadgeCheck className="h-3.5 w-3.5" /> Verified boutiques
-                  </p>
-                  <h2 className="font-display text-3xl md:text-5xl">Nearby Verified Shops</h2>
-                </div>
-                <Link
-                  to={nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse"}
-                  className="text-sm text-primary hover:underline hidden sm:flex items-center gap-1"
-                >
-                  See all <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-              {stores.length === 0 ? (
-                <div className="rounded-3xl border border-border bg-card px-6 py-12 text-center">
-                  <MapPin className="h-6 w-6 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-muted-foreground">No nearby shops found in your area.</p>
-                  {coords && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      We looked within {NEARBY_RADIUS_KM} km of your location.
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-                  {stores.map((s) => (
-                    <NearbyShopCard key={s.id} shop={s} open={shopsOpen} />
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
-
         </>
       )}
 
+      <Suspense fallback={<div className="container pb-8"><div className="h-40 rounded-2xl bg-muted/40 animate-pulse" /></div>}>
+        {/* Offers */}
+        <PromoBanners />
 
+        {/* Why choose Rent & Radiate */}
+        <WhyChooseSection />
 
-      {/* Why choose Rent & Radiate */}
-      <WhyChooseSection />
+        {/* Refer & share app */}
+        <ShareAppSection />
 
-      {/* Promotional banners */}
-      <PromoBanners />
-
-      {/* Refer & share app */}
-      <ShareAppSection />
-
-      {/* Become a seller */}
-      <BecomeSellerSection />
+        {/* Become a seller */}
+        <BecomeSellerSection />
+      </Suspense>
       </main>
       <Footer />
     </div>
   );
+
 };
 
 
-function QuickActionCard({
-  to,
-  label,
-  icon,
-  gradient,
-}: {
-  to: string;
-  label: string;
-  icon: React.ReactNode;
-  gradient: string;
-}) {
-  return (
-    <Link
-      to={to}
-      className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-card border border-border p-4 md:p-5 flex flex-col items-center justify-center gap-3 text-center shadow-soft hover:shadow-[0_18px_40px_-18px_hsl(var(--rose-deep)/0.45)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300"
-    >
-      <span
-        className={`absolute inset-x-0 -top-12 h-24 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-500`}
-      />
-      <span
-        className={`relative inline-flex items-center justify-center h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-md group-hover:scale-110 group-hover:rotate-[-4deg] transition-transform duration-300`}
-      >
-        {icon}
-      </span>
-      <span className="relative text-xs md:text-sm font-medium text-foreground group-hover:text-rose-deep transition-colors">
-        {label}
-      </span>
-    </Link>
-  );
-}
-
-function NearbyShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean; rank?: number }) {
+/** Compact store card sized for horizontal rails. */
+function CompactShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean; rank?: number }) {
   const initials = shop.name
     .split(/\s+/)
     .map((w) => w[0])
@@ -863,14 +856,14 @@ function NearbyShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean;
       ? shop.distance_km < 1
         ? `${Math.round(shop.distance_km * 1000)} m away`
         : `${shop.distance_km.toFixed(1)} km away`
-      : shop.city
-        ? shop.city
-        : "Distance unavailable";
+      : shop.city ?? "Distance unavailable";
 
   return (
-    <div className="group relative flex flex-col rounded-3xl bg-card border border-border overflow-hidden shadow-soft hover:shadow-[0_22px_50px_-22px_hsl(var(--rose-deep)/0.45)] hover:-translate-y-1 transition-all duration-300">
-      {/* Shop image / logo */}
-      <div className="relative h-40 bg-gradient-to-br from-blossom via-card to-muted overflow-hidden">
+    <Link
+      to={`/browse?store=${shop.id}`}
+      className="group relative flex h-full flex-col rounded-2xl bg-card border border-border/60 overflow-hidden shadow-soft hover:shadow-[0_22px_50px_-22px_hsl(var(--primary)/0.4)] hover:-translate-y-1 transition-all duration-300"
+    >
+      <div className="relative h-24 bg-gradient-to-br from-secondary via-card to-muted overflow-hidden">
         {shop.logo_url ? (
           <img
             src={shop.logo_url}
@@ -880,69 +873,58 @@ function NearbyShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean;
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-display text-5xl text-rose-deep/70">{initials || <StoreIcon className="h-10 w-10" />}</span>
+            <span className="font-display text-3xl text-primary/70">
+              {initials || <StoreIcon className="h-8 w-8" />}
+            </span>
           </div>
         )}
-        {/* Open / closed pill */}
         <span
-          className={`absolute top-3 left-3 inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full backdrop-blur ${
-            open
-              ? "bg-emerald-500/90 text-white"
-              : "bg-slate-700/85 text-white"
+          className={`absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur ${
+            open ? "bg-emerald-500/90 text-white" : "bg-slate-700/85 text-white"
           }`}
         >
           <span className={`h-1.5 w-1.5 rounded-full ${open ? "bg-white animate-pulse" : "bg-white/70"}`} />
-          {open ? "Open now" : "Closed"}
-        </span>
-        {/* Verified badge */}
-        <span className="absolute top-3 right-3 inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-card/95 text-rose-deep border border-rose-deep/20 shadow-sm">
-          <BadgeCheck className="h-3.5 w-3.5" />
-          Verified
+          {open ? "Open" : "Closed"}
         </span>
         {rank != null && (
-          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 text-white shadow-md">
-            #{rank} Top rated
+          <span className="absolute bottom-2 left-2 inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 text-white shadow">
+            #{rank}
           </span>
         )}
+        <span className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-card/95 text-primary border border-primary/20">
+          <BadgeCheck className="h-3 w-3" />
+          Verified
+        </span>
       </div>
 
-      {/* Body */}
-      <div className="p-5 flex flex-col gap-3 flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="font-display text-xl leading-tight group-hover:text-rose-deep transition-colors">
+      <div className="p-3 flex flex-col gap-1.5 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-display text-base leading-tight line-clamp-1 group-hover:text-primary transition-colors">
             {shop.name}
           </h3>
-          <span className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+          <span className="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
             <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
             {Number(shop.rating ?? 0).toFixed(1)}
-            {shop.rating_count > 0 && (
-              <span className="text-amber-600/70 font-normal">({shop.rating_count})</span>
-            )}
           </span>
         </div>
-
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
           <span className="inline-flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5 text-rose-deep" />
+            <MapPin className="h-3 w-3 text-primary" />
             {distanceLabel}
           </span>
           <span className="inline-flex items-center gap-1">
-            <Package className="h-3.5 w-3.5 text-rose-deep" />
-            {shop.product_count} {shop.product_count === 1 ? "product" : "products"}
+            <Package className="h-3 w-3 text-primary" />
+            {shop.product_count}
           </span>
         </div>
-
-        <Link
-          to={`/browse?store=${shop.id}`}
-          className="mt-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-deep to-pink-500 text-white text-sm font-medium py-2.5 shadow-md hover:shadow-lg hover:opacity-95 active:opacity-90 transition-all"
-        >
-          View Shop
-          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+        <span className="mt-auto pt-1 inline-flex items-center gap-1 text-xs font-medium text-primary">
+          View shop <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+        </span>
       </div>
-    </div>
+    </Link>
   );
 }
+
 
 
 export default Index;
