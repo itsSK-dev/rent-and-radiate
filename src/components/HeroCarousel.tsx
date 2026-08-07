@@ -97,7 +97,10 @@ export function HeroCarousel() {
       onBlurCapture={() => setPaused(false)}
       onTouchStart={bumpPause}
     >
-      <div className="relative h-[440px] sm:h-[520px] md:h-[600px] lg:h-[640px]">
+      {/* Fluid height: scales with viewport instead of snapping between fixed
+          pixel heights, so browser zoom never crops or letterboxes the hero. */}
+      <div className="relative h-[clamp(24rem,58vh+7rem,40rem)]">
+
         {SLIDES.map((slide, i) => {
           const active = i === index;
           return (
