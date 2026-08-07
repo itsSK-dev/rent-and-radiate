@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { discountedUnitPrice, inr } from "@/lib/pricing";
 import { WishlistButton } from "@/components/WishlistButton";
 import { VerifiedSellerBadge } from "@/components/VerifiedSellerBadge";
+import { pushRecentlyViewed } from "@/lib/recentlyViewed";
+
 
 export interface ProductCardData {
   id: string;
