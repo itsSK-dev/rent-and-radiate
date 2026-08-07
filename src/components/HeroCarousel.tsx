@@ -199,7 +199,7 @@ export function HeroCarousel() {
 
         {/* Pagination dots */}
         <div
-          className="absolute bottom-5 md:bottom-7 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2"
+          className="absolute bottom-2 md:bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2"
           role="tablist"
           aria-label="Slide pagination"
         >
