@@ -136,27 +136,27 @@ export function HeroCarousel() {
               <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/40 to-background/10 md:from-background/90 md:via-background/55 md:to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent md:from-background/40 md:via-transparent" />
 
-              <div className="relative h-full container flex items-end pb-12 md:items-center md:pb-0">
+              <div className="relative h-full container flex items-end pb-6 md:items-center md:pb-0">
 
                 <div
                   className={`max-w-xl transition-all duration-700 ${
                     active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
                   }`}
                 >
-                  <span className="inline-flex items-center gap-2 text-[11px] sm:text-xs uppercase tracking-[0.22em] text-rose-deep">
-                    <Sparkles className="h-3.5 w-3.5" /> {slide.eyebrow}
+                  <span className="inline-flex items-center gap-2 text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-rose-deep">
+                    <Sparkles className="h-3 w-3" /> {slide.eyebrow}
                   </span>
-                  <h1 className="font-display text-[clamp(2rem,4.4vw+0.5rem,4rem)] leading-[1.08] mt-3 whitespace-pre-line text-foreground">
+                  <h1 className="font-display text-[clamp(1.5rem,3vw+0.5rem,2.5rem)] leading-[1.1] mt-1.5 whitespace-pre-line text-foreground">
                     {slide.title}
                   </h1>
-                  <p className="text-sm sm:text-base md:text-lg text-muted-foreground mt-4 max-w-md">
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-2 max-w-md line-clamp-2">
                     {slide.subtitle}
                   </p>
-                  <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
                     <Button
-                      size="lg"
+                      size="sm"
                       variant="hero"
-                      className="rounded-full px-6 shadow-soft"
+                      className="rounded-full px-5 shadow-soft"
                       onClick={() => {
                         bumpPause();
                         navigate("/browse");
@@ -168,6 +168,7 @@ export function HeroCarousel() {
                   </div>
                 </div>
               </div>
+
             </div>
           );
         })}
