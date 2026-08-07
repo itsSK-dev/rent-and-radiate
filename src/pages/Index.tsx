@@ -167,7 +167,7 @@ const Index = () => {
       .eq("stores.is_blocked", false)
       .or(cityOr, { foreignTable: "stores" })
       .order("created_at", { ascending: false })
-      .limit(6);
+      .limit(24);
     if (seq !== catalogRequestSeq.current) {
       catalogLog("home-products-stale-response", { seq, current: catalogRequestSeq.current });
       return;
