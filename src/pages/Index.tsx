@@ -1,15 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { Footer } from "@/components/Footer";
-import { BecomeSellerSection } from "@/components/BecomeSellerSection";
 import { Button } from "@/components/ui/button";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
-import { ShopTheLook } from "@/components/ShopTheLook";
-import { WhyChooseSection } from "@/components/WhyChooseSection";
-import { PromoBanners } from "@/components/PromoBanners";
-import { ShareAppSection } from "@/components/ShareAppSection";
+import { HomeRail, RailItem } from "@/components/home/HomeRail";
+import { TrustBadges } from "@/components/home/TrustBadges";
+import { readRecentlyViewed } from "@/lib/recentlyViewed";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { useServiceCity, cityOrExpr as cityOrExprFor } from "@/lib/serviceArea";
@@ -17,6 +15,15 @@ import { ServiceUnavailable } from "@/components/ServiceUnavailable";
 import { useCategories, getCategoryIcon } from "@/hooks/useCategories";
 import { NEARBY_RADIUS_KM, haversineKm, setSavedCoords, useUserCoords } from "@/lib/geo";
 import { catalogLog } from "@/lib/catalogDebug";
+import { discountedUnitPrice } from "@/lib/pricing";
+
+// Below-the-fold sections are code-split so the first screen stays fast.
+const ShopTheLook = lazy(() => import("@/components/ShopTheLook").then((m) => ({ default: m.ShopTheLook })));
+const WhyChooseSection = lazy(() => import("@/components/WhyChooseSection").then((m) => ({ default: m.WhyChooseSection })));
+const PromoBanners = lazy(() => import("@/components/PromoBanners").then((m) => ({ default: m.PromoBanners })));
+const ShareAppSection = lazy(() => import("@/components/ShareAppSection").then((m) => ({ default: m.ShareAppSection })));
+const BecomeSellerSection = lazy(() => import("@/components/BecomeSellerSection").then((m) => ({ default: m.BecomeSellerSection })));
+
 
 // NOTE: We intentionally do NOT seed demo products from the client.
 // Client-side seeding only works for the user who owns the target store
