@@ -2984,6 +2984,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_owner_of_store: { Args: { _store_id: string }; Returns: boolean }
       is_store_owner_of_rental: {
         Args: { _rental_id: string; _user_id: string }
         Returns: boolean
@@ -3034,6 +3035,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      store_visible_or_owned: { Args: { _store_id: string }; Returns: boolean }
     }
     Enums: {
       ad_payment_status: "unpaid" | "paid" | "refunded"
