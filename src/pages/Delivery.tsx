@@ -21,6 +21,9 @@ type Assignment = {
   created_at: string;
   rental: {
     id: string; kind: string; status: string; address: string | null; grand_total: number;
+    ship_full_name?: string | null; ship_mobile?: string | null; ship_house?: string | null;
+    ship_street?: string | null; ship_landmark?: string | null; ship_city?: string | null;
+    ship_state?: string | null; ship_pin?: string | null; ship_instructions?: string | null;
     start_date: string | null; end_date: string | null;
     customer: { full_name: string | null; phone?: string | null } | null;
     product: { title: string; images: string[] | null } | null;
@@ -50,6 +53,8 @@ export default function Delivery() {
     const { data } = await supabase.from("delivery_assignments")
       .select(`id, rental_id, partner_id, status, created_at,
         rental:rentals(id, kind, status, address, grand_total, start_date, end_date,
+         ship_full_name, ship_mobile, ship_house, ship_street, ship_landmark,
+         ship_city, ship_state, ship_pin, ship_instructions,
           customer:profiles!rentals_customer_id_fkey(full_name),
           product:products(title, images),
           store:stores(name, address, city))`)
@@ -224,7 +229,10 @@ function AssignmentCard({
   const r = a.rental;
   if (!r) return null;
   const mapsPickup = r.store?.address ? `https://maps.google.com/?q=${encodeURIComponent(r.store.address + ", " + (r.store.city ?? ""))}` : "";
-  const mapsDrop = r.address ? `https://maps.google.com/?q=${encodeURIComponent(r.address)}` : "";
+  const dropAddr = addressFromRental(r);
+  const hasSnapshot = isAddressComplete(dropAddr);
+  const dropText = hasSnapshot ? formatAddress(dropAddr) : (r.address ?? "");
+  const mapsDrop = dropText ? `https://maps.google.com/?q=${encodeURIComponent(dropText)}` : "";
 
   return (
     <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
@@ -248,8 +256,20 @@ function AssignmentCard({
         </div>
         <div className="rounded-lg bg-secondary p-2">
           <p className="uppercase tracking-wider text-muted-foreground mb-0.5 flex items-center gap-1"><MapPin className="h-3 w-3" /> Drop</p>
-          <p className="font-medium">{r.customer?.full_name ?? "Customer"}</p>
-          <p className="text-muted-foreground">{r.address ?? "—"}</p>
+          <p className="font-medium">{dropAddr.full_name || r.customer?.full_name || "Customer"}</p>
+          {(dropAddr.mobile || r.customer?.phone) && (
+            <a href={`tel:${dropAddr.mobile || r.customer?.phone}`} className="text-primary inline-flex items-center gap-1">
+              <Phone className="h-3 w-3" /> {dropAddr.mobile || r.customer?.phone}
+            </a>
+          )}
+          {hasSnapshot ? (
+            <div className="text-muted-foreground">
+              {addressLines(dropAddr).map((l, i) => <p key={i}>{l}</p>)}
+              {dropAddr.instructions && <p className="italic">Note: {dropAddr.instructions}</p>}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">{r.address ?? "—"}</p>
+          )}
           {mapsDrop && <a href={mapsDrop} target="_blank" rel="noreferrer" className="text-primary inline-flex items-center gap-1 mt-1"><Navigation className="h-3 w-3" /> Navigate</a>}
         </div>
       </div>
