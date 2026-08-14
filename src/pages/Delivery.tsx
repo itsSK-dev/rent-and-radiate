@@ -15,6 +15,7 @@ import { Phone, MapPin, Navigation, Package } from "lucide-react";
 import { format } from "date-fns";
 import { inr } from "@/lib/pricing";
 import { DeliveryProofUpload } from "@/components/DeliveryProofUpload";
+import { addressFromRental, addressLines, formatAddress, isAddressComplete } from "@/lib/address";
 
 type Assignment = {
   id: string; rental_id: string; partner_id: string; status: string;
