@@ -213,6 +213,14 @@ const ProductDetail = () => {
       if (span.some(isBlocked)) return toast.error("Some dates are already booked. Pick a free range.");
     }
     if (qty > (product!.quantity ?? 0)) return toast.error("Not enough stock.");
+    if (delivery === "delivery") {
+      const problem = validateAddress(address);
+      if (problem) {
+        toast.error(`${problem} Please save your complete delivery address to continue.`);
+        setAddrOpen(true);
+        return;
+      }
+    }
     setSubmitting(true);
     const payload: any = {
       customer_id: user.id,
@@ -234,6 +242,7 @@ const ProductDetail = () => {
       grand_total: totals.grandTotal,
       delivery_method: delivery,
       protection_plan: mode === "rent" ? protectionPlan : false,
+      ...(delivery === "delivery" ? rentalAddressPayload(address) : {}),
     };
 
     const { data: created, error } = await supabase.from("rentals").insert(payload).select("id").single();
