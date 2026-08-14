@@ -23,6 +23,8 @@ import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 import { WishlistButton } from "@/components/WishlistButton";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
 import { Star } from "lucide-react";
+import { DeliveryAddressDialog, useSavedAddress } from "@/components/DeliveryAddressDialog";
+import { isAddressComplete, rentalAddressPayload, validateAddress } from "@/lib/address";
 
 type Product = {
   id: string;
