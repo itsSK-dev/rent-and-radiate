@@ -394,6 +394,37 @@ const Checkout = () => {
 
 
           {isPaid ? (
+          {rental.delivery_method === "delivery" && !isPaid && !isPending && (
+            <div className={`rounded-2xl border p-4 ${needsAddress ? "border-destructive/40 bg-destructive/5" : "border-border bg-secondary/40"}`}>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Delivery address</p>
+              {needsAddress ? (
+                <p className="text-sm mt-1">
+                  A complete delivery address is required before you can pay for this order.
+                </p>
+              ) : (
+                <div className="mt-1 text-sm">
+                  <p className="font-medium">{orderAddress.full_name} · {orderAddress.mobile}</p>
+                  {addressLines(orderAddress).map((l, i) => (
+                    <p key={i} className="text-xs text-muted-foreground">{l}</p>
+                  ))}
+                  {orderAddress.instructions && (
+                    <p className="text-xs text-muted-foreground mt-1">Note: {orderAddress.instructions}</p>
+                  )}
+                </div>
+              )}
+              <DeliveryAddressDialog
+                value={orderAddress}
+                onSaved={saveAddressOnOrder}
+                trigger={
+                  <Button variant={needsAddress ? "hero" : "soft"} size="sm" className="mt-3">
+                    {needsAddress ? "Add delivery address" : "Edit address"}
+                  </Button>
+                }
+              />
+            </div>
+          )}
+
+          {isPaid ? (
             <div className="rounded-xl bg-secondary p-4 text-sm flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-primary" />
               This order has already been paid.
@@ -404,6 +435,10 @@ const Checkout = () => {
               <Clock className="h-4 w-4" />
               Payment submitted — waiting for admin verification.
               <Button variant="link" className="px-1" onClick={() => navigate("/my-rentals")}>View rentals</Button>
+            </div>
+          ) : needsAddress ? (
+            <div className="rounded-xl bg-secondary p-4 text-sm text-muted-foreground">
+              Payment options unlock once your complete delivery address is saved.
             </div>
           ) : selected === null ? (
             <div className="space-y-3 pt-2">
