@@ -393,7 +393,6 @@ const Checkout = () => {
 
 
 
-          {isPaid ? (
           {rental.delivery_method === "delivery" && !isPaid && !isPending && (
             <div className={`rounded-2xl border p-4 ${needsAddress ? "border-destructive/40 bg-destructive/5" : "border-border bg-secondary/40"}`}>
               <p className="text-xs uppercase tracking-wider text-muted-foreground">Delivery address</p>
