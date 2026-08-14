@@ -64,6 +64,9 @@ const ProductDetail = () => {
   const [end, setEnd] = useState<Date | undefined>(parseQsDate(searchParams.get("end")));
   const [qty, setQty] = useState(1);
   const [delivery, setDelivery] = useState<"pickup" | "delivery">("pickup");
+  const { address, setAddress } = useSavedAddress();
+  const [addrOpen, setAddrOpen] = useState(false);
+  const addressComplete = isAddressComplete(address);
   const [submitting, setSubmitting] = useState(false);
   const [protectionPlan, setProtectionPlan] = useState(false);
   const [bookedDates, setBookedDates] = useState<Date[]>([]);
