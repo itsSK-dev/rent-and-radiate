@@ -115,7 +115,14 @@ const Cart = () => {
   // Group by store — we'll create one rental per cart item (simplest & matches existing schema).
   async function checkout() {
     if (items.length === 0) return;
-    if (delivery === "delivery" && address.trim().length < 8) return toast.error("Enter a delivery address.");
+    if (delivery === "delivery") {
+      const problem = validateAddress(address);
+      if (problem) {
+        toast.error(`${problem} Please save your complete delivery address to continue.`);
+        setAddrOpen(true);
+        return;
+      }
+    }
     setSubmitting(true);
     try {
       const created: string[] = [];
