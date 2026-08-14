@@ -7,15 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Trash2, ShoppingBag, Loader2 } from "lucide-react";
+import { Trash2, ShoppingBag, Loader2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { differenceInCalendarDays } from "date-fns";
 import { computeLine, computeOrderTotals, inr, type LineBreakdown } from "@/lib/pricing";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 import { cn } from "@/lib/utils";
+import { DeliveryAddressDialog, useSavedAddress } from "@/components/DeliveryAddressDialog";
+import { addressLines, isAddressComplete, rentalAddressPayload, validateAddress } from "@/lib/address";
 
 type CartRow = {
   id: string;
