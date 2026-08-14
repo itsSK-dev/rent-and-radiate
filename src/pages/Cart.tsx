@@ -40,8 +40,10 @@ const Cart = () => {
   const [items, setItems] = useState<CartRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [delivery, setDelivery] = useState<"pickup" | "delivery">("pickup");
-  const [address, setAddress] = useState("");
+  const { address, setAddress } = useSavedAddress();
+  const [addrOpen, setAddrOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const addressComplete = isAddressComplete(address);
 
   useEffect(() => { document.title = "Cart · Rent & Radiate"; }, []);
 
