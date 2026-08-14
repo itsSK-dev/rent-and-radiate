@@ -14,6 +14,11 @@ import {
   Smartphone, CreditCard, Building2, ChevronRight, ArrowLeft, Wallet, Store as StoreIcon,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
+import { DeliveryAddressDialog } from "@/components/DeliveryAddressDialog";
+import {
+  addressFromRental, addressLines, isAddressComplete, rentalAddressPayload,
+  type DeliveryAddress,
+} from "@/lib/address";
 
 type Rental = {
   id: string;
