@@ -158,7 +158,7 @@ const Cart = () => {
           commission_amount: single.commission,
           grand_total: single.grandTotal,
           delivery_method: delivery,
-          address: delivery === "delivery" ? address : null,
+          ...(delivery === "delivery" ? rentalAddressPayload(address) : { address: null }),
         };
         const { data, error } = await supabase.from("rentals").insert(payload).select("id").single();
         if (error || !data) throw new Error(error?.message ?? "Failed to create order");
