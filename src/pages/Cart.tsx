@@ -254,8 +254,37 @@ const Cart = () => {
                   <DeliveryOpt value="delivery" label="Delivery" />
                 </RadioGroup>
                 {delivery === "delivery" && (
-                  <Textarea placeholder="Delivery address" value={address}
-                    onChange={(e) => setAddress(e.target.value)} className="mt-3" rows={2} />
+                  <div className="mt-3 rounded-2xl border border-border bg-secondary/40 p-3 text-sm">
+                    <p className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5" /> Delivery address
+                    </p>
+                    {addressComplete ? (
+                      <div className="mt-1.5">
+                        <p className="font-medium">{address.full_name} · {address.mobile}</p>
+                        {addressLines(address).map((l, i) => (
+                          <p key={i} className="text-xs text-muted-foreground">{l}</p>
+                        ))}
+                        {address.instructions && (
+                          <p className="text-xs text-muted-foreground mt-1">Note: {address.instructions}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="mt-1.5 text-xs text-muted-foreground">
+                        No complete address saved yet. Add it to continue.
+                      </p>
+                    )}
+                    <DeliveryAddressDialog
+                      value={address}
+                      onSaved={setAddress}
+                      open={addrOpen}
+                      onOpenChange={setAddrOpen}
+                      trigger={
+                        <Button variant="soft" size="sm" className="mt-3">
+                          {addressComplete ? "Edit address" : "Add delivery address"}
+                        </Button>
+                      }
+                    />
+                  </div>
                 )}
               </div>
 
