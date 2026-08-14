@@ -309,6 +309,8 @@ const Checkout = () => {
   const isPending = rental.payment_status === "pending_verification";
   const upiConfigured = !!settings?.upi_id;
   const allowCOD = rental.kind === "buy";
+  const orderAddress = addressFromRental(rental);
+  const needsAddress = rental.delivery_method === "delivery" && !isAddressComplete(orderAddress);
 
   const methods: { key: MethodKey; label: string; desc: string; icon: any; disabled?: boolean; hint?: string }[] = [
     { key: "upi", label: "UPI", desc: "GPay, PhonePe, Paytm, BHIM & more", icon: Smartphone },
