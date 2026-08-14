@@ -359,7 +359,30 @@ const ProductDetail = () => {
                   <DeliveryOpt value="pickup" label="Pickup" />
                   <DeliveryOpt value="delivery" label="Delivery" />
                 </RadioGroup>
+                {delivery === "delivery" && (
+                  <div className="mt-2 text-xs">
+                    {addressComplete ? (
+                      <p className="text-muted-foreground">
+                        Deliver to {address.full_name}, {address.city} {address.pin}
+                      </p>
+                    ) : (
+                      <p className="text-muted-foreground">Complete delivery address required.</p>
+                    )}
+                    <DeliveryAddressDialog
+                      value={address}
+                      onSaved={setAddress}
+                      open={addrOpen}
+                      onOpenChange={setAddrOpen}
+                      trigger={
+                        <Button variant="link" size="sm" className="px-0 h-auto">
+                          {addressComplete ? "Edit address" : "Add delivery address"}
+                        </Button>
+                      }
+                    />
+                  </div>
+                )}
               </div>
+
             </div>
 
             <div className="space-y-1.5 text-sm border-t border-border pt-4">
