@@ -296,31 +296,68 @@ export default function VendorOrders() {
                         No return required — product is sold
                       </p>
                     )}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      <div><span className="text-foreground/70">Order:</span> #{r.id.slice(0, 8)}</div>
-                      <div><span className="text-foreground/70">Customer:</span> {r.customer?.full_name ?? "—"}</div>
-                      <div><span className="text-foreground/70">Qty:</span> {r.quantity}</div>
-                      <div><span className="text-foreground/70">Total:</span> {inr(r.grand_total)}</div>
-                      <div className="col-span-2 md:col-span-2">
-                        <span className="text-foreground/70">Placed:</span>{" "}
-                        {format(new Date(r.created_at), "PPp")}
-                      </div>
-                      {r.address && (
-                        <div className="col-span-2 md:col-span-4 line-clamp-2">
-                          <span className="text-foreground/70">Address:</span> {r.address}
-                        </div>
-                      )}
-                    </div>
+                    {(() => {
+                      const addr = addressFromRental(r);
+                      const hasSnapshot = isAddressComplete(addr);
+                      return (
+                        <>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                            <div><span className="text-foreground/70">Order:</span> #{r.id.slice(0, 8)}</div>
+                            <div>
+                              <span className="text-foreground/70">Customer:</span>{" "}
+                              {addr.full_name || r.customer?.full_name || "—"}
+                            </div>
+                            <div>
+                              <span className="text-foreground/70">Phone:</span>{" "}
+                              {addr.mobile || r.customer?.phone || "—"}
+                            </div>
+                            <div><span className="text-foreground/70">Qty:</span> {r.quantity}</div>
+                            <div><span className="text-foreground/70">Total:</span> {inr(r.grand_total)}</div>
+                            <div className="col-span-2 md:col-span-3">
+                              <span className="text-foreground/70">Placed:</span>{" "}
+                              {format(new Date(r.created_at), "PPp")}
+                            </div>
+                          </div>
+                          <div className="rounded-lg bg-muted/50 border border-border px-2.5 py-1.5 text-xs">
+                            <span className="text-foreground/70">Delivery address:</span>{" "}
+                            {hasSnapshot ? (
+                              <>
+                                {addressLines(addr).join(", ")}
+                                {addr.instructions && (
+                                  <span className="block text-muted-foreground">Note: {addr.instructions}</span>
+                                )}
+                              </>
+                            ) : (
+                              r.address || <span className="text-muted-foreground">Not provided (store pickup)</span>
+                            )}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
 
-                  <div className="md:text-right md:min-w-[220px]">
+                  <div className="md:text-right md:min-w-[220px] space-y-2">
                     <OrderActions
                       rentalId={r.id}
                       status={r.status}
                       kind={r.kind}
                       onChanged={refresh}
                     />
+                    <div className="flex md:justify-end">
+                      <AssignPartnerDialog
+                        rentalId={r.id}
+                        partners={partners}
+                        assignedPartnerId={r.assigned_partner_id}
+                        onAssigned={refresh}
+                      />
+                    </div>
+                    {r.assigned_partner_id && (
+                      <p className="text-[11px] text-muted-foreground">
+                        Partner: {partners.find((p) => p.id === r.assigned_partner_id)?.full_name ?? "assigned"}
+                      </p>
+                    )}
                   </div>
+
                 </div>
               </Card>
             ))}
