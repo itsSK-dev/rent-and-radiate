@@ -293,6 +293,17 @@ const Checkout = () => {
     }
   }
 
+  /** Snapshot the address onto this specific order so it stays with it forever. */
+  async function saveAddressOnOrder(a: DeliveryAddress) {
+    if (!rental) return;
+    const { error } = await supabase
+      .from("rentals")
+      .update(rentalAddressPayload(a) as any)
+      .eq("id", rental.id);
+    if (error) return toast.error(error.message);
+    setRental({ ...rental, ...(rentalAddressPayload(a) as any) });
+  }
+
   if (loading || !rental) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
