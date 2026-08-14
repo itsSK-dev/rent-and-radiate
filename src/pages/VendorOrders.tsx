@@ -15,6 +15,8 @@ import { format } from "date-fns";
 import { Search, Package, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OrderTypeBadge, RentalDates } from "@/components/OrderTypeBadge";
+import { AssignPartnerDialog, fetchAvailablePartners, type AvailablePartner } from "@/components/vendor/AssignPartnerDialog";
+import { addressFromRental, addressLines, isAddressComplete } from "@/lib/address";
 // VendorQRVerify removed — shop handoff now uses delivery-partner OTP flow.
 
 type Row = {
@@ -30,8 +32,18 @@ type Row = {
   store_id: string;
   start_date: string | null;
   end_date: string | null;
+  assigned_partner_id: string | null;
+  ship_full_name: string | null;
+  ship_mobile: string | null;
+  ship_house: string | null;
+  ship_street: string | null;
+  ship_landmark: string | null;
+  ship_city: string | null;
+  ship_state: string | null;
+  ship_pin: string | null;
+  ship_instructions: string | null;
   product: { title: string; images: string[] | null } | null;
-  customer: { full_name: string | null } | null;
+  customer: { full_name: string | null; phone: string | null } | null;
 };
 
 
@@ -76,6 +88,7 @@ export default function VendorOrders() {
   const [tab, setTab] = useState("all");
   const [kindFilter, setKindFilter] = useState<"all" | "buy" | "rent">("all");
   const [search, setSearch] = useState("");
+  const [partners, setPartners] = useState<AvailablePartner[]>([]);
 
   useEffect(() => {
     document.title = "Orders · Vendor · Rent & Radiate";
@@ -100,15 +113,18 @@ export default function VendorOrders() {
       .from("rentals")
       .select(`
         id, created_at, status, kind, quantity, grand_total, address, payment_status,
-        customer_id, store_id, start_date, end_date,
+        customer_id, store_id, start_date, end_date, assigned_partner_id,
+        ship_full_name, ship_mobile, ship_house, ship_street, ship_landmark,
+        ship_city, ship_state, ship_pin, ship_instructions,
         product:products(title, images),
-        customer:profiles!rentals_customer_id_fkey(full_name)
+        customer:profiles!rentals_customer_id_fkey(full_name, phone)
       `)
 
       .in("store_id", ids)
       .order("created_at", { ascending: false })
       .limit(500);
     if (!error) setRows((data as any) ?? []);
+    setPartners(await fetchAvailablePartners());
     setFetching(false);
   }
 
