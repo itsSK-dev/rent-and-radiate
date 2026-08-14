@@ -1697,6 +1697,15 @@ export type Database = {
       }
       profiles: {
         Row: {
+          addr_city: string | null
+          addr_full_name: string | null
+          addr_house: string | null
+          addr_instructions: string | null
+          addr_landmark: string | null
+          addr_mobile: string | null
+          addr_pin: string | null
+          addr_state: string | null
+          addr_street: string | null
           avatar_url: string | null
           blocked: boolean
           created_at: string
@@ -1714,6 +1723,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          addr_city?: string | null
+          addr_full_name?: string | null
+          addr_house?: string | null
+          addr_instructions?: string | null
+          addr_landmark?: string | null
+          addr_mobile?: string | null
+          addr_pin?: string | null
+          addr_state?: string | null
+          addr_street?: string | null
           avatar_url?: string | null
           blocked?: boolean
           created_at?: string
@@ -1731,6 +1749,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          addr_city?: string | null
+          addr_full_name?: string | null
+          addr_house?: string | null
+          addr_instructions?: string | null
+          addr_landmark?: string | null
+          addr_mobile?: string | null
+          addr_pin?: string | null
+          addr_state?: string | null
+          addr_street?: string | null
           avatar_url?: string | null
           blocked?: boolean
           created_at?: string
@@ -2060,6 +2087,15 @@ export type Database = {
           reward_discount: number
           reward_points_earned: number
           reward_points_used: number
+          ship_city: string | null
+          ship_full_name: string | null
+          ship_house: string | null
+          ship_instructions: string | null
+          ship_landmark: string | null
+          ship_mobile: string | null
+          ship_pin: string | null
+          ship_state: string | null
+          ship_street: string | null
           start_date: string | null
           status: Database["public"]["Enums"]["rental_status"]
           store_id: string
@@ -2109,6 +2145,15 @@ export type Database = {
           reward_discount?: number
           reward_points_earned?: number
           reward_points_used?: number
+          ship_city?: string | null
+          ship_full_name?: string | null
+          ship_house?: string | null
+          ship_instructions?: string | null
+          ship_landmark?: string | null
+          ship_mobile?: string | null
+          ship_pin?: string | null
+          ship_state?: string | null
+          ship_street?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["rental_status"]
           store_id: string
@@ -2158,6 +2203,15 @@ export type Database = {
           reward_discount?: number
           reward_points_earned?: number
           reward_points_used?: number
+          ship_city?: string | null
+          ship_full_name?: string | null
+          ship_house?: string | null
+          ship_instructions?: string | null
+          ship_landmark?: string | null
+          ship_mobile?: string | null
+          ship_pin?: string | null
+          ship_state?: string | null
+          ship_street?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["rental_status"]
           store_id?: string
@@ -2919,6 +2973,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      assign_delivery_partner: {
+        Args: { _partner_id: string; _rental_id: string }
+        Returns: string
+      }
+      can_view_customer_profile: {
+        Args: { _profile_id: string }
+        Returns: boolean
+      }
       create_notification: {
         Args: {
           _body?: string
@@ -2988,6 +3050,19 @@ export type Database = {
       is_store_owner_of_rental: {
         Args: { _rental_id: string; _user_id: string }
         Returns: boolean
+      }
+      list_available_delivery_partners: {
+        Args: never
+        Returns: {
+          active_assignments: number
+          city: string
+          full_name: string
+          id: string
+          is_online: boolean
+          mobile: string
+          status: Database["public"]["Enums"]["delivery_partner_status"]
+          vehicle_type: Database["public"]["Enums"]["delivery_vehicle_type"]
+        }[]
       }
       log_admin_event: {
         Args: {

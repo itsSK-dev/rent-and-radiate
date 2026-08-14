@@ -7,15 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Trash2, ShoppingBag, Loader2 } from "lucide-react";
+import { Trash2, ShoppingBag, Loader2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { differenceInCalendarDays } from "date-fns";
 import { computeLine, computeOrderTotals, inr, type LineBreakdown } from "@/lib/pricing";
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 import { cn } from "@/lib/utils";
+import { DeliveryAddressDialog, useSavedAddress } from "@/components/DeliveryAddressDialog";
+import { addressLines, isAddressComplete, rentalAddressPayload, validateAddress } from "@/lib/address";
 
 type CartRow = {
   id: string;
@@ -39,8 +40,10 @@ const Cart = () => {
   const [items, setItems] = useState<CartRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [delivery, setDelivery] = useState<"pickup" | "delivery">("pickup");
-  const [address, setAddress] = useState("");
+  const { address, setAddress } = useSavedAddress();
+  const [addrOpen, setAddrOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const addressComplete = isAddressComplete(address);
 
   useEffect(() => { document.title = "Cart · Rent & Radiate"; }, []);
 
@@ -112,7 +115,14 @@ const Cart = () => {
   // Group by store — we'll create one rental per cart item (simplest & matches existing schema).
   async function checkout() {
     if (items.length === 0) return;
-    if (delivery === "delivery" && address.trim().length < 8) return toast.error("Enter a delivery address.");
+    if (delivery === "delivery") {
+      const problem = validateAddress(address);
+      if (problem) {
+        toast.error(`${problem} Please save your complete delivery address to continue.`);
+        setAddrOpen(true);
+        return;
+      }
+    }
     setSubmitting(true);
     try {
       const created: string[] = [];
@@ -148,7 +158,7 @@ const Cart = () => {
           commission_amount: single.commission,
           grand_total: single.grandTotal,
           delivery_method: delivery,
-          address: delivery === "delivery" ? address : null,
+          ...(delivery === "delivery" ? rentalAddressPayload(address) : { address: null }),
         };
         const { data, error } = await supabase.from("rentals").insert(payload).select("id").single();
         if (error || !data) throw new Error(error?.message ?? "Failed to create order");
@@ -253,8 +263,37 @@ const Cart = () => {
                   <DeliveryOpt value="delivery" label="Delivery" />
                 </RadioGroup>
                 {delivery === "delivery" && (
-                  <Textarea placeholder="Delivery address" value={address}
-                    onChange={(e) => setAddress(e.target.value)} className="mt-3" rows={2} />
+                  <div className="mt-3 rounded-2xl border border-border bg-secondary/40 p-3 text-sm">
+                    <p className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5" /> Delivery address
+                    </p>
+                    {addressComplete ? (
+                      <div className="mt-1.5">
+                        <p className="font-medium">{address.full_name} · {address.mobile}</p>
+                        {addressLines(address).map((l, i) => (
+                          <p key={i} className="text-xs text-muted-foreground">{l}</p>
+                        ))}
+                        {address.instructions && (
+                          <p className="text-xs text-muted-foreground mt-1">Note: {address.instructions}</p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="mt-1.5 text-xs text-muted-foreground">
+                        No complete address saved yet. Add it to continue.
+                      </p>
+                    )}
+                    <DeliveryAddressDialog
+                      value={address}
+                      onSaved={setAddress}
+                      open={addrOpen}
+                      onOpenChange={setAddrOpen}
+                      trigger={
+                        <Button variant="soft" size="sm" className="mt-3">
+                          {addressComplete ? "Edit address" : "Add delivery address"}
+                        </Button>
+                      }
+                    />
+                  </div>
                 )}
               </div>
 

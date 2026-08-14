@@ -14,6 +14,11 @@ import {
   Smartphone, CreditCard, Building2, ChevronRight, ArrowLeft, Wallet, Store as StoreIcon,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
+import { DeliveryAddressDialog } from "@/components/DeliveryAddressDialog";
+import {
+  addressFromRental, addressLines, isAddressComplete, rentalAddressPayload,
+  type DeliveryAddress,
+} from "@/lib/address";
 
 type Rental = {
   id: string;
@@ -36,6 +41,16 @@ type Rental = {
   protection_plan_fee: number;
   reward_points_used: number;
   reward_discount: number;
+  delivery_method: string;
+  ship_full_name: string | null;
+  ship_mobile: string | null;
+  ship_house: string | null;
+  ship_street: string | null;
+  ship_landmark: string | null;
+  ship_city: string | null;
+  ship_state: string | null;
+  ship_pin: string | null;
+  ship_instructions: string | null;
 };
 
 type ProductLite = { title: string; images: string[] };
@@ -90,7 +105,7 @@ const Checkout = () => {
     (async () => {
       const [{ data: r, error }, { data: psRows }] = await Promise.all([
         supabase.from("rentals")
-          .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, platform_fee, protection_plan, protection_plan_fee, reward_points_used, reward_discount")
+          .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, platform_fee, protection_plan, protection_plan_fee, reward_points_used, reward_discount, delivery_method, ship_full_name, ship_mobile, ship_house, ship_street, ship_landmark, ship_city, ship_state, ship_pin, ship_instructions")
           .eq("id", rentalId!).maybeSingle(),
         (supabase as any).rpc("get_public_payment_settings"),
       ]);
@@ -146,7 +161,7 @@ const Checkout = () => {
       .from("rentals")
       .update({ reward_points_used: Math.max(0, Math.floor(pointsToUse)) })
       .eq("id", rental.id)
-      .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, platform_fee, protection_plan, protection_plan_fee, reward_points_used, reward_discount")
+      .select("id, customer_id, store_id, grand_total, rental_total, deposit, subtotal, discount_amount, gst_amount, delivery_fee, payment_status, status, product_id, kind, quantity, commission_amount, platform_fee, protection_plan, protection_plan_fee, reward_points_used, reward_discount, delivery_method, ship_full_name, ship_mobile, ship_house, ship_street, ship_landmark, ship_city, ship_state, ship_pin, ship_instructions")
       .maybeSingle();
     setRedeemBusy(false);
     if (error || !data) return toast.error(error?.message ?? "Could not apply points");
@@ -278,6 +293,17 @@ const Checkout = () => {
     }
   }
 
+  /** Snapshot the address onto this specific order so it stays with it forever. */
+  async function saveAddressOnOrder(a: DeliveryAddress) {
+    if (!rental) return;
+    const { error } = await supabase
+      .from("rentals")
+      .update(rentalAddressPayload(a) as any)
+      .eq("id", rental.id);
+    if (error) return toast.error(error.message);
+    setRental({ ...rental, ...(rentalAddressPayload(a) as any) });
+  }
+
   if (loading || !rental) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
@@ -294,6 +320,8 @@ const Checkout = () => {
   const isPending = rental.payment_status === "pending_verification";
   const upiConfigured = !!settings?.upi_id;
   const allowCOD = rental.kind === "buy";
+  const orderAddress = addressFromRental(rental);
+  const needsAddress = rental.delivery_method === "delivery" && !isAddressComplete(orderAddress);
 
   const methods: { key: MethodKey; label: string; desc: string; icon: any; disabled?: boolean; hint?: string }[] = [
     { key: "upi", label: "UPI", desc: "GPay, PhonePe, Paytm, BHIM & more", icon: Smartphone },
@@ -376,6 +404,36 @@ const Checkout = () => {
 
 
 
+          {rental.delivery_method === "delivery" && !isPaid && !isPending && (
+            <div className={`rounded-2xl border p-4 ${needsAddress ? "border-destructive/40 bg-destructive/5" : "border-border bg-secondary/40"}`}>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Delivery address</p>
+              {needsAddress ? (
+                <p className="text-sm mt-1">
+                  A complete delivery address is required before you can pay for this order.
+                </p>
+              ) : (
+                <div className="mt-1 text-sm">
+                  <p className="font-medium">{orderAddress.full_name} · {orderAddress.mobile}</p>
+                  {addressLines(orderAddress).map((l, i) => (
+                    <p key={i} className="text-xs text-muted-foreground">{l}</p>
+                  ))}
+                  {orderAddress.instructions && (
+                    <p className="text-xs text-muted-foreground mt-1">Note: {orderAddress.instructions}</p>
+                  )}
+                </div>
+              )}
+              <DeliveryAddressDialog
+                value={orderAddress}
+                onSaved={saveAddressOnOrder}
+                trigger={
+                  <Button variant={needsAddress ? "hero" : "soft"} size="sm" className="mt-3">
+                    {needsAddress ? "Add delivery address" : "Edit address"}
+                  </Button>
+                }
+              />
+            </div>
+          )}
+
           {isPaid ? (
             <div className="rounded-xl bg-secondary p-4 text-sm flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-primary" />
@@ -387,6 +445,10 @@ const Checkout = () => {
               <Clock className="h-4 w-4" />
               Payment submitted — waiting for admin verification.
               <Button variant="link" className="px-1" onClick={() => navigate("/my-rentals")}>View rentals</Button>
+            </div>
+          ) : needsAddress ? (
+            <div className="rounded-xl bg-secondary p-4 text-sm text-muted-foreground">
+              Payment options unlock once your complete delivery address is saved.
             </div>
           ) : selected === null ? (
             <div className="space-y-3 pt-2">
