@@ -14,7 +14,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, MapPin } from "lucide-react";
+import { DeliveryAddressDialog, useSavedAddress } from "@/components/DeliveryAddressDialog";
+import { addressLines, isAddressComplete } from "@/lib/address";
 
 const profileSchema = z.object({
   full_name: z.string().trim().min(1, "Name is required").max(100),
@@ -31,6 +33,7 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
+  const { address, setAddress } = useSavedAddress();
 
   useEffect(() => {
     document.title = "Your profile · Rent & Radiate";
@@ -122,6 +125,37 @@ const Profile = () => {
             {saving ? "Saving…" : "Save changes"}
           </Button>
         </form>
+
+        <section className="mt-8 rounded-3xl border border-border bg-card p-6 shadow-card">
+          <h2 className="font-display text-2xl mb-1 flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-primary" /> Delivery address
+          </h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Used for every delivery order. A complete address is required before placing an order.
+          </p>
+          {isAddressComplete(address) ? (
+            <div className="text-sm">
+              <p className="font-medium">{address.full_name} · {address.mobile}</p>
+              {addressLines(address).map((l, i) => (
+                <p key={i} className="text-muted-foreground">{l}</p>
+              ))}
+              {address.instructions && (
+                <p className="text-muted-foreground italic">Note: {address.instructions}</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No delivery address saved yet.</p>
+          )}
+          <DeliveryAddressDialog
+            value={address}
+            onSaved={setAddress}
+            trigger={
+              <Button variant="soft" className="mt-4">
+                {isAddressComplete(address) ? "Edit address" : "Add delivery address"}
+              </Button>
+            }
+          />
+        </section>
 
         <div className="mt-10 rounded-3xl border border-destructive/30 bg-destructive/5 p-6">
           <h2 className="font-display text-2xl mb-2">Danger zone</h2>
