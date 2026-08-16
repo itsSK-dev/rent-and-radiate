@@ -1,0 +1,23 @@
+# Rent & Radiate
+
+> A marketplace to rent, buy and sell designer dresses, jewellery and fashion from verified boutiques near you.
+
+Rent & Radiate connects shoppers with hand-picked local boutiques and jewellers.
+Rent an outfit for a day or a wedding, or buy it outright — with refundable
+deposits, verified sellers, transparent pricing and tracked delivery.
+
+## Pages
+
+- [Home](/): Featured stores, trending rentals and new arrivals.
+- [Browse](/browse): Search and filter dresses, jewellery and accessories to rent or buy.
+- [How it works](/how-it-works): Rental process, deposits, delivery and trust & safety.
+- [About](/about): Our story and what the marketplace stands for.
+- [Advertise](/advertise): Advertising packages for brands and boutiques.
+- [Become a seller](/become-vendor): How boutiques list and rent out their collections.
+- [Help](/help): Answers to common questions about orders, returns and refunds.
+- [Contact](/contact): Ways to reach the support team.
+
+## Optional
+
+- [Terms & conditions](/terms): Rules for renting, buying and selling.
+- [Privacy policy](/privacy): How personal data is collected and used.
