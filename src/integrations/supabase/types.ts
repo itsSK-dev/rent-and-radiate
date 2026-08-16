@@ -2957,32 +2957,7 @@ export type Database = {
       }
     }
     Views: {
-      product_reviews: {
-        Row: {
-          comment: string | null
-          created_at: string | null
-          id: string | null
-          product_id: string | null
-          rental_id: string | null
-          stars: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ratings_rental_id_fkey"
-            columns: ["rental_id"]
-            isOneToOne: false
-            referencedRelation: "rentals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rentals_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       _is_service_role: { Args: never; Returns: boolean }
@@ -3052,6 +3027,15 @@ export type Database = {
       get_effective_commission: {
         Args: { _product_id: string }
         Returns: number
+      }
+      get_product_reviews: {
+        Args: { _limit?: number; _product_id: string }
+        Returns: {
+          comment: string
+          created_at: string
+          id: string
+          stars: number
+        }[]
       }
       get_public_payment_settings: {
         Args: never
