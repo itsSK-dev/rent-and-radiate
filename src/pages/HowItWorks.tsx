@@ -1,12 +1,17 @@
 import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { Seo } from "@/components/Seo";
 import { Shield, Truck, Camera, Sparkles } from "lucide-react";
 
 const HowItWorks = () => {
   useEffect(() => { document.title = "How Rent & Radiate works · Trust & safety"; }, []);
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Seo
+        title="How Rent & Radiate works · Trust & safety"
+        description="How renting works on Rent & Radiate: verified boutiques, refundable deposits, pickup or delivery, inspections and refunds explained."
+      />
       <Navbar />
       <section className="container py-16 max-w-3xl">
         <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-2">How it works</p>

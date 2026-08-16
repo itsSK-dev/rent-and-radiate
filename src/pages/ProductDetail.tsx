@@ -22,6 +22,7 @@ import { discountedUnitPrice, inr, computeLine, computeOrderTotals, protectionPl
 import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 import { WishlistButton } from "@/components/WishlistButton";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
+import { Seo, SITE_URL } from "@/components/Seo";
 import { Star } from "lucide-react";
 import { DeliveryAddressDialog, useSavedAddress } from "@/components/DeliveryAddressDialog";
 import { isAddressComplete, rentalAddressPayload, validateAddress } from "@/lib/address";
@@ -251,8 +252,33 @@ const ProductDetail = () => {
     navigate(`/checkout/${created.id}`);
   }
 
+  const seoDescription = `Rent or buy ${product.title}${product.store?.name ? ` from ${product.store.name}` : ""}${product.store?.city ? ` in ${product.store.city}` : ""} on Rent & Radiate. Refundable deposit, verified boutique, tracked delivery.`.slice(0, 158);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Seo
+        title={`${product.title} · Rent & Radiate`}
+        description={seoDescription}
+        type="product"
+        image={heroImg && heroImg.startsWith("http") ? heroImg : undefined}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.title,
+          description: seoDescription,
+          image: (product.images ?? []).filter((i) => typeof i === "string" && i.startsWith("http")),
+          category: product.category ?? undefined,
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "INR",
+            price: String(finalUnit || product.price_per_day || 0),
+            availability: (product.quantity ?? 0) > 0
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+            url: `${SITE_URL}/product/${product.id}`,
+          },
+        }}
+      />
       <Navbar />
       <section className="container py-10 grid lg:grid-cols-2 gap-10 lg:gap-16">
         <div className="space-y-4 animate-fade-up">

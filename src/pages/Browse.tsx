@@ -12,6 +12,7 @@ import { useServiceCity, cityOrExpr } from "@/lib/serviceArea";
 import { ServiceUnavailable } from "@/components/ServiceUnavailable";
 import { useCategories } from "@/hooks/useCategories";
 import { catalogLog } from "@/lib/catalogDebug";
+import { Seo } from "@/components/Seo";
 
 type Sort = "newest" | "price_asc" | "price_desc";
 
@@ -159,6 +160,10 @@ const Browse = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Seo
+        title="Browse dresses & jewellery to rent or buy · Rent & Radiate"
+        description="Search and filter designer dresses, jewellery and accessories from verified boutiques. Filter by category, price and rent or buy."
+      />
       <Navbar />
       <section className="container py-12">
         <div className="mb-10 max-w-2xl">

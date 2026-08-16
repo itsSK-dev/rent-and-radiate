@@ -16,6 +16,7 @@ import { useCategories, getCategoryIcon } from "@/hooks/useCategories";
 import { NEARBY_RADIUS_KM, haversineKm, setSavedCoords, useUserCoords } from "@/lib/geo";
 import { catalogLog } from "@/lib/catalogDebug";
 import { discountedUnitPrice } from "@/lib/pricing";
+import { Seo } from "@/components/Seo";
 
 // Below-the-fold sections are code-split so the first screen stays fast.
 const ShopTheLook = lazy(() => import("@/components/ShopTheLook").then((m) => ({ default: m.ShopTheLook })));
@@ -489,6 +490,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Seo
+        title="Rent & Radiate — Rent designer dresses & jewellery"
+        description="Rent or buy designer dresses, jewellery and accessories from verified boutiques near you — refundable deposits, tracked delivery, transparent pricing."
+        path="/"
+      />
       <Navbar />
       <main id="main-content" className="flex-1">
 
