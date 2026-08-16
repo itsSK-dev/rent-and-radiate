@@ -2957,7 +2957,32 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      product_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string | null
+          product_id: string | null
+          rental_id: string | null
+          stars: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_rental_id_fkey"
+            columns: ["rental_id"]
+            isOneToOne: false
+            referencedRelation: "rentals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rentals_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       _is_service_role: { Args: never; Returns: boolean }
