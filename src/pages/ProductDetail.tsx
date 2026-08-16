@@ -118,19 +118,13 @@ const ProductDetail = () => {
         ).slice(0, 8);
         setRelated(filtered as any);
 
-        // Reviews — via rentals of this product
-        const { data: rentalRows } = await supabase
-          .from("rentals").select("id").eq("product_id", p.id);
-        const rentalIds = (rentalRows ?? []).map((r: any) => r.id);
-        if (rentalIds.length) {
-          const { data: rev } = await supabase
-            .from("ratings")
-            .select("id,stars,comment,created_at,rental_id")
-            .in("rental_id", rentalIds)
-            .order("created_at", { ascending: false })
-            .limit(20);
-          setReviews((rev ?? []) as any);
-        }
+        // Reviews — public, identity-free projection via secured RPC
+        const { data: rev } = await (supabase as any).rpc("get_product_reviews", {
+          _product_id: p.id,
+          _limit: 20,
+        });
+        setReviews((rev ?? []) as any);
+
       }
     })();
   }, [id]);
