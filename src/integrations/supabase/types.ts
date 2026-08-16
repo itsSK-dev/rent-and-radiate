@@ -3028,6 +3028,15 @@ export type Database = {
         Args: { _product_id: string }
         Returns: number
       }
+      get_product_reviews: {
+        Args: { _limit?: number; _product_id: string }
+        Returns: {
+          comment: string
+          created_at: string
+          id: string
+          stars: number
+        }[]
+      }
       get_public_payment_settings: {
         Args: never
         Returns: {
