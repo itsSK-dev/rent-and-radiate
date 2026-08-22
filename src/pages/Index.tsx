@@ -52,6 +52,7 @@ import {
   Smartphone,
   Sofa,
   Search as SearchIcon,
+  CalendarCheck,
   PackagePlus,
   Star,
   Store as StoreIcon,
