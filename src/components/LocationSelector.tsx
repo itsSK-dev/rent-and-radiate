@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { MapPin, ChevronDown, Check, Search, Sparkles } from "lucide-react";
+import { MapPin, ChevronDown, Check, Search, Info } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -107,7 +107,7 @@ export function LocationSelector({ compact = false }: { compact?: boolean }) {
             />
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground flex items-start gap-1.5">
-            <Sparkles className="h-3 w-3 mt-0.5 text-rose-deep shrink-0" />
+            <Info className="h-3 w-3 mt-0.5 text-rose-deep shrink-0" />
             <span>
               Pick your city to see live shops and products listed there.
             </span>

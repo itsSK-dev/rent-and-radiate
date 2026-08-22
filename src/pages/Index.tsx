@@ -51,7 +51,8 @@ import {
   ShoppingBag,
   Smartphone,
   Sofa,
-  Sparkles,
+  Search as SearchIcon,
+  PackagePlus,
   Star,
   Store as StoreIcon,
   UtensilsCrossed,
@@ -510,7 +511,7 @@ const Index = () => {
               }`}
               role="search"
             >
-              <Sparkles className="h-4 w-4 text-rose-deep shrink-0" />
+              <SearchIcon className="h-4 w-4 text-rose-deep shrink-0" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -624,7 +625,7 @@ const Index = () => {
           {/* Quick filters — always one tap away */}
           <div className="mt-2 flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {[
-              { label: "Rent", to: "/browse?purpose=rent", icon: Sparkles },
+              { label: "Rent", to: "/browse?purpose=rent", icon: CalendarCheck },
               { label: "Buy", to: "/browse?purpose=buy", icon: ShoppingBag },
               { label: "Nearby", to: nearbyCity ? `/browse?city=${encodeURIComponent(nearbyCity)}` : "/browse", icon: StoreIcon },
               { label: "Trending", to: "/browse?sort=popular", icon: Flame },
@@ -740,7 +741,7 @@ const Index = () => {
 
           {newArrivals.length > 0 && (
             <HomeRail
-              eyebrow={<><Sparkles className="h-3 w-3" /> Fresh in this week</>}
+              eyebrow={<><PackagePlus className="h-3 w-3" /> Fresh in this week</>}
               title="New Arrivals"
               to="/browse?sort=newest"
             >

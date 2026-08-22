@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Seo } from "@/components/Seo";
-import { Shield, Truck, Camera, Sparkles } from "lucide-react";
+import { Shield, Truck, Camera, Gem } from "lucide-react";
 
 const HowItWorks = () => {
   useEffect(() => { document.title = "How Rent & Radiate works · Trust & safety"; }, []);
@@ -21,7 +21,7 @@ const HowItWorks = () => {
         </p>
 
         <div className="grid sm:grid-cols-2 gap-5 mt-12">
-          <Card icon={<Sparkles />} title="Curated quality" desc="Only approved stores. Every piece is inspected and condition-noted." />
+          <Card icon={<Gem />} title="Curated quality" desc="Only approved stores. Every piece is inspected and condition-noted." />
           <Card icon={<Truck />} title="Pickup or delivery" desc="Your call — collect from the store, or have it brought to your door." />
           <Card icon={<Shield />} title="Refundable deposit" desc="Pay rental + a refundable security deposit. Get the deposit back after the item is returned in good condition." />
           <Card icon={<Camera />} title="Photo proof" desc="Photos are taken before delivery and after return so disputes can be settled fairly." />

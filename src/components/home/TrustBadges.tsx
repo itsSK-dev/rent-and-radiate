@@ -1,9 +1,9 @@
-import { BadgeCheck, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
+import { BadgeCheck, RotateCcw, ShieldCheck, Gem } from "lucide-react";
 
 const BADGES = [
   { icon: BadgeCheck, label: "Verified Stores", note: "Admin approved" },
   { icon: ShieldCheck, label: "Secure Payments", note: "100% protected" },
-  { icon: Sparkles, label: "Quality Checked", note: "Inspected & cleaned" },
+  { icon: Gem, label: "Quality Checked", note: "Inspected & cleaned" },
   { icon: RotateCcw, label: "Easy Returns", note: "Hassle-free pickup" },
 ];
 

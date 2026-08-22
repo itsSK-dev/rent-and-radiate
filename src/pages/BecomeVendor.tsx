@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Clock, ShieldCheck, Sparkles } from "lucide-react";
+import { Clock, ShieldCheck, Gem } from "lucide-react";
 
 const storeSchema = z.object({
   name: z.string().trim().min(2, "Store name must be at least 2 characters").max(80),
@@ -183,7 +183,7 @@ const BecomeVendor = () => {
         </p>
 
         <div className="grid grid-cols-3 gap-3 mb-8">
-          <Perk icon={<Sparkles className="h-4 w-4" />} title="Curated" desc="Be part of a hand-picked marketplace." />
+          <Perk icon={<Gem className="h-4 w-4" />} title="Curated" desc="Be part of a hand-picked marketplace." />
           <Perk icon={<ShieldCheck className="h-4 w-4" />} title="Protected" desc="Refundable deposits on every rental." />
           <Perk icon={<Clock className="h-4 w-4" />} title="24h review" desc="Quick approval by our team." />
         </div>

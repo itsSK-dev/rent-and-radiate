@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
-import { QrCode, Sparkles, CalendarClock, Loader2, Hash } from "lucide-react";
+import { QrCode, ShoppingBag, CalendarClock, Loader2, Hash } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -151,7 +151,7 @@ export function RentalAdvancedActions({ rental, rentToOwnEnabled, rentToOwnCredi
 
       {eligibleR2O && price > 0 && (
         <Button variant="hero" size="sm" onClick={convertToPurchase} disabled={convertBusy}>
-          <Sparkles className="h-3.5 w-3.5" />
+          <ShoppingBag className="h-3.5 w-3.5" />
           {convertBusy ? "Converting…" : `Buy for ₹${buyoutPrice.toLocaleString("en-IN")}${credit > 0 ? ` (₹${credit.toLocaleString("en-IN")} rental credit)` : ""}`}
         </Button>
       )}

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, ArrowUpRight } from "lucide-react";
+import { Shirt, ArrowUpRight } from "lucide-react";
 import { inr } from "@/lib/pricing";
 import { Badge } from "@/components/ui/badge";
 import { useServiceCity, cityOrExpr } from "@/lib/serviceArea";
@@ -117,7 +117,7 @@ export function ShopTheLook() {
   if (looks.length === 0) {
     return (
       <div className="aspect-[16/10] rounded-3xl bg-muted flex items-center justify-center text-muted-foreground">
-        <Sparkles className="h-6 w-6 mr-2" /> No looks available yet.
+        <Shirt className="h-6 w-6 mr-2" /> No looks available yet.
       </div>
     );
   }

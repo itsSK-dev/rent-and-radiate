@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, MapPin, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Gem } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // Hero images are served from /public so the LCP candidate can be
 // <link rel="preload"> in index.html without waiting for the JS bundle
@@ -144,7 +144,7 @@ export function HeroCarousel() {
                   }`}
                 >
                   <span className="inline-flex items-center gap-2 text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-rose-deep">
-                    <Sparkles className="h-3 w-3" /> {slide.eyebrow}
+                    <Gem className="h-3 w-3" /> {slide.eyebrow}
                   </span>
                   <h1 className="font-display text-[clamp(1.5rem,3vw+0.5rem,2.5rem)] leading-[1.1] mt-1.5 whitespace-pre-line text-foreground">
                     {slide.title}
