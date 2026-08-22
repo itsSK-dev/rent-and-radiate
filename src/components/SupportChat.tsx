@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Bot, Send, X, Sparkles } from "lucide-react";
+import { Bot, Send, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -137,7 +137,7 @@ export function SupportChat() {
       >
         <div className="px-4 py-3 border-b border-border flex items-center gap-2 bg-gradient-to-r from-blossom to-petal">
           <div className="h-8 w-8 rounded-full bg-background/80 flex items-center justify-center text-rose-deep">
-            <Sparkles className="h-4 w-4" />
+            <Bot className="h-4 w-4" />
           </div>
           <div>
             <div className="text-sm font-medium text-rose-deep">Rent & Radiate Assistant</div>

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Gift, Sparkles, Star, Sun, Zap } from "lucide-react";
+import { ArrowRight, Crown, Gift, Star, Sun, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const BANNERS = [
@@ -40,7 +40,7 @@ const BANNERS = [
     iconColor: "text-info",
   },
   {
-    icon: Sparkles,
+    icon: Crown,
     title: "Featured Collections",
     subtitle: "Handpicked collections by our style experts.",
     cta: "Discover",

@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import { ProductCard, ProductCardData } from "@/components/ProductCard";
 import { WishlistButton } from "@/components/WishlistButton";
-import { Heart, Loader2, CalendarIcon, Sparkles } from "lucide-react";
+import { Heart, Loader2, CalendarIcon, CalendarCheck } from "lucide-react";
 import { addDays, format, differenceInCalendarDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
@@ -162,7 +162,7 @@ export default function Wishlist() {
                         disabled={outOfStock}
                         onClick={() => rentNow(p)}
                       >
-                        <Sparkles className="h-4 w-4" />
+                        <CalendarCheck className="h-4 w-4" />
                         {outOfStock
                           ? "Currently unavailable"
                           : days > 0

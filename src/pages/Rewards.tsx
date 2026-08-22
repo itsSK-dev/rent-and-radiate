@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Sparkles, Copy, Share2, Gift, Users, TrendingUp, ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { Coins, Copy, Share2, Gift, Users, TrendingUp, ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -104,7 +104,7 @@ export default function Rewards() {
 
         <div className="grid sm:grid-cols-3 gap-4 mt-8">
           <div className="rounded-2xl border bg-gradient-to-br from-primary/10 to-blossom/40 p-5">
-            <div className="flex items-center gap-2 text-rose-deep text-xs uppercase tracking-wider"><Sparkles className="h-3.5 w-3.5" /> Balance</div>
+            <div className="flex items-center gap-2 text-rose-deep text-xs uppercase tracking-wider"><Coins className="h-3.5 w-3.5" /> Balance</div>
             <p className="font-display text-4xl mt-2">{profile?.reward_points ?? 0}</p>
             <p className="text-xs text-muted-foreground">
               ≈ ₹{((profile?.reward_points ?? 0) * (settings?.reward_redeem_value ?? 0.1)).toFixed(2)} off

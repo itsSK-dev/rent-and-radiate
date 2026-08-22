@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { Images } from "lucide-react";
 import { useServiceCity, cityOrExpr } from "@/lib/serviceArea";
 import { ServiceUnavailable } from "@/components/ServiceUnavailable";
 import { useCategories } from "@/hooks/useCategories";
@@ -178,7 +178,7 @@ const Browse = () => {
           <div className="mb-8 rounded-2xl border border-rose-deep/20 bg-rose-deep/5 p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex-1">
               <p className="text-xs uppercase tracking-[0.2em] text-rose-deep mb-1 flex items-center gap-1">
-                <Sparkles className="h-3.5 w-3.5" /> Visual search results
+                <Images className="h-3.5 w-3.5" /> Visual search results
               </p>
               <p className="text-sm">
                 Matching against: <span className="italic">"{match}"</span>

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, ShoppingBag, Sparkles, Star } from "lucide-react";
+import { CalendarCheck, ImageOff, MapPin, ShoppingBag, Star, Target } from "lucide-react";
 import { demoImageMap } from "@/lib/seedDemo";
 import { Badge } from "@/components/ui/badge";
 import { discountedUnitPrice, inr } from "@/lib/pricing";
@@ -74,7 +74,7 @@ export function ProductCard({ p, matchScore }: { p: ProductCardData; matchScore?
           />
         ) : (
           <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-            <Sparkles className="h-8 w-8" />
+            <ImageOff className="h-8 w-8" />
           </div>
         )}
         {/* Bottom gradient for legibility of overlaid pills */}
@@ -89,7 +89,7 @@ export function ProductCard({ p, matchScore }: { p: ProductCardData; matchScore?
               isTopMatch ? "bg-rose-deep text-primary-foreground" : "bg-background/85 text-foreground backdrop-blur"
             }`}
           >
-            <Sparkles className="h-3 w-3" /> {score}% match
+            <Target className="h-3 w-3" /> {score}% match
           </Badge>
         )}
         {hasDiscount && (
@@ -179,7 +179,7 @@ export function ProductCard({ p, matchScore }: { p: ProductCardData; matchScore?
                 : "bg-muted text-muted-foreground pointer-events-none opacity-60"
             }`}
           >
-            <Sparkles className="h-3.5 w-3.5" />
+            <CalendarCheck className="h-3.5 w-3.5" />
             Rent
           </Link>
           <Link

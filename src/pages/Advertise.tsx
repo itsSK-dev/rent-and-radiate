@@ -9,11 +9,10 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Megaphone,
   Target,
-  Sparkles,
+  Eye,
   Wallet,
   BarChart3,
   Users,
-  Eye,
   TrendingUp,
   Globe2,
   Mail,
@@ -70,7 +69,7 @@ const FAQS = [
 
 const BENEFITS = [
   { icon: Target, title: "Targeted audience", body: "Reach fashion-forward users actively browsing premium dresses and accessories." },
-  { icon: Sparkles, title: "High visibility", body: "Premium homepage and feed placements designed to convert browsers into buyers." },
+  { icon: Eye, title: "High visibility", body: "Premium homepage and feed placements designed to convert browsers into buyers." },
   { icon: Wallet, title: "Affordable advertising", body: "Plans for every budget — from a one-week boost to month-long featured exposure." },
   { icon: BarChart3, title: "Performance tracking", body: "Transparent dashboards with impressions, clicks, and engagement insights." },
 ];
@@ -137,7 +136,7 @@ export default function Advertise() {
           <div className="relative">
             <div className="aspect-[5/4] rounded-3xl bg-gradient-rose shadow-petal flex items-center justify-center p-10">
               <div className="text-center text-primary-foreground space-y-3">
-                <Sparkles className="h-12 w-12 mx-auto" />
+                <Megaphone className="h-12 w-12 mx-auto" />
                 <p className="font-display text-3xl">Be seen. Be remembered.</p>
                 <p className="text-sm opacity-90">Premium placements built for premium brands.</p>
               </div>

@@ -26,7 +26,7 @@ export function getCategoryIcon(name: string) {
 const FALLBACK_CATEGORIES: CategoryConfig[] = [
   { slug: "dress", label: "Dresses", icon_name: "Shirt", gradient: "from-rose-300 via-pink-500 to-fuchsia-500", sort_order: 10, is_active: true },
   { slug: "jewellery", label: "Jewellery", icon_name: "Gem", gradient: "from-amber-300 via-yellow-500 to-orange-500", sort_order: 20, is_active: true },
-  { slug: "accessory", label: "Accessories", icon_name: "Sparkles", gradient: "from-purple-300 via-violet-500 to-indigo-500", sort_order: 30, is_active: false },
+  { slug: "accessory", label: "Accessories", icon_name: "Glasses", gradient: "from-purple-300 via-violet-500 to-indigo-500", sort_order: 30, is_active: false },
   { slug: "footwear", label: "Footwear", icon_name: "Footprints", gradient: "from-red-300 via-rose-500 to-pink-500", sort_order: 40, is_active: false },
   { slug: "bag", label: "Bags", icon_name: "ShoppingBag", gradient: "from-emerald-300 via-teal-500 to-cyan-500", sort_order: 50, is_active: false },
   { slug: "watch", label: "Watches", icon_name: "Watch", gradient: "from-slate-300 via-slate-500 to-slate-700", sort_order: 60, is_active: false },

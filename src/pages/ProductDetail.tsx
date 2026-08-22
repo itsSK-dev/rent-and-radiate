@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { CalendarIcon, MapPin, Shield, Sparkles, ShoppingCart, ShieldCheck } from "lucide-react";
+import { CalendarIcon, MapPin, Shield, ClipboardCheck, ShoppingCart, ShieldCheck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { format, differenceInCalendarDays, addDays, eachDayOfInterval, isSameDay, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -345,7 +345,7 @@ const ProductDetail = () => {
 
           {product.condition_notes && (
             <div className="rounded-2xl bg-secondary p-4 text-sm flex gap-3">
-              <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              <ClipboardCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
               <span><strong className="font-medium">Condition:</strong> {product.condition_notes}</span>
             </div>
           )}
