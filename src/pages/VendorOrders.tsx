@@ -259,12 +259,23 @@ export default function VendorOrders() {
         {/* Orders */}
         {fetching && rows.length === 0 ? (
           <Card className="p-10 text-center text-sm text-muted-foreground">Loading orders…</Card>
+        ) : loadError ? (
+          <Card className="p-10 text-center space-y-3">
+            <p className="text-sm text-destructive">Could not load orders: {loadError}</p>
+            <Button variant="outline" size="sm" onClick={refresh}>Retry</Button>
+          </Card>
+        ) : rows.length === 0 ? (
+          <Card className="p-10 text-center">
+            <Package className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+            <p className="text-sm text-muted-foreground">No orders yet.</p>
+          </Card>
         ) : filtered.length === 0 ? (
           <Card className="p-10 text-center">
             <Package className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
             <p className="text-sm text-muted-foreground">No orders match these filters.</p>
           </Card>
         ) : (
+
           <div className="space-y-3">
             {filtered.map((r) => (
               <Card
