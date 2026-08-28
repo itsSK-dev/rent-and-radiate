@@ -27,6 +27,7 @@ import { VendorSettlementsPanel } from "@/components/VendorSettlementsPanel";
 import { VendorAnalyticsPanel } from "@/components/vendor/VendorAnalyticsPanel";
 import { VendorInventoryPanel } from "@/components/vendor/VendorInventoryPanel";
 import { VendorVerificationCard } from "@/components/vendor/VendorVerificationCard";
+import { StoreAvailabilityCard } from "@/components/vendor/StoreAvailabilityCard";
 import { UpcomingReturnsWidget } from "@/components/vendor/UpcomingReturnsWidget";
 import { VerifiedSellerBadge } from "@/components/VerifiedSellerBadge";
 import { VendorStoreProfileForm } from "@/components/vendor/VendorStoreProfileForm";
@@ -178,6 +179,8 @@ const Vendor = () => {
             <Stat label="Earnings (net)" value={inr(earnings)} />
           </div>
         </div>
+
+        {storeId && <StoreAvailabilityCard storeId={storeId} onChanged={refresh} />}
 
         {store && !isApproved && (
           <VendorVerificationCard
