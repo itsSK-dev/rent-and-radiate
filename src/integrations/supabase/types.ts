@@ -2616,6 +2616,7 @@ export type Database = {
           id: string
           is_active: boolean
           is_blocked: boolean
+          is_open: boolean
           is_suspicious: boolean
           is_verified: boolean
           lat: number | null
@@ -2640,6 +2641,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_blocked?: boolean
+          is_open?: boolean
           is_suspicious?: boolean
           is_verified?: boolean
           lat?: number | null
@@ -2664,6 +2666,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_blocked?: boolean
+          is_open?: boolean
           is_suspicious?: boolean
           is_verified?: boolean
           lat?: number | null
