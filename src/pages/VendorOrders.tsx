@@ -89,6 +89,8 @@ export default function VendorOrders() {
   const [kindFilter, setKindFilter] = useState<"all" | "buy" | "rent">("all");
   const [search, setSearch] = useState("");
   const [partners, setPartners] = useState<AvailablePartner[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
 
   useEffect(() => {
     document.title = "Orders · Vendor · Rent & Radiate";
