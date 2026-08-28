@@ -159,17 +159,19 @@ Deno.serve(async (req) => {
   if (insErr) { console.error("[otp] insert failed:", insErr.message); return j({ error: insErr.message }, 500); }
 
   // Tell the customer (never contains the code).
-  await admin.rpc("create_notification", {
-    _user_id: rental.customer_id,
-    _type: "delivery_update",
-    _title: channel === "sms" ? "Delivery OTP sent" : "Delivery verification code ready",
-    _body: channel === "sms"
-      ? "We texted a 6-digit code to your registered mobile. Share it with your delivery partner."
-      : "Open My Rentals to see the 6-digit code and share it with your delivery partner.",
-    _link_url: "/my-rentals",
-    _image_url: null,
-    _metadata: { rental_id: rentalId, kind },
-  }).catch?.(() => {});
+  try {
+    await admin.rpc("create_notification", {
+      _user_id: rental.customer_id,
+      _type: "delivery_update",
+      _title: channel === "sms" ? "Delivery OTP sent" : "Delivery verification code ready",
+      _body: channel === "sms"
+        ? "We texted a 6-digit code to your registered mobile. Share it with your delivery partner."
+        : "Open My Rentals to see the 6-digit code and share it with your delivery partner.",
+      _link_url: "/my-rentals",
+      _image_url: null,
+      _metadata: { rental_id: rentalId, kind },
+    });
+  } catch (e) { console.error("[otp] notification failed:", e); }
 
   return j({
     ok: true,
