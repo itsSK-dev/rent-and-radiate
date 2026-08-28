@@ -58,19 +58,19 @@ const RENT_STEPS = [
 ] as const;
 
 /**
- * Index of the CURRENT step (steps before it are complete).
- * Derived from the persisted DB status first, with delivery_stage as a fallback.
+ * Index of the first PENDING step; every step before it is complete.
+ * Derived from the persisted DB status, with delivery_stage as a fallback.
  */
 function computeStep(r: Rental): number {
   const s = r.status;
   if (["delivered", "return_scheduled", "return_picked_up", "returned", "completed"].includes(s)
-      || r.delivery_stage === "delivered" || r.actual_delivered_at) return 5;
+      || r.delivery_stage === "delivered" || r.actual_delivered_at) return 6;
   if (["shipped", "out_for_delivery", "assigned", "picked_up"].includes(s)
-      || r.delivery_stage === "out_for_delivery") return 4;
-  if (["packing", "ready_for_pickup"].includes(s) || r.delivery_stage === "packed") return 3;
-  if (s === "accepted" || r.delivery_stage === "accepted") return 2;
-  if (s === "confirmed" || r.payment_status === "paid") return 1;
-  return 0;
+      || r.delivery_stage === "out_for_delivery") return 5;
+  if (["packing", "ready_for_pickup"].includes(s) || r.delivery_stage === "packed") return 4;
+  if (s === "accepted" || r.delivery_stage === "accepted") return 3;
+  if (s === "confirmed" || r.payment_status === "paid") return 2;
+  return 1;
 }
 
 const TrackOrder = () => {
