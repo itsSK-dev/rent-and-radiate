@@ -275,7 +275,7 @@ function Empty({ msg }: { msg: string }) {
 
 function AssignmentCard({
   a, onAccept, onReject, showPickup, onPickedUp, showDeliverOtp, showReturnOtp, onReturnedToStore, readonly,
-  showDeliveryProof, showReturnProof, partnerId, partnerUserId,
+  showDeliveryProof, showReturnProof, partnerId, partnerUserId, onDelivered,
 }: {
   a: Assignment;
   onAccept?: () => void; onReject?: () => void;
@@ -284,9 +284,17 @@ function AssignmentCard({
   onReturnedToStore?: () => void; readonly?: boolean;
   showDeliveryProof?: boolean; showReturnProof?: boolean;
   partnerId?: string; partnerUserId?: string;
+  onDelivered?: () => void;
 }) {
   const r = a.rental;
-  if (!r) return null;
+  if (!r) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
+        Order details unavailable for assignment #{a.id.slice(0, 8)}. Pull to refresh or contact support.
+      </div>
+    );
+  }
+
   const mapsPickup = r.store?.address ? `https://maps.google.com/?q=${encodeURIComponent(r.store.address + ", " + (r.store.city ?? ""))}` : "";
   const dropAddr = addressFromRental(r);
   const hasSnapshot = isAddressComplete(dropAddr);
