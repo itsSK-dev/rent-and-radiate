@@ -351,6 +351,7 @@ function AssignmentCard({
           {onReject && <Button size="sm" variant="ghost" onClick={onReject}>Reject</Button>}
           {showPickup && onPickedUp && <Button size="sm" variant="hero" onClick={onPickedUp}>Mark Picked Up</Button>}
           {showDeliverOtp && <OtpDialog rentalId={r.id} kind="delivery" />}
+          {onDelivered && <Button size="sm" variant="outline" onClick={onDelivered}>Mark Delivered</Button>}
           {showDeliveryProof && partnerId && partnerUserId && (
             <DeliveryProofUpload assignmentId={a.id} rentalId={r.id} partnerId={partnerId} partnerUserId={partnerUserId} kind="delivery" />
           )}
