@@ -206,18 +206,18 @@ export default function Delivery() {
           <Stat label="Earnings" value={inr(earnings.total)} />
         </div>
 
-        <Tabs defaultValue="available">
+        <Tabs defaultValue={defaultTab}>
           <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="available">Available <Badge className="ml-1">{available.length}</Badge></TabsTrigger>
             <TabsTrigger value="assigned">Assigned <Badge className="ml-1">{assigned.length}</Badge></TabsTrigger>
             <TabsTrigger value="active">Active <Badge className="ml-1">{active.length}</Badge></TabsTrigger>
             <TabsTrigger value="returns">Returns <Badge className="ml-1">{returns.length}</Badge></TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
+            <TabsTrigger value="history">History <Badge className="ml-1">{history.length}</Badge></TabsTrigger>
             <TabsTrigger value="earnings">Earnings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="available" className="mt-4 space-y-3">
-            {available.length === 0 ? <Empty msg={partner.is_online ? "No new deliveries yet." : "Go online to receive new deliveries."} /> :
+            {available.length === 0 ? <Empty msg={partner.is_online ? "No deliveries available right now." : "Go online to receive new deliveries."} /> :
               available.map((a) => <AssignmentCard key={a.id} a={a} onAccept={() => respond(a, true)} onReject={() => respond(a, false)} />)}
           </TabsContent>
           <TabsContent value="assigned" className="mt-4 space-y-3">
@@ -226,7 +226,11 @@ export default function Delivery() {
           </TabsContent>
           <TabsContent value="active" className="mt-4 space-y-3">
             {active.length === 0 ? <Empty msg="No active deliveries." /> :
-              active.map((a) => <AssignmentCard key={a.id} a={a} showDeliverOtp showDeliveryProof partnerId={partner.id} partnerUserId={partner.user_id} />)}
+              active.map((a) => (
+                <AssignmentCard key={a.id} a={a} showDeliverOtp showDeliveryProof
+                  partnerId={partner.id} partnerUserId={partner.user_id}
+                  onDelivered={a.status === "picked_up" ? () => markDelivered(a) : undefined} />
+              ))}
           </TabsContent>
           <TabsContent value="returns" className="mt-4 space-y-3">
             {returns.length === 0 ? <Empty msg="No return pickups." /> :
@@ -236,13 +240,20 @@ export default function Delivery() {
             {history.length === 0 ? <Empty msg="No completed deliveries yet." /> :
               history.map((a) => <AssignmentCard key={a.id} a={a} readonly />)}
           </TabsContent>
-          <TabsContent value="earnings" className="mt-4">
+          <TabsContent value="earnings" className="mt-4 space-y-4">
             <div className="rounded-2xl border border-border bg-card p-6">
               <p className="text-xs uppercase tracking-wider text-muted-foreground">Total earnings</p>
               <p className="font-display text-4xl mt-1">{inr(earnings.total)}</p>
               <p className="text-sm text-muted-foreground mt-1">{earnings.count} deliveries completed</p>
             </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Stat label="Today" value={inr(earnings.today)} />
+              <Stat label="This week" value={inr(earnings.week)} />
+              <Stat label="This month" value={inr(earnings.month)} />
+              <Stat label="Pending payout" value={inr(earnings.pending)} />
+            </div>
           </TabsContent>
+
         </Tabs>
       </section>
       <Footer />
