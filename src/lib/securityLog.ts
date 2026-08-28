@@ -50,7 +50,7 @@ export function recordFailedLogin(identifier: string, reason?: string) {
     if (sameId.length === FAILED_LOGIN_THRESHOLD) {
       void logSecurityEvent({
         eventType: "auth_repeated_failed_login",
-        severity: "high",
+        severity: "medium",
         summary: `${FAILED_LOGIN_THRESHOLD} failed login attempts for ${identifier} within 15 minutes`,
         metadata: { identifier, reason, attempts: sameId.length },
       });
