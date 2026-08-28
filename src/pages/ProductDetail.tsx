@@ -26,6 +26,7 @@ import { Seo, SITE_URL } from "@/components/Seo";
 import { Star } from "lucide-react";
 import { DeliveryAddressDialog, useSavedAddress } from "@/components/DeliveryAddressDialog";
 import { isAddressComplete, rentalAddressPayload, validateAddress } from "@/lib/address";
+import { findClosedStore, storeClosedMessage } from "@/lib/storeAvailability";
 
 type Product = {
   id: string;

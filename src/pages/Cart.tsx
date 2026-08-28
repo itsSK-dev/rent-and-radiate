@@ -17,6 +17,7 @@ import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 import { cn } from "@/lib/utils";
 import { DeliveryAddressDialog, useSavedAddress } from "@/components/DeliveryAddressDialog";
 import { addressLines, isAddressComplete, rentalAddressPayload, validateAddress } from "@/lib/address";
+import { findClosedStore, storeClosedMessage } from "@/lib/storeAvailability";
 
 type CartRow = {
   id: string;
@@ -124,6 +125,16 @@ const Cart = () => {
       }
     }
     setSubmitting(true);
+    // Availability can change between adding to cart and checking out — verify
+    // every store involved against the database right now.
+    try {
+      const closed = await findClosedStore(items.map((it) => it.product?.store_id).filter(Boolean) as string[]);
+      if (closed) { setSubmitting(false); toast.error(storeClosedMessage(closed)); return; }
+    } catch {
+      setSubmitting(false);
+      toast.error("Unable to determine store status. Please try again.");
+      return;
+    }
     try {
       const created: string[] = [];
       for (const it of items) {
