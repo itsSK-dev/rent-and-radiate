@@ -376,7 +376,7 @@ function RentalRow({ r, refund, onUpdate, onRefresh, commissionPct }: {
           <Select value={r.status} onValueChange={onUpdate}>
             <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {["pending","confirmed","delivered","returned","cancelled"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {["pending","confirmed","accepted","packing","ready_for_pickup","shipped","delivered","returned","cancelled"].map((s) => <SelectItem key={s} value={s}>{s.replace(/_/g, " ")}</SelectItem>)}
             </SelectContent>
           </Select>
           <Button variant="ghost" size="sm" onClick={() => setExpanded((x) => !x)}>
