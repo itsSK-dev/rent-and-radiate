@@ -101,7 +101,13 @@ export default function VendorOrders() {
   async function refresh() {
     if (!user) return;
     setFetching(true);
-    const { data: s } = await supabase.from("stores").select("id").eq("owner_id", user.id);
+    setLoadError(null);
+    const { data: s, error: storeErr } = await supabase.from("stores").select("id").eq("owner_id", user.id);
+    if (storeErr) {
+      setLoadError(storeErr.message);
+      setFetching(false);
+      return;
+    }
     const ids = (s ?? []).map((x) => x.id);
     setStoreIds(ids);
     if (ids.length === 0) {
@@ -123,10 +129,16 @@ export default function VendorOrders() {
       .in("store_id", ids)
       .order("created_at", { ascending: false })
       .limit(500);
-    if (!error) setRows((data as any) ?? []);
+    if (error) {
+      console.error("[vendor-orders] fetch failed", error);
+      setLoadError(error.message);
+    } else {
+      setRows((data as any) ?? []);
+    }
     setPartners(await fetchAvailablePartners());
     setFetching(false);
   }
+
 
   useEffect(() => {
     refresh();
