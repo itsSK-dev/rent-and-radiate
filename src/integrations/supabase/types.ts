@@ -459,6 +459,7 @@ export type Database = {
         Row: {
           attempts: number
           code_hash: string
+          code_plain: string | null
           created_at: string
           customer_id: string | null
           expires_at: string
@@ -474,6 +475,7 @@ export type Database = {
         Insert: {
           attempts?: number
           code_hash: string
+          code_plain?: string | null
           created_at?: string
           customer_id?: string | null
           expires_at: string
@@ -489,6 +491,7 @@ export type Database = {
         Update: {
           attempts?: number
           code_hash?: string
+          code_plain?: string | null
           created_at?: string
           customer_id?: string | null
           expires_at?: string
