@@ -457,31 +457,52 @@ export type Database = {
       }
       delivery_otps: {
         Row: {
+          attempts: number
           code_hash: string
+          code_plain: string | null
           created_at: string
+          customer_id: string | null
           expires_at: string
           id: string
           kind: Database["public"]["Enums"]["delivery_otp_kind"]
+          last_sent_at: string
           rental_id: string
+          send_error: string | null
+          sent_channel: string | null
           verified_at: string | null
+          verified_by_partner_id: string | null
         }
         Insert: {
+          attempts?: number
           code_hash: string
+          code_plain?: string | null
           created_at?: string
+          customer_id?: string | null
           expires_at: string
           id?: string
           kind: Database["public"]["Enums"]["delivery_otp_kind"]
+          last_sent_at?: string
           rental_id: string
+          send_error?: string | null
+          sent_channel?: string | null
           verified_at?: string | null
+          verified_by_partner_id?: string | null
         }
         Update: {
+          attempts?: number
           code_hash?: string
+          code_plain?: string | null
           created_at?: string
+          customer_id?: string | null
           expires_at?: string
           id?: string
           kind?: Database["public"]["Enums"]["delivery_otp_kind"]
+          last_sent_at?: string
           rental_id?: string
+          send_error?: string | null
+          sent_channel?: string | null
           verified_at?: string | null
+          verified_by_partner_id?: string | null
         }
         Relationships: [
           {
@@ -2081,6 +2102,8 @@ export type Database = {
           delivery_method: Database["public"]["Enums"]["delivery_method"]
           delivery_partner: string | null
           delivery_stage: string | null
+          delivery_verified_at: string | null
+          delivery_verified_by: string | null
           deposit: number
           discount_amount: number
           end_date: string | null
@@ -2106,6 +2129,8 @@ export type Database = {
           rent_to_own_credit: number
           rental_total: number
           return_initiated_at: string | null
+          return_verified_at: string | null
+          return_verified_by: string | null
           returned_at: string | null
           reward_discount: number
           reward_points_earned: number
@@ -2139,6 +2164,8 @@ export type Database = {
           delivery_method?: Database["public"]["Enums"]["delivery_method"]
           delivery_partner?: string | null
           delivery_stage?: string | null
+          delivery_verified_at?: string | null
+          delivery_verified_by?: string | null
           deposit?: number
           discount_amount?: number
           end_date?: string | null
@@ -2164,6 +2191,8 @@ export type Database = {
           rent_to_own_credit?: number
           rental_total?: number
           return_initiated_at?: string | null
+          return_verified_at?: string | null
+          return_verified_by?: string | null
           returned_at?: string | null
           reward_discount?: number
           reward_points_earned?: number
@@ -2197,6 +2226,8 @@ export type Database = {
           delivery_method?: Database["public"]["Enums"]["delivery_method"]
           delivery_partner?: string | null
           delivery_stage?: string | null
+          delivery_verified_at?: string | null
+          delivery_verified_by?: string | null
           deposit?: number
           discount_amount?: number
           end_date?: string | null
@@ -2222,6 +2253,8 @@ export type Database = {
           rent_to_own_credit?: number
           rental_total?: number
           return_initiated_at?: string | null
+          return_verified_at?: string | null
+          return_verified_by?: string | null
           returned_at?: string | null
           reward_discount?: number
           reward_points_earned?: number

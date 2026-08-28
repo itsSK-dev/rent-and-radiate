@@ -1,11 +1,13 @@
-// Delivery partner submits the 6-digit OTP the customer showed them.
-// On success, advances the assignment + rental status accordingly.
+// Delivery partner submits the 6-digit OTP the customer received.
+// Verification is the ONLY way a delivery/return handoff is completed.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const MAX_ATTEMPTS = 5;
 
 async function sha256Hex(s: string) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -34,31 +36,55 @@ Deno.serve(async (req) => {
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-  // Verify partner owns an active assignment for this rental
   const { data: dp } = await admin.from("delivery_partners").select("id, status").eq("user_id", userId).maybeSingle();
   if (!dp || dp.status !== "approved") return j({ error: "Not an approved delivery partner" }, 403);
 
   const { data: assignment } = await admin.from("delivery_assignments")
     .select("id, status").eq("rental_id", rentalId).eq("partner_id", dp.id).maybeSingle();
-  if (!assignment) return j({ error: "You are not assigned to this rental" }, 403);
+  if (!assignment) return j({ error: "You are not assigned to this order" }, 403);
 
-  const hash = await sha256Hex(code);
+  // Latest OTP issued for this order + kind.
   const { data: otp } = await admin.from("delivery_otps")
-    .select("id, expires_at, verified_at")
-    .eq("rental_id", rentalId).eq("kind", kind).eq("code_hash", hash)
-    .maybeSingle();
-  if (!otp) return j({ error: "Incorrect OTP" }, 400);
-  if (otp.verified_at) return j({ error: "OTP already used" }, 400);
-  if (new Date(otp.expires_at).getTime() < Date.now()) return j({ error: "OTP expired — ask customer to regenerate" }, 400);
+    .select("id, code_hash, expires_at, verified_at, attempts")
+    .eq("rental_id", rentalId).eq("kind", kind)
+    .order("created_at", { ascending: false }).limit(1).maybeSingle();
 
-  await admin.from("delivery_otps").update({ verified_at: new Date().toISOString() }).eq("id", otp.id);
+  if (!otp) return j({ error: "No OTP has been sent yet. Tap Send OTP first." }, 400);
+  if (otp.verified_at) return j({ error: "This OTP was already used. Request a new one." }, 400);
+  if (new Date(otp.expires_at).getTime() < Date.now()) return j({ error: "OTP expired. Please request a new OTP." }, 400);
+  if ((otp.attempts ?? 0) >= MAX_ATTEMPTS) {
+    return j({ error: "Too many incorrect attempts. Request a new OTP." }, 429);
+  }
+
+  if (otp.code_hash !== (await sha256Hex(code))) {
+    const attempts = (otp.attempts ?? 0) + 1;
+    await admin.from("delivery_otps").update({ attempts }).eq("id", otp.id);
+    const left = MAX_ATTEMPTS - attempts;
+    return j({ error: left > 0 ? `Incorrect OTP. ${left} attempt${left === 1 ? "" : "s"} left.` : "Too many incorrect attempts. Request a new OTP." }, 400);
+  }
+
+  const now = new Date().toISOString();
+  // Single-use: only the first caller to flip verified_at wins.
+  const { data: claimed } = await admin.from("delivery_otps")
+    .update({ verified_at: now, attempts: (otp.attempts ?? 0) + 1, verified_by_partner_id: dp.id, code_plain: null })
+    .eq("id", otp.id).is("verified_at", null).select("id");
+  if (!claimed || claimed.length === 0) return j({ error: "This OTP was already used. Request a new one." }, 400);
 
   const nextStatus = kind === "delivery" ? "delivered" : "return_picked_up";
   const { error: updErr } = await admin.from("delivery_assignments")
     .update({ status: nextStatus }).eq("id", assignment.id);
-  if (updErr) return j({ error: updErr.message }, 500);
+  if (updErr) {
+    console.error("[otp] assignment update failed:", updErr.message);
+    return j({ error: updErr.message }, 500);
+  }
 
-  return j({ ok: true, status: nextStatus });
+  await admin.from("rentals").update(
+    kind === "delivery"
+      ? { delivery_verified_at: now, delivery_verified_by: dp.id }
+      : { return_verified_at: now, return_verified_by: dp.id },
+  ).eq("id", rentalId);
+
+  return j({ ok: true, status: nextStatus, verifiedAt: now });
 });
 
 function j(b: unknown, status = 200) {

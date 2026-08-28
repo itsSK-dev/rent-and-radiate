@@ -1,0 +1,2 @@
+ALTER TABLE public.delivery_otps ADD COLUMN IF NOT EXISTS code_plain text;
+COMMENT ON COLUMN public.delivery_otps.code_plain IS 'Only populated when SMS delivery is unavailable/failed, so the customer can read the code in-app. Visible only to the order customer / admins via RLS.';
