@@ -127,7 +127,6 @@ export default function Delivery() {
   const respond = (a: Assignment, accept: boolean) =>
     setStatus(a, accept ? "accepted" : "rejected", "broadcast", accept ? "Delivery accepted" : "Rejected");
   const markPickedUp = (a: Assignment) => setStatus(a, "picked_up", "accepted", "Marked picked up");
-  const markDelivered = (a: Assignment) => setStatus(a, "delivered", "picked_up", "Delivery completed");
   const markReturnedToStore = (a: Assignment) => setStatus(a, "returned_to_store", "return_picked_up", "Handed back to store");
 
   if (loading || (busy && !partner)) {
@@ -229,7 +228,7 @@ export default function Delivery() {
               active.map((a) => (
                 <AssignmentCard key={a.id} a={a} showDeliverOtp showDeliveryProof
                   partnerId={partner.id} partnerUserId={partner.user_id}
-                  onDelivered={a.status === "picked_up" ? () => markDelivered(a) : undefined} />
+                  />
               ))}
           </TabsContent>
           <TabsContent value="returns" className="mt-4 space-y-3">
@@ -351,7 +350,6 @@ function AssignmentCard({
           {onReject && <Button size="sm" variant="ghost" onClick={onReject}>Reject</Button>}
           {showPickup && onPickedUp && <Button size="sm" variant="hero" onClick={onPickedUp}>Mark Picked Up</Button>}
           {showDeliverOtp && <OtpDialog rentalId={r.id} kind="delivery" />}
-          {onDelivered && <Button size="sm" variant="outline" onClick={onDelivered}>Mark Delivered</Button>}
           {showDeliveryProof && partnerId && partnerUserId && (
             <DeliveryProofUpload assignmentId={a.id} rentalId={r.id} partnerId={partnerId} partnerUserId={partnerUserId} kind="delivery" />
           )}
