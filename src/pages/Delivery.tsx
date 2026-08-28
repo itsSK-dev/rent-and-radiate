@@ -32,12 +32,16 @@ type Assignment = {
   } | null;
 };
 
+type EarningRow = { amount: number; status: string; created_at: string };
+
 export default function Delivery() {
   const { user, roles, loading } = useAuth();
   const navigate = useNavigate();
   const [partner, setPartner] = useState<any>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [earnings, setEarnings] = useState<{ total: number; count: number }>({ total: 0, count: 0 });
+  const [earningRows, setEarningRows] = useState<EarningRow[]>([]);
+  const [busy, setBusy] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => { document.title = "Delivery Dashboard · Rent & Radiate"; }, []);
   useEffect(() => {
@@ -46,12 +50,16 @@ export default function Delivery() {
 
   const load = useCallback(async () => {
     if (!user) return;
-    const { data: dp } = await supabase.from("delivery_partners").select("*").eq("user_id", user.id).maybeSingle();
+    setBusy(true);
+    setError(null);
+    const { data: dp, error: dpErr } = await supabase
+      .from("delivery_partners").select("*").eq("user_id", user.id).maybeSingle();
+    if (dpErr) { setError(dpErr.message); setBusy(false); return; }
     if (!dp) { navigate("/delivery/register"); return; }
     setPartner(dp);
-    if (dp.status !== "approved") return;
+    if (dp.status !== "approved") { setBusy(false); return; }
 
-    const { data } = await supabase.from("delivery_assignments")
+    const { data, error: aErr } = await supabase.from("delivery_assignments")
       .select(`id, rental_id, partner_id, status, created_at,
         rental:rentals(id, kind, status, address, grand_total, start_date, end_date,
          ship_full_name, ship_mobile, ship_house, ship_street, ship_landmark,
@@ -60,11 +68,14 @@ export default function Delivery() {
           product:products(title, images),
           store:stores(name, address, city))`)
       .eq("partner_id", dp.id).order("created_at", { ascending: false }).limit(200);
+    if (aErr) { setError(aErr.message); setBusy(false); return; }
     setAssignments((data as any) ?? []);
 
-    const { data: e } = await supabase.from("delivery_earnings").select("amount, status").eq("partner_id", dp.id);
-    const rows = e ?? [];
-    setEarnings({ total: rows.reduce((s: number, r: any) => s + Number(r.amount), 0), count: rows.length });
+    const { data: e, error: eErr } = await supabase
+      .from("delivery_earnings").select("amount, status, created_at").eq("partner_id", dp.id);
+    if (eErr) { setError(eErr.message); setBusy(false); return; }
+    setEarningRows(((e ?? []) as any[]).map((r) => ({ amount: Number(r.amount), status: r.status, created_at: r.created_at })));
+    setBusy(false);
   }, [user, navigate]);
 
   useEffect(() => { load(); }, [load]);
@@ -78,6 +89,24 @@ export default function Delivery() {
     return () => { supabase.removeChannel(ch); };
   }, [partner?.id, load]);
 
+  const earnings = useMemo(() => {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfWeek = startOfDay - now.getDay() * 86400000;
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const sum = (from: number) => earningRows
+      .filter((r) => new Date(r.created_at).getTime() >= from)
+      .reduce((s, r) => s + r.amount, 0);
+    return {
+      total: earningRows.reduce((s, r) => s + r.amount, 0),
+      count: earningRows.length,
+      today: sum(startOfDay),
+      week: sum(startOfWeek),
+      month: sum(startOfMonth),
+      pending: earningRows.filter((r) => r.status !== "paid").reduce((s, r) => s + r.amount, 0),
+    };
+  }, [earningRows]);
+
   async function toggleOnline(v: boolean) {
     if (!partner) return;
     const { error } = await supabase.from("delivery_partners").update({ is_online: v }).eq("id", partner.id);
@@ -85,28 +114,44 @@ export default function Delivery() {
     setPartner((p: any) => ({ ...p, is_online: v }));
   }
 
-  async function respond(a: Assignment, accept: boolean) {
-    const { error } = await supabase.from("delivery_assignments")
-      .update({ status: accept ? "accepted" : "rejected" }).eq("id", a.id);
+  /** Every status change is a real, status-guarded database update. */
+  async function setStatus(a: Assignment, next: string, from: string, okMsg: string) {
+    const { data, error } = await supabase.from("delivery_assignments")
+      .update({ status: next as any }).eq("id", a.id).eq("status", from as any).select("id");
     if (error) return toast.error(error.message);
-    toast.success(accept ? "Accepted!" : "Rejected");
+    if (!data || data.length === 0) { toast.error("This delivery already moved on — refreshing."); load(); return; }
+    toast.success(okMsg);
     load();
   }
 
-  async function markPickedUp(a: Assignment) {
-    const { error } = await supabase.from("delivery_assignments")
-      .update({ status: "picked_up" }).eq("id", a.id);
-    if (error) return toast.error(error.message);
-    toast.success("Marked picked up");
-    load();
+  const respond = (a: Assignment, accept: boolean) =>
+    setStatus(a, accept ? "accepted" : "rejected", "broadcast", accept ? "Delivery accepted" : "Rejected");
+  const markPickedUp = (a: Assignment) => setStatus(a, "picked_up", "accepted", "Marked picked up");
+  const markDelivered = (a: Assignment) => setStatus(a, "delivered", "picked_up", "Delivery completed");
+  const markReturnedToStore = (a: Assignment) => setStatus(a, "returned_to_store", "return_picked_up", "Handed back to store");
+
+  if (loading || (busy && !partner)) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <section className="container flex-1 py-20 text-center text-sm text-muted-foreground">Loading deliveries…</section>
+        <Footer />
+      </div>
+    );
   }
 
-  async function markReturnedToStore(a: Assignment) {
-    const { error } = await supabase.from("delivery_assignments")
-      .update({ status: "returned_to_store" }).eq("id", a.id);
-    if (error) return toast.error(error.message);
-    toast.success("Handed back to store");
-    load();
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <section className="container flex-1 py-20 text-center space-y-3">
+          <p className="text-sm text-muted-foreground">Unable to load deliveries.</p>
+          <p className="text-xs text-destructive">{error}</p>
+          <Button variant="hero" onClick={() => load()}>Retry</Button>
+        </section>
+        <Footer />
+      </div>
+    );
   }
 
   if (!partner) return null;
@@ -132,6 +177,8 @@ export default function Delivery() {
   const active = assignments.filter((a) => ["picked_up", "out_for_delivery"].includes(a.status));
   const returns = assignments.filter((a) => ["return_scheduled", "return_picked_up"].includes(a.status));
   const history = assignments.filter((a) => ["delivered", "returned_to_store", "cancelled", "rejected"].includes(a.status));
+  const defaultTab = available.length ? "available" : assigned.length ? "assigned" : active.length ? "active" : "available";
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
