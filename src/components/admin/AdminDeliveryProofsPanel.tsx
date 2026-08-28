@@ -53,7 +53,7 @@ export function AdminDeliveryProofsPanel() {
          rental:rentals(id, kind, status,
            product:products(title),
            store:stores(name),
-           customer:profiles!rentals_customer_id_fkey(full_name))`,
+           customer:profiles!rentals_customer_profiles_fkey(full_name))`,
       )
       .order("created_at", { ascending: false })
       .limit(500);

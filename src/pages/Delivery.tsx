@@ -56,7 +56,7 @@ export default function Delivery() {
         rental:rentals(id, kind, status, address, grand_total, start_date, end_date,
          ship_full_name, ship_mobile, ship_house, ship_street, ship_landmark,
          ship_city, ship_state, ship_pin, ship_instructions,
-          customer:profiles!rentals_customer_id_fkey(full_name),
+          customer:profiles!rentals_customer_profiles_fkey(full_name),
           product:products(title, images),
           store:stores(name, address, city))`)
       .eq("partner_id", dp.id).order("created_at", { ascending: false }).limit(200);

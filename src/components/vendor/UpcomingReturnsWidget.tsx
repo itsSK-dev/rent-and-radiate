@@ -27,7 +27,7 @@ export function UpcomingReturnsWidget({ storeId }: { storeId: string }) {
       horizon.setDate(horizon.getDate() + 7);
       const { data } = await supabase
         .from("rentals")
-        .select("id,end_date,status,quantity,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)")
+        .select("id,end_date,status,quantity,product:products(title),customer:profiles!rentals_customer_profiles_fkey(full_name)")
         .eq("store_id", storeId)
         .eq("kind", "rent")
         .in("status", ["confirmed", "delivered"])

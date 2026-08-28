@@ -89,6 +89,8 @@ export default function VendorOrders() {
   const [kindFilter, setKindFilter] = useState<"all" | "buy" | "rent">("all");
   const [search, setSearch] = useState("");
   const [partners, setPartners] = useState<AvailablePartner[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
 
   useEffect(() => {
     document.title = "Orders · Vendor · Rent & Radiate";
@@ -101,7 +103,13 @@ export default function VendorOrders() {
   async function refresh() {
     if (!user) return;
     setFetching(true);
-    const { data: s } = await supabase.from("stores").select("id").eq("owner_id", user.id);
+    setLoadError(null);
+    const { data: s, error: storeErr } = await supabase.from("stores").select("id").eq("owner_id", user.id);
+    if (storeErr) {
+      setLoadError(storeErr.message);
+      setFetching(false);
+      return;
+    }
     const ids = (s ?? []).map((x) => x.id);
     setStoreIds(ids);
     if (ids.length === 0) {
@@ -117,16 +125,22 @@ export default function VendorOrders() {
         ship_full_name, ship_mobile, ship_house, ship_street, ship_landmark,
         ship_city, ship_state, ship_pin, ship_instructions,
         product:products(title, images),
-        customer:profiles!rentals_customer_id_fkey(full_name, phone)
+        customer:profiles!rentals_customer_profiles_fkey(full_name, phone)
       `)
 
       .in("store_id", ids)
       .order("created_at", { ascending: false })
       .limit(500);
-    if (!error) setRows((data as any) ?? []);
+    if (error) {
+      console.error("[vendor-orders] fetch failed", error);
+      setLoadError(error.message);
+    } else {
+      setRows((data as any) ?? []);
+    }
     setPartners(await fetchAvailablePartners());
     setFetching(false);
   }
+
 
   useEffect(() => {
     refresh();
@@ -245,12 +259,23 @@ export default function VendorOrders() {
         {/* Orders */}
         {fetching && rows.length === 0 ? (
           <Card className="p-10 text-center text-sm text-muted-foreground">Loading orders…</Card>
+        ) : loadError ? (
+          <Card className="p-10 text-center space-y-3">
+            <p className="text-sm text-destructive">Could not load orders: {loadError}</p>
+            <Button variant="outline" size="sm" onClick={refresh}>Retry</Button>
+          </Card>
+        ) : rows.length === 0 ? (
+          <Card className="p-10 text-center">
+            <Package className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+            <p className="text-sm text-muted-foreground">No orders yet.</p>
+          </Card>
         ) : filtered.length === 0 ? (
           <Card className="p-10 text-center">
             <Package className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
             <p className="text-sm text-muted-foreground">No orders match these filters.</p>
           </Card>
         ) : (
+
           <div className="space-y-3">
             {filtered.map((r) => (
               <Card

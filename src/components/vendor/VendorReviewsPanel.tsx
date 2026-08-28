@@ -24,7 +24,7 @@ export function VendorReviewsPanel({ storeId }: { storeId: string }) {
       const { data } = await supabase
         .from("ratings")
         .select(
-          "id,stars,comment,created_at,rater:profiles!ratings_rater_id_fkey(full_name),rental:rentals(product:products(title))"
+          "id,stars,comment,created_at,rater:profiles!ratings_rater_profiles_fkey(full_name),rental:rentals(product:products(title))"
         )
         .eq("ratee_store_id", storeId)
         .order("created_at", { ascending: false });

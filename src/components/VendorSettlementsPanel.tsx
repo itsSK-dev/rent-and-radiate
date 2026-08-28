@@ -53,7 +53,7 @@ export function VendorSettlementsPanel({ storeId, admin = false }: Props) {
     try { await (supabase as any).rpc("promote_eligible_settlements"); } catch { /* noop */ }
     let q = (supabase as any)
       .from("vendor_settlements")
-      .select(`*, store:stores(name), rental:rentals(id, product:products(title), customer:profiles!rentals_customer_id_fkey(full_name))`)
+      .select(`*, store:stores(name), rental:rentals(id, product:products(title), customer:profiles!rentals_customer_profiles_fkey(full_name))`)
       .order("created_at", { ascending: false });
     if (storeId) q = q.eq("store_id", storeId);
     const { data, error } = await q;
