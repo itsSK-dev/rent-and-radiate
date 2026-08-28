@@ -43,24 +43,42 @@ Deno.serve(async (req) => {
     .select("id, status").eq("rental_id", rentalId).eq("partner_id", dp.id).maybeSingle();
   if (!assignment) return j({ error: "You are not assigned to this order" }, 403);
 
-  // Latest OTP issued for this order + kind.
+  const { data: rental } = await admin.from("rentals")
+    .select("id, customer_id, status").eq("id", rentalId).maybeSingle();
+  if (!rental) return j({ error: "Order not found" }, 404);
+
+  console.log(`[otp] verify rental=${rentalId} kind=${kind} partner=${dp.id} assignment=${assignment.status} rental_status=${rental.status}`);
+
+  // Latest OTP issued for this order + kind + customer.
   const { data: otp } = await admin.from("delivery_otps")
-    .select("id, code_hash, expires_at, verified_at, attempts")
+    .select("id, code_hash, expires_at, verified_at, attempts, customer_id")
     .eq("rental_id", rentalId).eq("kind", kind)
     .order("created_at", { ascending: false }).limit(1).maybeSingle();
 
-  if (!otp) return j({ error: "No OTP has been sent yet. Tap Send OTP first." }, 400);
-  if (otp.verified_at) return j({ error: "This OTP was already used. Request a new one." }, 400);
-  if (new Date(otp.expires_at).getTime() < Date.now()) return j({ error: "OTP expired. Please request a new OTP." }, 400);
+  if (!otp) {
+    console.log(`[otp] no OTP record for rental=${rentalId} kind=${kind}`);
+    return j({ error: "No OTP has been sent yet. Tap Resend OTP to send one to the customer." }, 400);
+  }
+  if (otp.customer_id && otp.customer_id !== rental.customer_id) {
+    console.error(`[otp] customer mismatch on rental=${rentalId}`);
+    return j({ error: "This OTP does not belong to this order." }, 403);
+  }
+  if (otp.verified_at) return j({ error: "This OTP was already used. Please resend a new OTP." }, 400);
+  if (new Date(otp.expires_at).getTime() < Date.now()) return j({ error: "OTP has expired. Please resend a new OTP." }, 400);
   if ((otp.attempts ?? 0) >= MAX_ATTEMPTS) {
-    return j({ error: "Too many incorrect attempts. Request a new OTP." }, 429);
+    return j({ error: "Too many incorrect attempts. Please resend a new OTP." }, 429);
   }
 
   if (otp.code_hash !== (await sha256Hex(code))) {
     const attempts = (otp.attempts ?? 0) + 1;
     await admin.from("delivery_otps").update({ attempts }).eq("id", otp.id);
     const left = MAX_ATTEMPTS - attempts;
-    return j({ error: left > 0 ? `Incorrect OTP. ${left} attempt${left === 1 ? "" : "s"} left.` : "Too many incorrect attempts. Request a new OTP." }, 400);
+    console.log(`[otp] incorrect code for rental=${rentalId} attempts=${attempts}`);
+    return j({
+      error: left > 0
+        ? `Incorrect OTP. Please check the OTP sent to the customer and try again. ${left} attempt${left === 1 ? "" : "s"} left.`
+        : "Too many incorrect attempts. Please resend a new OTP.",
+    }, 400);
   }
 
   const now = new Date().toISOString();
@@ -68,23 +86,39 @@ Deno.serve(async (req) => {
   const { data: claimed } = await admin.from("delivery_otps")
     .update({ verified_at: now, attempts: (otp.attempts ?? 0) + 1, verified_by_partner_id: dp.id, code_plain: null })
     .eq("id", otp.id).is("verified_at", null).select("id");
-  if (!claimed || claimed.length === 0) return j({ error: "This OTP was already used. Request a new one." }, 400);
+  if (!claimed || claimed.length === 0) return j({ error: "This OTP was already used. Please resend a new OTP." }, 400);
+
+  // Stamp the verification on the order BEFORE advancing status: the delivered
+  // guard accepts an OTP-verified handoff in place of a store proof photo.
+  const { error: stampErr } = await admin.from("rentals").update(
+    kind === "delivery"
+      ? { delivery_verified_at: now, delivery_verified_by: dp.id }
+      : { return_verified_at: now, return_verified_by: dp.id },
+  ).eq("id", rentalId);
+  if (stampErr) {
+    console.error("[otp] verification stamp failed:", stampErr.message);
+    await admin.from("delivery_otps").update({ verified_at: null }).eq("id", otp.id);
+    return j({ error: stampErr.message }, 500);
+  }
 
   const nextStatus = kind === "delivery" ? "delivered" : "return_picked_up";
   const { error: updErr } = await admin.from("delivery_assignments")
     .update({ status: nextStatus }).eq("id", assignment.id);
   if (updErr) {
-    console.error("[otp] assignment update failed:", updErr.message);
-    return j({ error: updErr.message }, 500);
+    console.error(`[otp] assignment update failed for rental=${rentalId}:`, updErr.message);
+    // Release the OTP so the partner can retry once the blocker is cleared.
+    await admin.from("delivery_otps").update({ verified_at: null, verified_by_partner_id: null }).eq("id", otp.id);
+    await admin.from("rentals").update(
+      kind === "delivery" ? { delivery_verified_at: null, delivery_verified_by: null }
+                          : { return_verified_at: null, return_verified_by: null },
+    ).eq("id", rentalId);
+    return j({ error: updErr.message }, 400);
   }
 
-  await admin.from("rentals").update(
-    kind === "delivery"
-      ? { delivery_verified_at: now, delivery_verified_by: dp.id }
-      : { return_verified_at: now, return_verified_by: dp.id },
-  ).eq("id", rentalId);
+  const { data: after } = await admin.from("rentals").select("status").eq("id", rentalId).maybeSingle();
+  console.log(`[otp] verified rental=${rentalId} kind=${kind} status ${rental.status} -> ${after?.status}`);
 
-  return j({ ok: true, status: nextStatus, verifiedAt: now });
+  return j({ ok: true, status: nextStatus, rentalStatus: after?.status, verifiedAt: now });
 });
 
 function j(b: unknown, status = 200) {
