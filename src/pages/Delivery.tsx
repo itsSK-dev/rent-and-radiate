@@ -370,6 +370,32 @@ function OtpDialog({ rentalId, kind }: { rentalId: string; kind: "delivery" | "r
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState<{ channel: string; maskedPhone: string | null; expiresAt: string } | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  async function sendOtp() {
+    setSending(true);
+    const { data, error } = await supabase.functions.invoke("deliverypartner-request-otp", {
+      body: { rentalId, kind },
+    });
+    setSending(false);
+    const payload = data as any;
+    if (error || payload?.error) {
+      if (payload?.retryAfter) setCooldown(payload.retryAfter);
+      return toast.error(payload?.error || error?.message || "Could not send the OTP");
+    }
+    setSent({ channel: payload.channel, maskedPhone: payload.maskedPhone, expiresAt: payload.expiresAt });
+    setCooldown(payload.cooldownSeconds ?? 60);
+    if (payload.channel === "sms") toast.success(`OTP sent successfully to ${payload.maskedPhone}`);
+    else toast.warning("SMS unavailable — the customer can see the code in their app");
+  }
 
   async function verify() {
     if (code.length !== 6) return toast.error("Enter the 6-digit OTP");
@@ -387,10 +413,17 @@ function OtpDialog({ rentalId, kind }: { rentalId: string; kind: "delivery" | "r
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="hero">Enter {kind === "delivery" ? "Delivery" : "Return"} OTP</Button>
+        <Button size="sm" variant="hero">{kind === "delivery" ? "Verify Customer" : "Verify Return"}</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Ask customer for the 6-digit OTP</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Enter Customer OTP</DialogTitle></DialogHeader>
+        <p className="text-sm text-muted-foreground">
+          {sent
+            ? sent.channel === "sms"
+              ? `Code sent by SMS to ${sent.maskedPhone}. It expires at ${new Date(sent.expiresAt).toLocaleTimeString()}.`
+              : "SMS could not be delivered — ask the customer to open My Rentals, where the code is shown."
+            : "Send a one-time code to the customer's registered mobile, then ask them to read it out."}
+        </p>
         <div className="flex justify-center py-4">
           <InputOTP maxLength={6} value={code} onChange={setCode}>
             <InputOTPGroup>
@@ -398,7 +431,10 @@ function OtpDialog({ rentalId, kind }: { rentalId: string; kind: "delivery" | "r
             </InputOTPGroup>
           </InputOTP>
         </div>
-        <Button variant="hero" size="lg" onClick={verify} disabled={busy}>{busy ? "Verifying…" : "Verify"}</Button>
+        <Button variant="hero" size="lg" onClick={verify} disabled={busy || !sent}>{busy ? "Verifying…" : "Verify OTP"}</Button>
+        <Button variant="outline" size="sm" onClick={sendOtp} disabled={sending || cooldown > 0}>
+          {sending ? "Sending…" : cooldown > 0 ? `Resend OTP in ${cooldown}s` : sent ? "Resend OTP" : "Send OTP to customer"}
+        </Button>
       </DialogContent>
     </Dialog>
   );
