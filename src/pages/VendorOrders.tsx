@@ -117,7 +117,7 @@ export default function VendorOrders() {
         ship_full_name, ship_mobile, ship_house, ship_street, ship_landmark,
         ship_city, ship_state, ship_pin, ship_instructions,
         product:products(title, images),
-        customer:profiles!rentals_customer_id_fkey(full_name, phone)
+        customer:profiles!rentals_customer_profiles_fkey(full_name, phone)
       `)
 
       .in("store_id", ids)

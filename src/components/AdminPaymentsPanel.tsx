@@ -53,7 +53,7 @@ export function AdminPaymentsPanel() {
         id,rental_id,user_id,store_id,amount,upi_id,user_reference,status,admin_notes,
         verified_at,payout_status,payout_amount,payout_paid_at,payout_notes,commission_amount,created_at,
         store:stores(name),
-        customer:profiles!manual_payments_user_id_fkey(full_name),
+        customer:profiles!manual_payments_user_profiles_fkey(full_name),
         rental:rentals(id,status)
       `)
       .order("created_at", { ascending: false });

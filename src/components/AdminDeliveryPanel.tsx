@@ -39,7 +39,7 @@ export function AdminDeliveryPanel() {
   async function load() {
     const { data } = await supabase
       .from("rentals")
-      .select("id,kind,status,payment_status,delivery_stage,delivery_method,start_date,end_date,expected_delivery_date,actual_delivered_at,grand_total,created_at,customer_id,store_id,product:products(title),store:stores(name,city),customer:profiles!rentals_customer_id_fkey(full_name)")
+      .select("id,kind,status,payment_status,delivery_stage,delivery_method,start_date,end_date,expected_delivery_date,actual_delivered_at,grand_total,created_at,customer_id,store_id,product:products(title),store:stores(name,city),customer:profiles!rentals_customer_profiles_fkey(full_name)")
       .order("created_at", { ascending: false })
       .limit(500);
     setRows((data as any) ?? []);

@@ -112,7 +112,7 @@ export function VendorAnalyticsPanel({ storeId, storeName }: { storeId: string; 
       const [r, s, rf] = await Promise.all([
         supabase
           .from("rentals")
-          .select("id,kind,status,subtotal,grand_total,commission_amount,gst_amount,discount_amount,delivery_fee,deposit,quantity,days,start_date,end_date,created_at,customer_id,product_id,product:products(title),customer:profiles!rentals_customer_id_fkey(full_name)")
+          .select("id,kind,status,subtotal,grand_total,commission_amount,gst_amount,discount_amount,delivery_fee,deposit,quantity,days,start_date,end_date,created_at,customer_id,product_id,product:products(title),customer:profiles!rentals_customer_profiles_fkey(full_name)")
           .eq("store_id", storeId)
           .order("created_at", { ascending: false }),
         (supabase as any).from("vendor_settlements")

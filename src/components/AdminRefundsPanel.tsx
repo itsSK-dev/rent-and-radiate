@@ -53,7 +53,7 @@ export function AdminRefundsPanel() {
         razorpay_refund_id,refunded_at,refund_failure_reason,
         inspection_notes,status,admin_notes,initiated_at,reviewed_at,auto_created,
         rental:rentals(id,start_date,end_date,product:products(title),store:stores(name)),
-        customer:profiles!deposit_refunds_customer_id_fkey(full_name)
+        customer:profiles!deposit_refunds_customer_profiles_fkey(full_name)
       `)
       .order("initiated_at", { ascending: false });
     if (error) return toast.error(error.message);
