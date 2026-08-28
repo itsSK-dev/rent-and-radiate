@@ -26,6 +26,7 @@ import { Seo, SITE_URL } from "@/components/Seo";
 import { Star } from "lucide-react";
 import { DeliveryAddressDialog, useSavedAddress } from "@/components/DeliveryAddressDialog";
 import { isAddressComplete, rentalAddressPayload, validateAddress } from "@/lib/address";
+import { findClosedStore, storeClosedMessage } from "@/lib/storeAvailability";
 
 type Product = {
   id: string;
@@ -44,7 +45,7 @@ type Product = {
   discount_flat: number;
   quantity: number;
   purpose: "rent" | "buy" | "both";
-  store?: { name: string; city: string | null; address: string | null; rating: number } | null;
+  store?: { name: string; city: string | null; address: string | null; rating: number; is_open: boolean | null } | null;
 };
 
 const ProductDetail = () => {
@@ -78,7 +79,7 @@ const ProductDetail = () => {
     (async () => {
       const { data } = await supabase
         .from("products")
-        .select("*, store:stores(name,city,address,rating)")
+        .select("*, store:stores(name,city,address,rating,is_open)")
         .eq("id", id!).maybeSingle();
       setProduct(data as any);
       if (data) {
@@ -140,6 +141,7 @@ const ProductDetail = () => {
   }
 
   const purpose = product.purpose ?? "rent";
+  const storeOpen = product.store?.is_open === true;
   const canRent = purpose === "rent" || purpose === "both";
   const canBuy = purpose === "buy" || purpose === "both";
   const outOfStock = (product.quantity ?? 0) <= 0;
@@ -182,6 +184,8 @@ const ProductDetail = () => {
     }
     if (mode === "rent" && (!start || !end)) return toast.error("Pick rental dates first.");
     if (qty > (product!.quantity ?? 0)) return toast.error("Not enough stock.");
+    const closedForCart = await findClosedStore([product!.store_id]);
+    if (closedForCart) return toast.error(storeClosedMessage(closedForCart));
     const payload: any = {
       user_id: user.id,
       product_id: product!.id,
@@ -217,6 +221,14 @@ const ProductDetail = () => {
       }
     }
     setSubmitting(true);
+    // Live re-check: the vendor may have closed the store since page load.
+    try {
+      const closed = await findClosedStore([product!.store_id]);
+      if (closed) { setSubmitting(false); return toast.error(storeClosedMessage(closed)); }
+    } catch {
+      setSubmitting(false);
+      return toast.error("Unable to determine store status. Please try again.");
+    }
     const payload: any = {
       customer_id: user.id,
       product_id: product!.id,
@@ -309,6 +321,19 @@ const ProductDetail = () => {
                 <MapPin className="h-4 w-4" /> {product.store.name}
                 {product.store.city ? ` · ${product.store.city}` : ""}
                 <span className="text-gold ml-2">★ {Number(product.store.rating).toFixed(1)}</span>
+                <span
+                  className={`ml-2 inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                    storeOpen ? "bg-emerald-500/15 text-emerald-600" : "bg-slate-500/15 text-muted-foreground"
+                  }`}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${storeOpen ? "bg-emerald-500" : "bg-slate-500"}`} />
+                  {storeOpen ? "Open" : "Closed"}
+                </span>
+              </p>
+            )}
+            {!storeOpen && (
+              <p className="mt-2 text-sm text-muted-foreground rounded-lg border border-border/70 bg-muted/40 px-3 py-2">
+                This store is currently closed and is not accepting new orders.
               </p>
             )}
           </div>
@@ -436,11 +461,11 @@ const ProductDetail = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="lg" onClick={addToCart} disabled={outOfStock}>
+              <Button variant="outline" size="lg" onClick={addToCart} disabled={outOfStock || !storeOpen}>
                 <ShoppingCart className="h-4 w-4" /> Add to cart
               </Button>
               <Button variant="hero" size="lg" onClick={buyNow}
-                disabled={submitting || outOfStock || (mode === "rent" && !days)}>
+                disabled={submitting || outOfStock || !storeOpen || (mode === "rent" && !days)}>
                 {submitting ? "…" : mode === "buy" ? "Buy Now" : "Rent Now"}
               </Button>
             </div>
