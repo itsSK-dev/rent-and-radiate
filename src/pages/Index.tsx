@@ -68,6 +68,7 @@ type NearbyShop = {
   logo_url: string | null;
   lat: number | null;
   lng: number | null;
+  is_open: boolean;
   product_count: number;
   distance_km: number | null;
 };
@@ -80,13 +81,6 @@ type NearbyShop = {
 
 
 
-
-// Shops on the marketplace are open 10:00 – 21:00 IST by convention (no per-shop hours stored).
-function isShopOpenNow() {
-  const now = new Date();
-  const istHour = (now.getUTCHours() + 5 + Math.floor((now.getUTCMinutes() + 30) / 60)) % 24;
-  return istHour >= 10 && istHour < 21;
-}
 
 const POPULAR_SUGGESTIONS = [
   "Red dress under ₹2000 for rent",
@@ -108,7 +102,6 @@ const Index = () => {
   const [stores, setStores] = useState<NearbyShop[]>([]);
   const [topRated, setTopRated] = useState<NearbyShop[]>([]);
   const [ratingsTick, setRatingsTick] = useState(0);
-  const [shopsOpen] = useState<boolean>(() => isShopOpenNow());
   const [query, setQuery] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [imageBusy, setImageBusy] = useState(false);
@@ -199,7 +192,7 @@ const Index = () => {
 
     const { data: s, error: storesError } = await supabase
       .from("stores")
-      .select("id,name,city,rating,rating_count,logo_url,lat,lng")
+      .select("id,name,city,rating,rating_count,logo_url,lat,lng,is_open")
       .eq("status", "approved")
       .eq("is_verified", true)
       .eq("is_active", true)
@@ -219,6 +212,7 @@ const Index = () => {
       logo_url: string | null;
       lat: number | null;
       lng: number | null;
+      is_open: boolean | null;
     }>;
 
     // Per-shop available product counts (small N, parallel and cheap).
@@ -243,6 +237,7 @@ const Index = () => {
     // for a permission the visitor didn't request.
     const enriched: NearbyShop[] = rawStores.map((st, i) => ({
       ...st,
+      is_open: st.is_open === true,
       product_count: counts[i],
       distance_km:
         coords && st.lat != null && st.lng != null
@@ -720,7 +715,7 @@ const Index = () => {
             >
               {stores.map((s) => (
                 <RailItem key={s.id} wide>
-                  <CompactShopCard shop={s} open={shopsOpen} />
+                  <CompactShopCard shop={s} loading={!catalogLoaded} />
                 </RailItem>
               ))}
             </HomeRail>
@@ -791,7 +786,7 @@ const Index = () => {
             >
               {topRated.map((s, i) => (
                 <RailItem key={s.id} wide>
-                  <CompactShopCard shop={s} open={shopsOpen} rank={i + 1} />
+                  <CompactShopCard shop={s} loading={!catalogLoaded} rank={i + 1} />
                 </RailItem>
               ))}
             </HomeRail>
@@ -851,7 +846,8 @@ const Index = () => {
 
 
 /** Compact store card sized for horizontal rails. */
-function CompactShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean; rank?: number }) {
+function CompactShopCard({ shop, loading, rank }: { shop: NearbyShop; loading?: boolean; rank?: number }) {
+  const open = shop.is_open;
   const initials = shop.name
     .split(/\s+/)
     .map((w) => w[0])
@@ -888,11 +884,11 @@ function CompactShopCard({ shop, open, rank }: { shop: NearbyShop; open: boolean
         )}
         <span
           className={`absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur ${
-            open ? "bg-emerald-500/90 text-white" : "bg-slate-700/85 text-white"
+            loading ? "bg-muted/90 text-foreground" : open ? "bg-emerald-500/90 text-white" : "bg-slate-700/85 text-white"
           }`}
         >
-          <span className={`h-1.5 w-1.5 rounded-full ${open ? "bg-white animate-pulse" : "bg-white/70"}`} />
-          {open ? "Open" : "Closed"}
+          <span className={`h-1.5 w-1.5 rounded-full ${open && !loading ? "bg-white animate-pulse" : "bg-white/70"}`} />
+          {loading ? "Checking store status…" : open ? "Open" : "Closed"}
         </span>
         {rank != null && (
           <span className="absolute bottom-2 left-2 inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 text-white shadow">
