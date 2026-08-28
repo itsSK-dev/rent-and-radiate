@@ -57,13 +57,20 @@ const RENT_STEPS = [
   { key: "delivered", label: "Delivered", Icon: Home },
 ] as const;
 
+/**
+ * Index of the first PENDING step; every step before it is complete.
+ * Derived from the persisted DB status, with delivery_stage as a fallback.
+ */
 function computeStep(r: Rental): number {
-  if (r.status === "delivered" || r.status === "returned" || r.delivery_stage === "delivered" || r.actual_delivered_at) return 5;
-  if (r.delivery_stage === "out_for_delivery") return 4;
-  if (r.delivery_stage === "packed") return 3;
-  if (r.delivery_stage === "accepted" || r.status === "confirmed") return 2;
-  if (r.payment_status === "paid") return 1;
-  return 0;
+  const s = r.status;
+  if (["delivered", "return_scheduled", "return_picked_up", "returned", "completed"].includes(s)
+      || r.delivery_stage === "delivered" || r.actual_delivered_at) return 6;
+  if (["shipped", "out_for_delivery", "assigned", "picked_up"].includes(s)
+      || r.delivery_stage === "out_for_delivery") return 5;
+  if (["packing", "ready_for_pickup"].includes(s) || r.delivery_stage === "packed") return 4;
+  if (s === "accepted" || r.delivery_stage === "accepted") return 3;
+  if (s === "confirmed" || r.payment_status === "paid") return 2;
+  return 1;
 }
 
 const TrackOrder = () => {

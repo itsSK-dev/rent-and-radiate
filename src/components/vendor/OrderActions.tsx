@@ -23,36 +23,49 @@ interface Action {
 // public.enforce_rental_status_transition(), otherwise the update is rejected.
 const TRANSITIONS: Record<string, Action[]> = {
   pending: [
-    { label: "Accept", next: "confirmed", variant: "default", icon: CheckCircle2,
+    { label: "Accept Order", next: "accepted", variant: "default", icon: CheckCircle2,
       headline: "Order accepted", statusLine: "Your order has been accepted by the store." },
-    { label: "Reject", next: "cancelled", variant: "destructive", icon: XCircle,
+    { label: "Reject Order", next: "cancelled", variant: "destructive", icon: XCircle,
       headline: "Order rejected", statusLine: "Unfortunately the store could not accept your order." },
   ],
   // Paid orders land here straight from payment verification.
   confirmed: [
-    { label: "Accept & Pack", next: "packing", variant: "default", icon: Package,
-      headline: "Order is being packed", statusLine: "Your order is now being packed." },
-    { label: "Cancel", next: "cancelled", variant: "destructive", icon: XCircle,
-      headline: "Order cancelled", statusLine: "This order has been cancelled." },
+    { label: "Accept Order", next: "accepted", variant: "default", icon: CheckCircle2,
+      headline: "Order accepted", statusLine: "Your order has been accepted by the store." },
+    { label: "Reject Order", next: "cancelled", variant: "destructive", icon: XCircle,
+      headline: "Order rejected", statusLine: "Unfortunately the store could not accept your order." },
   ],
   accepted: [
-    { label: "Mark Packing", next: "packing", variant: "default", icon: Package,
+    { label: "Start Packing", next: "packing", variant: "default", icon: Package,
       headline: "Order is being packed", statusLine: "Your order is now being packed." },
     { label: "Cancel", next: "cancelled", variant: "outline", icon: Ban,
       headline: "Order cancelled", statusLine: "This order has been cancelled." },
   ],
   packing: [
-    { label: "Mark Packed", next: "ready_for_pickup", variant: "default", icon: PackageCheck,
-      headline: "Ready for pickup / shipping", statusLine: "Your order is packed and ready for pickup." },
+    { label: "Mark as Packed", next: "ready_for_pickup", variant: "default", icon: PackageCheck,
+      headline: "Order packed", statusLine: "Your order is packed and ready for delivery." },
   ],
   ready_for_pickup: [
-    { label: "Mark Shipped", next: "shipped", variant: "default", icon: Truck,
-      headline: "Order shipped", statusLine: "Your order is on its way." },
+    { label: "Mark Out for Delivery", next: "shipped", variant: "default", icon: Truck,
+      headline: "Out for delivery", statusLine: "Your order is on its way." },
   ],
   shipped: [
-    { label: "Mark Delivered", next: "delivered", variant: "default", icon: PackageOpen,
+    { label: "Mark as Delivered", next: "delivered", variant: "default", icon: PackageOpen,
       headline: "Order delivered", statusLine: "Your order has been delivered. Enjoy!" },
   ],
+};
+
+const CONFIRM_REQUIRED: Record<string, string> = {
+  cancelled: "Are you sure you want to reject/cancel this order? The customer will be notified.",
+};
+
+const SUCCESS_MESSAGE: Record<string, string> = {
+  accepted: "Order accepted successfully.",
+  packing: "Order moved to packing.",
+  ready_for_pickup: "Order packed successfully.",
+  shipped: "Order marked as out for delivery.",
+  delivered: "Order marked as delivered.",
+  cancelled: "Order cancelled.",
 };
 
 export function OrderActions({
@@ -70,14 +83,25 @@ export function OrderActions({
   const actions = TRANSITIONS[status] ?? [];
 
   async function run(a: Action) {
+    const confirmMsg = CONFIRM_REQUIRED[a.next];
+    if (confirmMsg && !window.confirm(confirmMsg)) return;
     setBusy(a.next);
     try {
-      const { error } = await supabase
+      // Atomic: only succeeds if the row is still in the status we rendered from,
+      // so a second session/tab cannot apply the same transition twice.
+      const { data, error } = await supabase
         .from("rentals")
         .update({ status: a.next as any })
-        .eq("id", rentalId);
+        .eq("id", rentalId)
+        .eq("status", status as any)
+        .select("id, status");
       if (error) throw error;
-      toast.success(a.label + " ✓");
+      if (!data || data.length === 0) {
+        toast.error("This order was already updated elsewhere. Refreshing…");
+        onChanged?.();
+        return;
+      }
+      toast.success(SUCCESS_MESSAGE[a.next] ?? `${a.label} ✓`);
       // Fire email (best effort)
       notifyRentalStatus({
         rentalId,
@@ -88,7 +112,8 @@ export function OrderActions({
       });
       onChanged?.();
     } catch (e: any) {
-      toast.error(e.message ?? "Could not update order");
+      console.error("[order-actions] update failed", e);
+      toast.error(e?.message ?? "Unable to update order. Please try again.");
     } finally {
       setBusy(null);
     }
