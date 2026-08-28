@@ -49,8 +49,8 @@ export function VendorSettlementsPanel({ storeId, admin = false }: Props) {
 
   async function load() {
     setLoading(true);
-    // Promote any newly eligible settlements first
-    try { await (supabase as any).rpc("promote_eligible_settlements"); } catch { /* noop */ }
+    // Settlement promotion is handled server-side (service role only)
+
     let q = (supabase as any)
       .from("vendor_settlements")
       .select(`*, store:stores(name), rental:rentals(id, product:products(title), customer:profiles!rentals_customer_profiles_fkey(full_name))`)
