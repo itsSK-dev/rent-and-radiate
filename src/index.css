@@ -112,6 +112,12 @@
     --border: 42 14% 22%;
     --input: 42 14% 22%;
     --ring: 46 70% 58%;
+
+    /* Dark-mode surfaces for the always-light gradients. Without these the
+     * footer/CTA sections keep a light cream background while text tokens
+     * flip to light colors, rendering headings and links invisible. */
+    --gradient-blossom: linear-gradient(135deg, hsl(40 14% 13%) 0%, hsl(42 16% 17%) 55%, hsl(44 18% 22%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(40 12% 11%) 0%, hsl(40 13% 9%) 100%);
   }
 }
 
