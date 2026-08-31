@@ -41,7 +41,7 @@ const SOCIAL_LINKS = [
 function FooterColumn({ title, links }: { title: string; links: [string, string][] }) {
   return (
     <div>
-      <h4 className="font-display text-lg mb-5">{title}</h4>
+      <h4 className="font-display text-lg mb-5 text-foreground">{title}</h4>
       <ul className="space-y-3 text-sm text-muted-foreground">
         {links.map(([label, href]) => (
           <li key={href + label}>
@@ -66,7 +66,7 @@ export function Footer() {
               <span className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-rose shadow-petal">
                 <Flower2 className="h-5 w-5 text-primary-foreground" strokeWidth={1.5} />
               </span>
-              <span className="font-display text-2xl">Rent & Radiate</span>
+              <span className="font-display text-2xl text-foreground">Rent & Radiate</span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
               Rent and buy beautiful dresses, jewellery, and lifestyle products from verified local boutiques near you.
@@ -81,7 +81,7 @@ export function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Rent & Radiate on ${social.label}`}
-                    className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-card border border-border text-muted-foreground hover:text-primary hover:border-primary/40 hover:-translate-y-0.5 transition-smooth"
+                    className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-card border border-border text-foreground/80 hover:text-primary hover:border-primary/40 hover:-translate-y-0.5 transition-smooth"
                   >
                     <Icon className="h-4 w-4" />
                   </a>
