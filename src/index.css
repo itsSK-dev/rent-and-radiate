@@ -190,6 +190,10 @@
     animation: shimmer-gold 1.6s ease-in-out infinite;
   }
   @keyframes shimmer-gold { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+  .dark .skeleton-luxe {
+    background: linear-gradient(90deg, hsl(40 12% 14%) 25%, hsl(42 14% 20%) 37%, hsl(40 12% 14%) 63%);
+    background-size: 400% 100%;
+  }
   .bg-gradient-soft { background: var(--gradient-soft); }
   .shadow-petal { box-shadow: var(--shadow-petal); }
   .shadow-soft { box-shadow: var(--shadow-soft); }
